@@ -2,10 +2,16 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "1.1.0"
+    static let appVersion = "1.2.0"
     static let urlScheme = "paperlesstedi"
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.2.0", date: "10.05.2026", changes: [
+            "Sicherheit: Login-Token wird im iOS Keychain gespeichert",
+            "Neu: Infinite Scroll statt Komplettladen",
+            "Performance: Dokumentenliste wird gecacht",
+            "Code aufgeteilt in modulare Dateien",
+        ]),
         ChangelogEntry(version: "1.1.0", date: "15.02.2026", changes: [
             "Fix für Apple Review (iPad Layout)",
             "Fix: FaceID Loop",
