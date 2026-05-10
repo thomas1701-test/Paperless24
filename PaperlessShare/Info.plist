@@ -4,20 +4,13 @@
 <dict>
 	<key>NSExtension</key>
 	<dict>
+		<key>NSExtensionPrincipalClass</key>
+		<string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionActivationRule</key>
-			<dict>
-				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
-				<integer>0</integer>
-				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
-				<integer>10</integer>
-				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
-				<integer>10</integer>
-			</dict>
+			<string>SUBQUERY ( extensionItems, $extensionItem, SUBQUERY ( $extensionItem.attachments, $attachment, ANY $attachment.registeredTypeIdentifiers UTI-CONFORMS-TO &quot;public.data&quot; ).@count &gt; 0 ).@count &gt; 0</string>
 		</dict>
-		<key>NSExtensionMainStoryboard</key>
-		<string>MainInterface</string>
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.share-services</string>
 	</dict>
