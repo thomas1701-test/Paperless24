@@ -153,11 +153,13 @@ struct MainDocView: View {
         .onReceive(store.$incomingUploadContainer) { container in
             if let c = container { uploadQueueItem = c; store.incomingUploadContainer = nil }
         }
-        .alert(item: Binding<String?>(
-            get: { store.importErrorMessage },
-            set: { store.importErrorMessage = $0 }
-        )) { msg in
-            Alert(title: Text("Fehler"), message: Text(msg), dismissButton: .default(Text("OK")))
+        .alert("Fehler", isPresented: Binding<Bool>(
+            get: { store.importErrorMessage != nil },
+            set: { if !$0 { store.importErrorMessage = nil } }
+        )) {
+            Button("OK") { store.importErrorMessage = nil }
+        } message: {
+            Text(store.importErrorMessage ?? "")
         }
         .onAppear { store.sync() }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in
