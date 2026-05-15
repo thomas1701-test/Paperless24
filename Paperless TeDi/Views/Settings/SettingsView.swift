@@ -83,7 +83,7 @@ struct SettingsView: View {
 
                 Section("Widget") {
                     Toggle("Widget aktiv", isOn: $widgetEnabled)
-                        .onChange(of: widgetEnabled) { val in
+                        .onChange(of: widgetEnabled) { _, val in
                             UserDefaults(suiteName: "group.com.Thomas.paperless")?.set(val, forKey: "widget_enabled")
                             store.updateWidget()
                             WidgetCenter.shared.reloadAllTimelines()
@@ -93,7 +93,7 @@ struct SettingsView: View {
                             Text("Letzte Dokumente").tag("documents")
                             Text("Übersicht").tag("overview")
                         }
-                        .onChange(of: widgetMode) { val in
+                        .onChange(of: widgetMode) { _, val in
                             UserDefaults(suiteName: "group.com.Thomas.paperless")?.set(val, forKey: "widget_mode")
                             WidgetCenter.shared.reloadAllTimelines()
                         }

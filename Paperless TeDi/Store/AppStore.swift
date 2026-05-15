@@ -86,35 +86,33 @@ class AppStore: ObservableObject {
         var loadedAccounts = AccountService.load()
         var loadedActiveId = AccountService.activeId()
 
-        // Migration: Single-Account → Multi-Account
-        if loadedAccounts.isEmpty {
+        // Migration: Single-Account → Multi-Account (runs exactly once)
+        if loadedAccounts.isEmpty && !UserDefaults.standard.bool(forKey: "migrated_to_v2") {
             let legacyUrl = UserDefaults.standard.string(forKey: "serverUrl") ?? ""
             let legacyUser = UserDefaults.standard.string(forKey: "username") ?? ""
-            if !legacyUrl.isEmpty, !legacyUser.isEmpty {
+            if !legacyUrl.isEmpty, !legacyUser.isEmpty,
+               let token = KeychainService.loadLegacyToken(for: legacyUrl) {
                 let account = Account(id: UUID(), serverUrl: legacyUrl, username: legacyUser)
-                if let token = KeychainService.loadLegacyToken(for: legacyUrl) {
-                    KeychainService.saveToken(token, for: legacyUrl, username: legacyUser)
-                    KeychainService.deleteLegacyToken(for: legacyUrl)
-                }
+                KeychainService.saveToken(token, for: legacyUrl, username: legacyUser)
+                KeychainService.deleteLegacyToken(for: legacyUrl)
                 PersistenceService.migrateLegacyDocFiles(to: account.id)
+                let fm = FileManager.default
                 for filename in ["documents.json", "tags.json", "corrs.json", "types.json",
                                  "pending.json", "edits.json", "savedfilters.json"] {
                     let oldURL = PersistenceService.legacyDataURL(filename)
                     let newURL = PersistenceService.accountDataURL(for: account.id, filename: filename)
-                    try? FileManager.default.moveItem(at: oldURL, to: newURL)
+                    guard fm.fileExists(atPath: oldURL.path) else { continue }
+                    if fm.fileExists(atPath: newURL.path) { try? fm.removeItem(at: newURL) }
+                    try? fm.moveItem(at: oldURL, to: newURL)
                 }
                 loadedAccounts = [account]
                 loadedActiveId = account.id
                 AccountService.save(loadedAccounts)
                 AccountService.setActiveId(loadedActiveId)
-                UserDefaults.standard.removeObject(forKey: "serverUrl")
-                UserDefaults.standard.removeObject(forKey: "username")
             }
-        }
-
-        let isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
-        if isFirstLaunch {
-            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            UserDefaults.standard.removeObject(forKey: "serverUrl")
+            UserDefaults.standard.removeObject(forKey: "username")
+            UserDefaults.standard.set(true, forKey: "migrated_to_v2")
         }
 
         accounts = loadedAccounts
@@ -169,6 +167,7 @@ class AppStore: ObservableObject {
         AccountService.setActiveId(id)
         documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []
         pendingUploads = []; pendingEdits = []; savedFilters = []
+        currentSearchText = ""; currentPage = 1; currentSearchPage = 1
         autoSyncTask?.cancel()
         if KeychainService.loadToken(for: serverUrl, username: username) != nil {
             loadFromDisk(for: id)
@@ -178,6 +177,7 @@ class AppStore: ObservableObject {
     }
 
     func removeAccount(id: UUID) {
+        guard accounts.count > 1 else { return }
         guard let account = accounts.first(where: { $0.id == id }) else { return }
         KeychainService.deleteToken(for: account.serverUrl, username: account.username)
         PersistenceService.deleteAccountFiles(accountId: id)

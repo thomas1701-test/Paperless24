@@ -114,8 +114,6 @@ struct LoginView: View {
                     otp: otpRequired && !otpCode.isEmpty ? otpCode : nil
                 )
                 let cleanToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
-                KeychainService.saveToken(cleanToken, for: serverUrl, username: username)
-                store.isDemoMode = false
 
                 if mode == .addAccount {
                     if store.accounts.contains(where: {
@@ -125,6 +123,12 @@ struct LoginView: View {
                         isChecking = false
                         return
                     }
+                }
+
+                KeychainService.saveToken(cleanToken, for: serverUrl, username: username)
+                store.isDemoMode = false
+
+                if mode == .addAccount {
                     let account = Account(id: UUID(), serverUrl: serverUrl, username: username)
                     store.addAccount(account)
                     dismiss()

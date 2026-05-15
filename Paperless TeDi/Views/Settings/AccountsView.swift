@@ -5,6 +5,7 @@ struct AccountsView: View {
     @State private var showAddAccount = false
     @State private var accountToDelete: Account? = nil
     @State private var showDeleteConfirm = false
+    @State private var showLastAccountAlert = false
 
     var body: some View {
         List {
@@ -30,7 +31,10 @@ struct AccountsView: View {
             .onDelete { offsets in
                 guard let first = offsets.first else { return }
                 let account = store.accounts[first]
-                guard store.accounts.count > 1 else { return }
+                guard store.accounts.count > 1 else {
+                    showLastAccountAlert = true
+                    return
+                }
                 accountToDelete = account
                 showDeleteConfirm = true
             }
@@ -58,6 +62,11 @@ struct AccountsView: View {
             if let account = accountToDelete {
                 Text("\(account.username) @ \(account.serverUrl) und alle gespeicherten Dateien löschen?")
             }
+        }
+        .alert("Letztes Konto", isPresented: $showLastAccountAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Das letzte Konto kann nicht gelöscht werden. Melde dich stattdessen ab.")
         }
     }
 }
