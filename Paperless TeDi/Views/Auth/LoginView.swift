@@ -8,6 +8,8 @@ struct LoginView: View {
     @State private var password = ""
     @State private var isChecking = false
     @State private var errorMessage = ""
+    @State private var otpRequired = false
+    @State private var otpCode = ""
     @State private var showDemoConfirm = false
 
     var body: some View {
@@ -23,12 +25,24 @@ struct LoginView: View {
                 .disableAutocorrection(true)
             SecureField("Passwort", text: $password)
                 .textFieldStyle(.roundedBorder)
+            if otpRequired {
+                VStack(spacing: 4) {
+                    Text("Gib deinen Authentifikator-Code ein")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    TextField("6-stelliger Code", text: $otpCode)
+                        .textFieldStyle(.roundedBorder)
+                        .keyboardType(.numberPad)
+                        .multilineTextAlignment(.center)
+                }
+            }
             Toggle("FaceID", isOn: $useFaceID)
 
             if isChecking {
                 ProgressView()
             } else {
-                Button("Login") { login() }.buttonStyle(.borderedProminent)
+                Button(otpRequired ? "Code bestätigen" : "Login") { login() }
+                    .buttonStyle(.borderedProminent)
             }
 
             if !errorMessage.isEmpty {
@@ -53,13 +67,30 @@ struct LoginView: View {
         errorMessage = ""
         Task {
             do {
-                try await PaperlessAPI.checkConnection(serverUrl: store.serverUrl, username: store.username, password: password)
-                let token = try await PaperlessAPI.fetchToken(serverUrl: store.serverUrl, username: store.username, password: password)
-                KeychainService.saveToken(token.trimmingCharacters(in: .whitespacesAndNewlines), for: store.serverUrl)
+                if !otpRequired {
+                    try await PaperlessAPI.checkConnection(
+                        serverUrl: store.serverUrl,
+                        username: store.username,
+                        password: password
+                    )
+                }
+                let token = try await PaperlessAPI.fetchToken(
+                    serverUrl: store.serverUrl,
+                    username: store.username,
+                    password: password,
+                    otp: otpRequired ? otpCode : nil
+                )
+                KeychainService.saveToken(
+                    token.trimmingCharacters(in: .whitespacesAndNewlines),
+                    for: store.serverUrl
+                )
                 store.isDemoMode = false
                 onConnect()
+            } catch APIError.otpRequired {
+                otpRequired = true
+                errorMessage = ""
             } catch APIError.unauthorized {
-                errorMessage = "Login fehlgeschlagen"
+                errorMessage = otpRequired ? "Falscher Code" : "Login fehlgeschlagen"
             } catch {
                 errorMessage = error.localizedDescription
             }
