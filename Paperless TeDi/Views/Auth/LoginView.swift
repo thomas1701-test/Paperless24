@@ -19,12 +19,15 @@ struct LoginView: View {
                 .textFieldStyle(.roundedBorder)
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
+                .onChange(of: store.serverUrl) { _, _ in resetOtp() }
             TextField("Benutzer", text: $store.username)
                 .textFieldStyle(.roundedBorder)
                 .autocapitalization(.none)
                 .disableAutocorrection(true)
+                .onChange(of: store.username) { _, _ in resetOtp() }
             SecureField("Passwort", text: $password)
                 .textFieldStyle(.roundedBorder)
+                .onChange(of: password) { _, _ in resetOtp() }
             if otpRequired {
                 VStack(spacing: 4) {
                     Text("Gib deinen Authentifikator-Code ein")
@@ -62,10 +65,15 @@ struct LoginView: View {
         .frame(maxWidth: 400)
     }
 
+    private func resetOtp() {
+        otpRequired = false
+        otpCode = ""
+    }
+
     private func login() {
         isChecking = true
         errorMessage = ""
-        Task {
+        Task { @MainActor in
             do {
                 if !otpRequired {
                     try await PaperlessAPI.checkConnection(
@@ -78,7 +86,7 @@ struct LoginView: View {
                     serverUrl: store.serverUrl,
                     username: store.username,
                     password: password,
-                    otp: otpRequired ? otpCode : nil
+                    otp: otpRequired && !otpCode.isEmpty ? otpCode : nil
                 )
                 KeychainService.saveToken(
                     token.trimmingCharacters(in: .whitespacesAndNewlines),
