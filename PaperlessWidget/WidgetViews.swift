@@ -16,14 +16,22 @@ struct DocRow: View {
         }
     }
 
-    private func formattedDate(_ s: String) -> String {
+    private static let isoFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
-        guard let d = f.date(from: String(s.prefix(10))) else { return s }
-        let out = DateFormatter()
-        out.dateStyle = .short
-        out.timeStyle = .none
-        return out.string(from: d)
+        return f
+    }()
+
+    private static let displayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateStyle = .short
+        f.timeStyle = .none
+        return f
+    }()
+
+    private func formattedDate(_ s: String) -> String {
+        guard let d = Self.isoFormatter.date(from: String(s.prefix(10))) else { return s }
+        return Self.displayFormatter.string(from: d)
     }
 }
 
@@ -83,6 +91,13 @@ struct SmallOverviewView: View {
     }
 }
 
+private func relativeSyncText(_ date: Date?) -> String {
+    guard let d = date else { return "–" }
+    let f = RelativeDateTimeFormatter()
+    f.unitsStyle = .abbreviated
+    return f.localizedString(for: d, relativeTo: Date())
+}
+
 // MARK: - Medium
 
 struct MediumDocumentsView: View {
@@ -97,12 +112,13 @@ struct MediumDocumentsView: View {
             }
             .padding(.horizontal, 12).padding(.top, 10).padding(.bottom, 4)
 
-            ForEach(docs.prefix(2)) { doc in
+            let sliced = Array(docs.prefix(2))
+            ForEach(Array(sliced.enumerated()), id: \.element.id) { index, doc in
                 Link(destination: URL(string: "paperlesstedi://document?id=\(doc.id)")!) {
                     DocRow(doc: doc)
                         .padding(.horizontal, 12).padding(.vertical, 4)
                 }
-                if doc.id != docs.prefix(2).last?.id {
+                if index < sliced.count - 1 {
                     Divider().padding(.horizontal, 12)
                 }
             }
@@ -123,7 +139,7 @@ struct MediumOverviewView: View {
             Divider().padding(.vertical, 12)
             statItem(value: "\(total)", label: "Dokumente", icon: "doc.text.fill", color: .blue)
             Divider().padding(.vertical, 12)
-            statItem(value: syncText, label: "Sync", icon: "arrow.clockwise", color: .green)
+            statItem(value: relativeSyncText(lastSync), label: "Sync", icon: "arrow.clockwise", color: .green)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .widgetURL(URL(string: "paperlesstedi://open"))
@@ -136,13 +152,6 @@ struct MediumOverviewView: View {
             Text(label).font(.caption2).foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-    }
-
-    private var syncText: String {
-        guard let d = lastSync else { return "–" }
-        let f = RelativeDateTimeFormatter()
-        f.unitsStyle = .abbreviated
-        return f.localizedString(for: d, relativeTo: Date())
     }
 }
 
@@ -183,7 +192,7 @@ struct LargeOverviewView: View {
             HStack(spacing: 16) {
                 overviewStat(value: "\(inbox)", label: "Posteingang", icon: "tray.fill", color: .pink)
                 overviewStat(value: "\(total)", label: "Dokumente", icon: "doc.text.fill", color: .blue)
-                overviewStat(value: syncText, label: "Sync", icon: "arrow.clockwise", color: .green)
+                overviewStat(value: relativeSyncText(lastSync), label: "Sync", icon: "arrow.clockwise", color: .green)
             }
             .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 8)
 
@@ -214,10 +223,4 @@ struct LargeOverviewView: View {
         .frame(maxWidth: .infinity)
     }
 
-    private var syncText: String {
-        guard let d = lastSync else { return "–" }
-        let f = RelativeDateTimeFormatter()
-        f.unitsStyle = .abbreviated
-        return f.localizedString(for: d, relativeTo: Date())
-    }
 }

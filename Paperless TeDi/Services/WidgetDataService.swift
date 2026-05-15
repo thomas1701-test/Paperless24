@@ -1,6 +1,6 @@
 import Foundation
 
-struct WidgetDocument: Codable {
+struct WidgetDocument: Codable, Identifiable {
     let id: Int
     let title: String
     let created: String
