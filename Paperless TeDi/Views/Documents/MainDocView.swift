@@ -4,7 +4,6 @@ import UniformTypeIdentifiers
 
 struct MainDocView: View {
     @EnvironmentObject var store: AppStore
-    let onLogout: () -> Void
 
     @AppStorage("layoutStyle") private var layoutStyleRaw = LayoutStyle.grid.rawValue
     @AppStorage("sortOrder") private var sortOrderRaw = SortOrder.dateDesc.rawValue
@@ -14,19 +13,28 @@ struct MainDocView: View {
     @State private var filterCorr: Int? = nil
     @State private var filterType: Int? = nil
     @State private var filterDate: DateFilter = .all
-    @State private var showSettings = false
     @State private var showScanner = false
     @State private var showFilePicker = false
     @State private var showPhotoPicker = false
     @State private var uploadQueueItem: UploadContainer? = nil
     @State private var isSelectionMode = false
     @State private var selectedDocIDs = Set<Int>()
+    @State private var isBulkSharing = false
+    @State private var bulkShareURLs: [URL] = []
+    @State private var showBulkShare = false
     @State private var documentToEdit: Document? = nil
+    @State private var quickTagDoc: Document? = nil
     @State private var selectedDocId: Int? = nil
     @State private var deepLinkDoc: Document? = nil
     @State private var customStartDate = Date()
     @State private var customEndDate = Date()
     @State private var showDatePickerSheet = false
+    @State private var showTagPicker = false
+    @State private var showCorrPicker = false
+    @State private var showTypePicker = false
+    @State private var showSaveFilterSheet = false
+    @State private var saveFilterName = ""
+    @State private var quickLookDoc: Document? = nil
 
     private var layoutStyle: LayoutStyle { LayoutStyle(rawValue: layoutStyleRaw) ?? .grid }
     private var sortOrder: SortOrder { SortOrder(rawValue: sortOrderRaw) ?? .dateDesc }
@@ -46,7 +54,7 @@ struct MainDocView: View {
             NavigationLink(
                 destination: Group {
                     if let d = deepLinkDoc {
-                        DocumentDetailView(doc: d, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) })
+                        DocumentDetailView(doc: d, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText)
                     } else { ProgressView() }
                 },
                 tag: 999999, selection: $selectedDocId
@@ -54,36 +62,73 @@ struct MainDocView: View {
 
             VStack(spacing: 0) {
                 if let err = store.lastSyncError {
-                    Text("Fehler: \(err)").font(.caption).foregroundColor(.white)
-                        .padding().background(Color.red)
-                        .onTapGesture { store.lastSyncError = nil }
+                    HStack {
+                        Text("Fehler: \(err)").font(.caption).foregroundColor(.white).lineLimit(1)
+                        Spacer()
+                        Button { Task { await store.loadFirstPage() } } label: {
+                            Image(systemName: "arrow.clockwise").foregroundColor(.white)
+                        }
+                        Button { store.lastSyncError = nil } label: {
+                            Image(systemName: "xmark").foregroundColor(.white)
+                        }
+                    }
+                    .padding(.horizontal).padding(.vertical, 8)
+                    .background(Color.red)
                 }
-                if store.isOffline { Text("Offline").frame(maxWidth: .infinity).background(Color.orange) }
+                if store.isOffline {
+                    HStack {
+                        Image(systemName: "wifi.slash")
+                        Text("Offline – letzte Daten werden angezeigt")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity).padding(6).background(Color.orange).foregroundColor(.white)
+                }
                 if store.isSearching {
-                    HStack { ProgressView(); Text("Suche...") }
-                        .padding().frame(maxWidth: .infinity).background(Color.blue.opacity(0.1))
+                    HStack { ProgressView(); Text("Suche...").font(.caption) }
+                        .padding(6).frame(maxWidth: .infinity).background(Color.blue.opacity(0.1))
                 }
-                if store.isSyncing {
-                    ProgressView().padding(5).frame(maxWidth: .infinity).background(Color.blue.opacity(0.1))
+                if store.isSyncing && !store.documents.isEmpty {
+                    ProgressView().padding(5).frame(maxWidth: .infinity).background(Color.blue.opacity(0.07))
                 }
 
-                if store.filteredDocs.isEmpty && !store.isSyncing {
+                if store.documents.isEmpty && store.isSyncing {
                     Spacer()
-                    VStack(spacing: 20) {
-                        Image(systemName: "doc.text.magnifyingglass").font(.system(size: 60)).foregroundColor(.gray)
-                        Text("Keine Dokumente gefunden").font(.title2).foregroundColor(.gray)
-                        Button("Laden erzwingen") { store.sync() }
+                    VStack(spacing: 16) {
+                        ProgressView().scaleEffect(1.5)
+                        Text("Dokumente werden geladen...").foregroundColor(.gray)
                     }
                     Spacer()
                 } else {
                     filterBar.zIndex(1)
-                    if layoutStyle == .grid {
+                    if store.filteredDocs.isEmpty && !store.isSyncing {
+                        Spacer()
+                        VStack(spacing: 20) {
+                            Image(systemName: "doc.text.magnifyingglass").font(.system(size: 60)).foregroundColor(.gray)
+                            Text("Keine Dokumente gefunden").font(.title2).foregroundColor(.gray)
+                            Button("Laden erzwingen") { store.sync() }
+                        }
+                        Spacer()
+                    } else if layoutStyle == .grid {
                         documentGrid
                             .searchable(text: $searchText)
+                            .searchSuggestions {
+                                if searchText.isEmpty {
+                                    ForEach(store.recentSearches, id: \.self) { recent in
+                                        Label(recent, systemImage: "clock").searchCompletion(recent)
+                                    }
+                                }
+                            }
                             .onChange(of: searchText) { store.runSearch(query: $0) }
                     } else {
                         documentList
                             .searchable(text: $searchText)
+                            .searchSuggestions {
+                                if searchText.isEmpty {
+                                    ForEach(store.recentSearches, id: \.self) { recent in
+                                        Label(recent, systemImage: "clock").searchCompletion(recent)
+                                    }
+                                }
+                            }
                             .onChange(of: searchText) { store.runSearch(query: $0) }
                     }
                 }
@@ -94,24 +139,67 @@ struct MainDocView: View {
                 Text(msg).padding().background(Color.green).foregroundColor(.white)
                     .cornerRadius(10).shadow(radius: 5).padding(.top, 10).zIndex(1)
             }
-            if isSelectionMode {
+            if !store.pendingUploads.isEmpty {
                 VStack {
                     Spacer()
                     HStack {
-                        Button("Abbrechen") { isSelectionMode = false }
-                        Spacer()
-                        Button("Löschen") { bulkDelete() }
+                        ProgressView().scaleEffect(0.8)
+                        Text("\(store.pendingUploads.count) Upload\(store.pendingUploads.count > 1 ? "s" : "") ausstehend")
+                            .font(.caption)
                     }
-                    .padding().background(Color(.systemBackground)).shadow(radius: 2)
+                    .padding(10)
+                    .frame(maxWidth: .infinity)
+                    .background(Material.thickMaterial)
+                    .shadow(radius: 3)
+                }
+                .zIndex(2)
+                .ignoresSafeArea(edges: .bottom)
+            }
+            if isSelectionMode {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 0) {
+                        Button("Abbrechen") { isSelectionMode = false; selectedDocIDs.removeAll() }
+                            .frame(maxWidth: .infinity)
+                        if !selectedDocIDs.isEmpty {
+                            Menu {
+                                ForEach(store.allTags) { tag in
+                                    Button(tag.safeName) {
+                                        store.bulkAssignTags([tag.id], to: selectedDocIDs)
+                                        store.haptic(.medium)
+                                    }
+                                }
+                            } label: { Image(systemName: "tag").frame(maxWidth: .infinity) }
+                            Menu {
+                                ForEach(store.allCorrespondents) { corr in
+                                    Button(corr.safeName) {
+                                        store.bulkAssignCorrespondent(corr.id, to: selectedDocIDs)
+                                        store.haptic(.medium)
+                                    }
+                                }
+                            } label: { Image(systemName: "person").frame(maxWidth: .infinity) }
+                            if isBulkSharing {
+                                ProgressView().frame(maxWidth: .infinity)
+                            } else {
+                                Button {
+                                    Task { await bulkShare() }
+                                } label: { Image(systemName: "square.and.arrow.up").frame(maxWidth: .infinity) }
+                            }
+                            Button(role: .destructive) { bulkDelete() } label: {
+                                Image(systemName: "trash").frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                    .font(.system(size: 20))
+                    .padding(.vertical, 12)
+                    .background(Color(.systemBackground)).shadow(radius: 2)
                 }
                 .zIndex(2)
             }
         }
-        .navigationTitle("Bibliothek")
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
-        .sheet(isPresented: $showSettings) {
-            SettingsView(isPresented: $showSettings, onLogout: onLogout)
-        }
         .sheet(item: $uploadQueueItem) { container in
             UploadDocumentView(container: container, onUpload: { d, f, t, date, co, ty, ta, comp in
                 store.addToQueue(data: d, filename: f, title: t, created: date, corr: co, type: ty, tags: ta)
@@ -121,6 +209,51 @@ struct MainDocView: View {
         }
         .sheet(item: $documentToEdit) { doc in
             EditDocumentView(document: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) })
+        }
+        .sheet(item: $quickTagDoc) { doc in
+            QuickTagSheet(doc: doc)
+        }
+        .sheet(item: $quickLookDoc) { doc in
+            QuickLookDocSheet(doc: doc)
+        }
+        .alert("Filter speichern", isPresented: $showSaveFilterSheet) {
+            TextField("Name", text: $saveFilterName)
+            Button("Speichern") {
+                if !saveFilterName.isEmpty {
+                    store.saveCurrentFilter(name: saveFilterName, tag: filterTag, correspondent: filterCorr, type: filterType, dateFilter: filterDate)
+                    saveFilterName = ""
+                }
+            }
+            Button("Abbrechen", role: .cancel) { saveFilterName = "" }
+        } message: {
+            Text("Name für diesen Filter:")
+        }
+        .sheet(isPresented: $showBulkShare) {
+            ShareSheet(items: bulkShareURLs)
+        }
+        .sheet(isPresented: $showTagPicker, onDismiss: applyFilters) {
+            FilterPickerSheet(
+                title: "Tags",
+                items: store.allTags.map { FilterPickerItem(id: $0.id, name: $0.safeName) },
+                selectedId: $filterTag
+            )
+            .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showCorrPicker, onDismiss: applyFilters) {
+            FilterPickerSheet(
+                title: "Sender",
+                items: store.allCorrespondents.map { FilterPickerItem(id: $0.id, name: $0.safeName) },
+                selectedId: $filterCorr
+            )
+            .presentationDetents([.medium, .large])
+        }
+        .sheet(isPresented: $showTypePicker, onDismiss: applyFilters) {
+            FilterPickerSheet(
+                title: "Typen",
+                items: store.allDocTypes.map { FilterPickerItem(id: $0.id, name: $0.safeName) },
+                selectedId: $filterType
+            )
+            .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showDatePickerSheet) {
             NavigationView {
@@ -161,12 +294,30 @@ struct MainDocView: View {
         } message: {
             Text(store.importErrorMessage ?? "")
         }
-        .onAppear { store.sync() }
-        .onContinueUserActivity(CSSearchableItemActionType) { activity in
-            if let idStr = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String, let id = Int(idStr) {
+        .onAppear { applyFilters(); store.sync() }
+        .onChange(of: store.widgetOpenDocId) { id in
+            guard let id else { return }
+            store.widgetOpenDocId = nil
+            if let existing = store.documents.first(where: { $0.id == id }) {
+                deepLinkDoc = existing
+                selectedDocId = 999999
+            } else {
                 Task {
                     deepLinkDoc = await store.fetchDocumentDetail(id: id)
                     selectedDocId = 999999
+                }
+            }
+        }
+        .onContinueUserActivity(CSSearchableItemActionType) { activity in
+            if let idStr = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String, let id = Int(idStr) {
+                if let existing = store.documents.first(where: { $0.id == id }) {
+                    deepLinkDoc = existing
+                    selectedDocId = 999999
+                } else {
+                    Task {
+                        deepLinkDoc = await store.fetchDocumentDetail(id: id)
+                        selectedDocId = 999999
+                    }
                 }
             }
         }
@@ -192,61 +343,97 @@ struct MainDocView: View {
                             Image(systemName: "calendar")
                             Text(filterDate == .all ? "Zeitraum" : filterDate.rawValue)
                         }
-                        .padding(.horizontal, 12).padding(.vertical, 8)
+                        .padding(.horizontal, 10).padding(.vertical, 6)
                         .background(Material.thickMaterial).cornerRadius(20)
                     }
 
-                    Menu {
-                        Button("Alle") { filterTag = nil; applyFilters() }
-                        ForEach(store.allTags) { t in
-                            Button(t.safeName) { filterTag = t.id; applyFilters() }
-                        }
-                    } label: {
-                        Label(filterTag == nil ? "Tags" : "Tag Aktiv", systemImage: "tag")
+                    Button { showTagPicker = true } label: {
+                        Label(filterTag == nil ? "Tags" : (store.allTags.first { $0.id == filterTag }?.safeName ?? "Tag Aktiv"), systemImage: "tag")
                             .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(Material.thickMaterial).cornerRadius(20)
+                            .background(filterTag == nil ? AnyShapeStyle(Material.thickMaterial) : AnyShapeStyle(Color.accentColor.opacity(0.2)))
+                            .cornerRadius(20)
                     }
 
-                    Menu {
-                        Button("Alle") { filterCorr = nil; applyFilters() }
-                        ForEach(store.allCorrespondents) { c in
-                            Button(c.safeName) { filterCorr = c.id; applyFilters() }
-                        }
-                    } label: {
-                        Label(filterCorr == nil ? "Sender" : "Sender Aktiv", systemImage: "person")
+                    Button { showCorrPicker = true } label: {
+                        Label(filterCorr == nil ? "Sender" : (store.allCorrespondents.first { $0.id == filterCorr }?.safeName ?? "Sender Aktiv"), systemImage: "person")
                             .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(Material.thickMaterial).cornerRadius(20)
+                            .background(filterCorr == nil ? AnyShapeStyle(Material.thickMaterial) : AnyShapeStyle(Color.accentColor.opacity(0.2)))
+                            .cornerRadius(20)
                     }
 
-                    Menu {
-                        Button("Alle") { filterType = nil; applyFilters() }
-                        ForEach(store.allDocTypes) { t in
-                            Button(t.safeName) { filterType = t.id; applyFilters() }
-                        }
-                    } label: {
-                        Label(filterType == nil ? "Typ" : "Typ Aktiv", systemImage: "doc")
+                    Button { showTypePicker = true } label: {
+                        Label(filterType == nil ? "Typ" : (store.allDocTypes.first { $0.id == filterType }?.safeName ?? "Typ Aktiv"), systemImage: "doc")
                             .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(Material.thickMaterial).cornerRadius(20)
+                            .background(filterType == nil ? AnyShapeStyle(Material.thickMaterial) : AnyShapeStyle(Color.accentColor.opacity(0.2)))
+                            .cornerRadius(20)
+                    }
+
+                    if filterTag != nil || filterCorr != nil || filterType != nil || filterDate != .all {
+                        Button {
+                            showSaveFilterSheet = true
+                        } label: {
+                            Label("Speichern", systemImage: "bookmark")
+                                .padding(.horizontal, 12).padding(.vertical, 8)
+                                .background(Color.accentColor.opacity(0.15)).cornerRadius(20)
+                        }
+                        Button {
+                            filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
+                            applyFilters(); store.haptic(.light)
+                        } label: {
+                            Label("Zurücksetzen", systemImage: "xmark.circle.fill")
+                                .padding(.horizontal, 12).padding(.vertical, 8)
+                                .background(Color.red.opacity(0.12)).cornerRadius(20)
+                        }
                     }
                 }
-                .padding(.horizontal).padding(.vertical, 10)
+                .padding(.horizontal).padding(.vertical, 5)
             }
+
+            if !store.savedFilters.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(store.savedFilters) { saved in
+                            Button {
+                                filterTag = saved.tag
+                                filterCorr = saved.correspondent
+                                filterType = saved.type
+                                filterDate = saved.dateFilter
+                                applyFilters()
+                                store.haptic(.light)
+                            } label: {
+                                Label(saved.name, systemImage: "bookmark.fill")
+                                    .font(.caption)
+                                    .padding(.horizontal, 10).padding(.vertical, 5)
+                                    .background(Color.accentColor.opacity(0.12)).cornerRadius(15)
+                            }
+                            .contextMenu {
+                                Button(role: .destructive) { store.deleteSavedFilter(id: saved.id) } label: {
+                                    Label("Löschen", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+                    .padding(.horizontal).padding(.vertical, 4)
+                }
+            }
+
             Divider()
         }
         .background(Material.thickMaterial)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
+        .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 2)
     }
 
     // MARK: - Document Grid
 
     var documentGrid: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 15)], spacing: 15) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 10)], spacing: 10) {
                 ForEach(store.filteredDocs) { doc in
                     if isSelectionMode {
                         DocumentCard(
                             doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
                             allTags: store.allTags, allCorrespondents: store.allCorrespondents,
+                            allDocTypes: store.allDocTypes,
                             isSelected: selectedDocIDs.contains(doc.id)
                         )
                         .onTapGesture {
@@ -255,29 +442,39 @@ struct MainDocView: View {
                         }
                     } else {
                         NavigationLink(
-                            destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }),
+                            destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
                             tag: doc.id, selection: $selectedDocId
                         ) {
                             DocumentCard(
                                 doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
-                                allTags: store.allTags, allCorrespondents: store.allCorrespondents
+                                allTags: store.allTags, allCorrespondents: store.allCorrespondents,
+                                allDocTypes: store.allDocTypes
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
+                        .onLongPressGesture {
+                            store.haptic(.medium)
+                            quickLookDoc = doc
+                        }
                         .contextMenu {
                             Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
+                            Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
                             Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
                         }
                         .onAppear {
                             if doc.id == store.filteredDocs.last?.id {
-                                Task { await store.loadNextPage() }
+                                if !store.currentSearchText.isEmpty {
+                                    Task { await store.loadNextSearchPage() }
+                                } else {
+                                    Task { await store.loadNextPage() }
+                                }
                             }
                         }
                     }
                 }
                 if store.isLoadingMore { ProgressView().padding() }
             }
-            .padding()
+            .padding(10)
         }
         .refreshable { await store.loadFirstPage() }
     }
@@ -288,22 +485,35 @@ struct MainDocView: View {
         List {
             ForEach(store.filteredDocs) { doc in
                 NavigationLink(
-                    destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }),
+                    destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
                     tag: doc.id, selection: $selectedDocId
                 ) {
-                    DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents)
+                    DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
                 }
-                .swipeActions {
-                    Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+                .swipeActions(edge: .trailing) {
+                    Button(role: .destructive) {
+                        store.haptic(.heavy)
+                        store.deleteDocument(id: doc.id)
+                    } label: { Label("Löschen", systemImage: "trash") }
                     Button { documentToEdit = doc } label: { Label("Edit", systemImage: "pencil") }.tint(.orange)
+                }
+                .swipeActions(edge: .leading) {
+                    Button { quickTagDoc = doc; store.haptic(.light) } label: {
+                        Label("Tag", systemImage: "tag.fill")
+                    }.tint(.blue)
                 }
                 .contextMenu {
                     Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
+                    Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
                     Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
                 }
                 .onAppear {
                     if doc.id == store.filteredDocs.last?.id {
-                        Task { await store.loadNextPage() }
+                        if !store.currentSearchText.isEmpty {
+                            Task { await store.loadNextSearchPage() }
+                        } else {
+                            Task { await store.loadNextPage() }
+                        }
                     }
                 }
             }
@@ -316,6 +526,11 @@ struct MainDocView: View {
 
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            Text("\(store.filteredDocs.count) Dokumente")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
         ToolbarItem(placement: .navigationBarLeading) {
             Menu {
                 Button { showScanner = true } label: { Label("Scan", systemImage: "camera") }
@@ -338,7 +553,6 @@ struct MainDocView: View {
                 } label: {
                     Image(systemName: layoutStyle == .grid ? "list.bullet" : "square.grid.2x2")
                 }
-                Button { showSettings = true } label: { Image(systemName: "gear") }
             }
         }
     }
@@ -364,5 +578,21 @@ struct MainDocView: View {
         for id in selectedDocIDs { store.deleteDocument(id: id) }
         isSelectionMode = false
         selectedDocIDs.removeAll()
+    }
+
+    private func bulkShare() async {
+        isBulkSharing = true
+        var urls: [URL] = []
+        for id in selectedDocIDs {
+            guard let data = await store.loadPDFData(for: id) else { continue }
+            let title = store.documents.first { $0.id == id }?.title ?? "\(id)"
+            let safeName = title.replacingOccurrences(of: "/", with: "-")
+            let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("\(safeName).pdf")
+            try? data.write(to: tmp)
+            urls.append(tmp)
+        }
+        bulkShareURLs = urls
+        isBulkSharing = false
+        if !urls.isEmpty { showBulkShare = true }
     }
 }
