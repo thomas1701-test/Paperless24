@@ -8,6 +8,7 @@ struct LoginView: View {
     @State private var password = ""
     @State private var isChecking = false
     @State private var errorMessage = ""
+    @State private var showDemoConfirm = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -34,7 +35,14 @@ struct LoginView: View {
                 Text(errorMessage).foregroundColor(.red).font(.caption)
             }
 
-            Button("Demo") { store.setupDemoData(); onConnect() }.foregroundColor(.orange)
+            Button("Demo") { showDemoConfirm = true }
+                .foregroundColor(.orange)
+                .alert("Demo-Modus", isPresented: $showDemoConfirm) {
+                    Button("Abbrechen", role: .cancel) {}
+                    Button("Starten") { store.setupDemoData(); onConnect() }
+                } message: {
+                    Text("Zeigt Beispieldaten. Es wird keine Verbindung zum Server hergestellt.")
+                }
         }
         .padding()
         .frame(maxWidth: 400)
@@ -47,7 +55,8 @@ struct LoginView: View {
             do {
                 try await PaperlessAPI.checkConnection(serverUrl: store.serverUrl, username: store.username, password: password)
                 let token = try await PaperlessAPI.fetchToken(serverUrl: store.serverUrl, username: store.username, password: password)
-                KeychainService.saveToken(token, for: store.serverUrl)
+                KeychainService.saveToken(token.trimmingCharacters(in: .whitespacesAndNewlines), for: store.serverUrl)
+                store.isDemoMode = false
                 onConnect()
             } catch APIError.unauthorized {
                 errorMessage = "Login fehlgeschlagen"

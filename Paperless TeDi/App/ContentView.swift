@@ -18,8 +18,8 @@ struct ContentView: View {
                 switch appState {
                 case .loading:  ProgressView()
                 case .welcome:  WelcomeView(onStart: checkLogin)
-                case .login:    LoginView(useFaceID: $useFaceID, onConnect: { appState = .main; store.sync() })
-                case .main:     MainDocView(onLogout: { store.serverUrl = ""; appState = .welcome })
+                case .login:    LoginView(useFaceID: $useFaceID, onConnect: { appState = .main })
+                case .main:     RootTabView(onLogout: { store.serverUrl = ""; appState = .login })
                 }
             }
             .preferredColorScheme(appearanceMode == 1 ? .light : (appearanceMode == 2 ? .dark : nil))
@@ -33,7 +33,14 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            if !store.serverUrl.isEmpty { checkLogin() }
+            if store.serverUrl.isEmpty {
+                appState = .welcome
+            } else {
+                checkLogin()
+            }
+        }
+        .onChange(of: store.needsReLogin) { needs in
+            if needs { store.needsReLogin = false; appState = .login }
         }
         .onChange(of: scenePhase) { newPhase in
             switch newPhase {
@@ -59,11 +66,9 @@ struct ContentView: View {
     }
 
     private func checkLogin() {
-        if !store.serverUrl.isEmpty {
-            if useFaceID { authenticate() } else { appState = .main; store.sync() }
-        } else {
-            appState = .login
-        }
+        guard !store.serverUrl.isEmpty else { appState = .login; return }
+        guard KeychainService.loadToken(for: store.serverUrl) != nil else { appState = .login; return }
+        if useFaceID { authenticate() } else { appState = .main }
     }
 
     private func authenticate() {
@@ -79,7 +84,6 @@ struct ContentView: View {
                         self.lastBackgroundTime = nil
                         withAnimation { self.isBlurry = false }
                         self.appState = .main
-                        self.store.sync()
                     }
                 }
             }
@@ -87,7 +91,6 @@ struct ContentView: View {
             isAuthenticating = false
             withAnimation { isBlurry = false }
             appState = .main
-            store.sync()
         }
     }
 }

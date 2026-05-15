@@ -27,7 +27,10 @@ struct PaperlessAPI {
     let serverUrl: String
     let token: String
 
-    private static let pageSize = 25
+    private static var pageSize: Int {
+        let stored = UserDefaults.standard.integer(forKey: "pageSize")
+        return stored > 0 ? stored : 25
+    }
 
     // MARK: - URL Builder
 
@@ -104,12 +107,16 @@ struct PaperlessAPI {
     func fetchDocuments(page: Int, ordering: String = "-created") async throws -> DocumentPage {
         let endpoint = "documents/?page=\(page)&page_size=\(Self.pageSize)&ordering=\(ordering)"
         let url = try url(endpoint)
-        let (data, response) = try await URLSession.shared.data(for: makeRequest(url))
+        let req = makeRequest(url)
+        let (data, response) = try await URLSession.shared.data(for: req)
         try validateResponse(response)
 
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { throw APIError.noData }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw APIError.noData
+        }
+        let rawResults = json["results"] as? [[String: Any]] ?? []
         let decoder = JSONDecoder()
-        let results = (json["results"] as? [[String: Any]] ?? []).compactMap { dict -> Document? in
+        let results = rawResults.compactMap { dict -> Document? in
             guard let docData = try? JSONSerialization.data(withJSONObject: dict) else { return nil }
             return try? decoder.decode(Document.self, from: docData)
         }
@@ -132,6 +139,18 @@ struct PaperlessAPI {
         }
         let hasNext = json["next"] != nil && !(json["next"] is NSNull)
         return DocumentPage(documents: results, hasNext: hasNext)
+    }
+
+    func fetchAllDocuments(ordering: String = "-created") async throws -> [Document] {
+        var all: [Document] = []
+        var page = 1
+        while true {
+            let result = try await fetchDocuments(page: page, ordering: ordering)
+            all.append(contentsOf: result.documents)
+            guard result.hasNext else { break }
+            page += 1
+        }
+        return all
     }
 
     func fetchDocumentDetail(id: Int) async throws -> Document {

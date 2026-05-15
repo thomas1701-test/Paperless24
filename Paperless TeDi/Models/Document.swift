@@ -32,6 +32,22 @@ struct Document: Identifiable, Codable, Hashable {
     var safeNotes: [Note] { notes ?? [] }
 }
 
+extension Document {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(Int.self, forKey: .id)
+        title = (try? c.decode(String.self, forKey: .title)) ?? ""
+        content = try? c.decode(String.self, forKey: .content)
+        created = (try? c.decode(String.self, forKey: .created)) ?? ""
+        added = try? c.decode(String.self, forKey: .added)
+        correspondent = try? c.decode(Int.self, forKey: .correspondent)
+        documentType = try? c.decode(Int.self, forKey: .documentType)
+        archiveSerialNumber = try? c.decode(Int.self, forKey: .archiveSerialNumber)
+        tags = (try? c.decode([Int].self, forKey: .tags)) ?? []
+        notes = try? c.decode([Note].self, forKey: .notes)
+    }
+}
+
 struct UploadContainer: Identifiable {
     let id = UUID()
     let data: Data

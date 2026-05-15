@@ -4,10 +4,28 @@ struct DocumentRow: View {
     let doc: Document
     let allTags: [Tag]
     let allCorrespondents: [Correspondent]
+    var serverBase: String = ""
+    var token: String = ""
 
     var body: some View {
-        HStack {
-            Image(systemName: "doc.text.fill").font(.largeTitle).foregroundColor(.blue).padding(.trailing, 5)
+        HStack(spacing: 10) {
+            if !serverBase.isEmpty && !token.isEmpty {
+                AuthImage(
+                    docId: doc.id,
+                    urlString: "\(serverBase)/api/documents/\(doc.id)/thumb/",
+                    token: token,
+                    contentMode: .fill
+                )
+                .frame(width: 44, height: 56)
+                .cornerRadius(6)
+                .clipped()
+            } else {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(.systemGray5))
+                    .frame(width: 44, height: 56)
+                    .overlay(Image(systemName: "doc.text").foregroundColor(.gray))
+            }
+
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(doc.title).font(.headline).lineLimit(1)

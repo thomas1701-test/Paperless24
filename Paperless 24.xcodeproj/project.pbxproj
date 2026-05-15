@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		E913A0452F2679B3008A4933 /* PaperlessShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E913A03B2F2679B3008A4933 /* PaperlessShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E972FD9B2FB79B730074F8AF /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E972FD9A2FB79B730074F8AF /* WidgetKit.framework */; };
+		E972FD9D2FB79B730074F8AF /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E972FD9C2FB79B730074F8AF /* SwiftUI.framework */; };
+		E972FDAC2FB79B740074F8AF /* PaperlessWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E972FD982FB79B730074F8AF /* PaperlessWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +35,13 @@
 			remoteGlobalIDString = E913A03A2F2679B3008A4933;
 			remoteInfo = PaperlessShare;
 		};
+		E972FDAA2FB79B740074F8AF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E9139FF32F26774B008A4933 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E972FD972FB79B730074F8AF;
+			remoteInfo = PaperlessWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,6 +51,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				E972FDAC2FB79B740074F8AF /* PaperlessWidgetExtension.appex in Embed Foundation Extensions */,
 				E913A0452F2679B3008A4933 /* PaperlessShare.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
@@ -53,6 +64,10 @@
 		E913A00B2F267759008A4933 /* Paperless TeDiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless TeDiTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E913A0152F267759008A4933 /* Paperless TeDiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless TeDiUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E913A03B2F2679B3008A4933 /* PaperlessShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PaperlessShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E972FD982FB79B730074F8AF /* PaperlessWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PaperlessWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E972FD9A2FB79B730074F8AF /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		E972FD9C2FB79B730074F8AF /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		E972FDB12FB79C150074F8AF /* PaperlessWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PaperlessWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -62,6 +77,13 @@
 				Info.plist,
 			);
 			target = E913A03A2F2679B3008A4933 /* PaperlessShare */;
+		};
+		E972FDAD2FB79B740074F8AF /* Exceptions for "PaperlessWidget" folder in "PaperlessWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E972FD972FB79B730074F8AF /* PaperlessWidgetExtension */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -87,6 +109,14 @@
 				E913A0492F2679B3008A4933 /* Exceptions for "PaperlessShare" folder in "PaperlessShare" target */,
 			);
 			path = PaperlessShare;
+			sourceTree = "<group>";
+		};
+		E972FD9E2FB79B730074F8AF /* PaperlessWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E972FDAD2FB79B740074F8AF /* Exceptions for "PaperlessWidget" folder in "PaperlessWidgetExtension" target */,
+			);
+			path = PaperlessWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -120,16 +150,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E972FD952FB79B730074F8AF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E972FD9D2FB79B730074F8AF /* SwiftUI.framework in Frameworks */,
+				E972FD9B2FB79B730074F8AF /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		E9139FF22F26774B008A4933 = {
 			isa = PBXGroup;
 			children = (
+				E972FDB12FB79C150074F8AF /* PaperlessWidgetExtension.entitlements */,
 				E9139FFD2F26774B008A4933 /* Paperless TeDi */,
 				E913A00E2F267759008A4933 /* Paperless TeDiTests */,
 				E913A0182F267759008A4933 /* Paperless TeDiUITests */,
 				E913A03C2F2679B3008A4933 /* PaperlessShare */,
+				E972FD9E2FB79B730074F8AF /* PaperlessWidget */,
+				E972FD992FB79B730074F8AF /* Frameworks */,
 				E9139FFC2F26774B008A4933 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -141,8 +183,18 @@
 				E913A00B2F267759008A4933 /* Paperless TeDiTests.xctest */,
 				E913A0152F267759008A4933 /* Paperless TeDiUITests.xctest */,
 				E913A03B2F2679B3008A4933 /* PaperlessShare.appex */,
+				E972FD982FB79B730074F8AF /* PaperlessWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E972FD992FB79B730074F8AF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E972FD9A2FB79B730074F8AF /* WidgetKit.framework */,
+				E972FD9C2FB79B730074F8AF /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,6 +214,7 @@
 			);
 			dependencies = (
 				E913A0442F2679B3008A4933 /* PBXTargetDependency */,
+				E972FDAB2FB79B740074F8AF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				E9139FFD2F26774B008A4933 /* Paperless TeDi */,
@@ -241,6 +294,28 @@
 			productReference = E913A03B2F2679B3008A4933 /* PaperlessShare.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		E972FD972FB79B730074F8AF /* PaperlessWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E972FDAE2FB79B740074F8AF /* Build configuration list for PBXNativeTarget "PaperlessWidgetExtension" */;
+			buildPhases = (
+				E972FD942FB79B730074F8AF /* Sources */,
+				E972FD952FB79B730074F8AF /* Frameworks */,
+				E972FD962FB79B730074F8AF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E972FD9E2FB79B730074F8AF /* PaperlessWidget */,
+			);
+			name = PaperlessWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = PaperlessWidgetExtension;
+			productReference = E972FD982FB79B730074F8AF /* PaperlessWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -248,7 +323,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1620;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					E9139FFA2F26774B008A4933 = {
@@ -264,6 +339,9 @@
 					};
 					E913A03A2F2679B3008A4933 = {
 						CreatedOnToolsVersion = 16.2;
+					};
+					E972FD972FB79B730074F8AF = {
+						CreatedOnToolsVersion = 26.3;
 					};
 				};
 			};
@@ -285,6 +363,7 @@
 				E913A00A2F267759008A4933 /* Paperless TeDiTests */,
 				E913A0142F267759008A4933 /* Paperless TeDiUITests */,
 				E913A03A2F2679B3008A4933 /* PaperlessShare */,
+				E972FD972FB79B730074F8AF /* PaperlessWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -312,6 +391,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		E913A0392F2679B3008A4933 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E972FD962FB79B730074F8AF /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -370,6 +456,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E972FD942FB79B730074F8AF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -387,6 +480,11 @@
 			isa = PBXTargetDependency;
 			target = E913A03A2F2679B3008A4933 /* PaperlessShare */;
 			targetProxy = E913A0432F2679B3008A4933 /* PBXContainerItemProxy */;
+		};
+		E972FDAB2FB79B740074F8AF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E972FD972FB79B730074F8AF /* PaperlessWidgetExtension */;
+			targetProxy = E972FDAA2FB79B740074F8AF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -708,6 +806,70 @@
 			};
 			name = Release;
 		};
+		E972FDAF2FB79B740074F8AF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PaperlessWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RVXL7PUD42;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PaperlessWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PaperlessWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app.PaperlessWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E972FDB02FB79B740074F8AF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PaperlessWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = RVXL7PUD42;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PaperlessWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PaperlessWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app.PaperlessWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -752,6 +914,15 @@
 			buildConfigurations = (
 				E913A0472F2679B3008A4933 /* Debug */,
 				E913A0482F2679B3008A4933 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E972FDAE2FB79B740074F8AF /* Build configuration list for PBXNativeTarget "PaperlessWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E972FDAF2FB79B740074F8AF /* Debug */,
+				E972FDB02FB79B740074F8AF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

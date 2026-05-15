@@ -56,6 +56,22 @@ struct PaperlessStatistics: Codable {
     }
 }
 
+struct SavedFilter: Codable, Identifiable {
+    var id = UUID()
+    var name: String
+    var tag: Int?
+    var correspondent: Int?
+    var type: Int?
+    var dateFilterRaw: String
+
+    var dateFilter: DateFilter { DateFilter(rawValue: dateFilterRaw) ?? .all }
+
+    init(name: String, tag: Int?, correspondent: Int?, type: Int?, dateFilter: DateFilter) {
+        self.name = name; self.tag = tag; self.correspondent = correspondent
+        self.type = type; self.dateFilterRaw = dateFilter.rawValue
+    }
+}
+
 struct ChangelogEntry: Identifiable {
     let id = UUID()
     let version: String

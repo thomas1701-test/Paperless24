@@ -6,6 +6,7 @@ struct DocumentCard: View {
     let token: String
     let allTags: [Tag]
     let allCorrespondents: [Correspondent]
+    var allDocTypes: [DocumentType] = []
     var isSelected: Bool = false
 
     var body: some View {
@@ -14,48 +15,66 @@ struct DocumentCard: View {
                 let thumbUrl = "\(serverBase)/api/documents/\(doc.id)/thumb/"
 
                 ZStack(alignment: .bottomTrailing) {
-                    AuthImage(docId: doc.id, urlString: thumbUrl, token: token, contentMode: .fit)
-                        .frame(height: 140)
-                        .background(Color.white)
+                    AuthImage(docId: doc.id, urlString: thumbUrl, token: token, contentMode: .fill)
+                        .frame(height: 100)
+                        .background(Color(.systemGray6))
                         .clipped()
 
                     if !doc.tags.isEmpty {
-                        HStack(spacing: 4) {
-                            ForEach(doc.tags.prefix(3), id: \.self) { tagId in
+                        HStack(spacing: 3) {
+                            ForEach(doc.tags.prefix(2), id: \.self) { tagId in
                                 if let tag = allTags.first(where: { $0.id == tagId }) {
                                     Text(tag.safeName)
-                                        .font(.system(size: 9, weight: .bold))
+                                        .font(.system(size: 8, weight: .bold))
                                         .foregroundColor(.white)
-                                        .padding(.horizontal, 6).padding(.vertical, 3)
+                                        .padding(.horizontal, 5).padding(.vertical, 2)
                                         .background(Color(hex: tag.safeColor))
-                                        .cornerRadius(8)
-                                        .shadow(radius: 1)
+                                        .cornerRadius(6)
                                         .lineLimit(1)
                                 }
                             }
                         }
-                        .padding(6)
+                        .padding(5)
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(doc.title).font(.headline).lineLimit(2)
-                    if let cid = doc.correspondent, let name = allCorrespondents.first(where: { $0.id == cid })?.safeName {
-                        Text(name).font(.caption).foregroundColor(.blue).lineLimit(1)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(doc.title)
+                        .font(.system(size: 12, weight: .semibold))
+                        .lineLimit(2)
+                    HStack {
+                        if let cid = doc.correspondent, let name = allCorrespondents.first(where: { $0.id == cid })?.safeName {
+                            Text(name)
+                                .font(.system(size: 10))
+                                .foregroundColor(.accentColor)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        if let date = doc.dateObject {
+                            Text(date, style: .date)
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    if let tid = doc.documentType, let typeName = allDocTypes.first(where: { $0.id == tid })?.safeName {
+                        Text(typeName)
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                            .padding(.horizontal, 4).padding(.vertical, 1)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(4)
                     }
                 }
-                .padding(8)
-                .frame(height: 70, alignment: .top)
+                .padding(.horizontal, 8).padding(.vertical, 6)
             }
             .background(Material.thickMaterial)
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 5)
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3))
+            .cornerRadius(10)
+            .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 2)
+            .overlay(RoundedRectangle(cornerRadius: 10).stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2))
 
             if isSelected {
-                Image(systemName: "checkmark.circle.fill").foregroundColor(.blue).padding(8)
+                Image(systemName: "checkmark.circle.fill").foregroundColor(.accentColor).padding(6)
             }
         }
-        .frame(height: 210)
     }
 }

@@ -6,10 +6,12 @@ struct DocumentDetailView: View {
     let doc: Document
     let onSave: (Int, String, Date, Int?, Int?, Int?, [Int]) -> Void
     let onDelete: (Int) -> Void
+    var searchQuery: String = ""
 
     @State private var pdfData: Data? = nil
     @State private var showEdit = false
     @State private var showShare = false
+    @State private var shareURL: URL? = nil
     @State private var selectedTab = 0
     @State private var newNote = ""
     @State private var liveDoc: Document? = nil
@@ -20,14 +22,28 @@ struct DocumentDetailView: View {
         VStack {
             Picker("Ansicht", selection: $selectedTab) {
                 Text("Dokument").tag(0)
-                Text("Notizen").tag(1)
+                Text("Text").tag(1)
+                Text("Notizen").tag(2)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
 
             if selectedTab == 0 {
-                if let data = pdfData { PDFKitView(data: data) }
+                if let data = pdfData { PDFKitView(data: data, searchQuery: searchQuery) }
                 else { Spacer(); ProgressView(); Spacer() }
+            } else if selectedTab == 1 {
+                if let content = displayDoc.content, !content.isEmpty {
+                    ScrollView {
+                        Text(content)
+                            .font(.body)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                } else {
+                    Spacer()
+                    Text("Kein OCR-Text vorhanden").foregroundColor(.gray)
+                    Spacer()
+                }
             } else {
                 VStack {
                     List {
@@ -52,13 +68,21 @@ struct DocumentDetailView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack {
-                    Button { showShare = true } label: { Image(systemName: "square.and.arrow.up") }
+                    Button {
+                        if let data = pdfData {
+                            let safeName = displayDoc.title.replacingOccurrences(of: "/", with: "-")
+                            let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("\(safeName).pdf")
+                            try? data.write(to: tmp)
+                            shareURL = tmp
+                            showShare = true
+                        }
+                    } label: { Image(systemName: "square.and.arrow.up") }
                     Button("Edit") { showEdit = true }
                 }
             }
         }
         .sheet(isPresented: $showShare) {
-            if let data = pdfData { ShareSheet(items: [data]) }
+            if let url = shareURL { ShareSheet(items: [url]) }
         }
         .sheet(isPresented: $showEdit) {
             EditDocumentView(document: doc, onSave: onSave, onDelete: onDelete)
