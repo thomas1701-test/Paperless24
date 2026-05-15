@@ -1,84 +1,109 @@
-//
-//  PaperlessWidget.swift
-//  PaperlessWidget
-//
-//  Created by Thomas on 15.05.26.
-//
-
 import WidgetKit
 import SwiftUI
 
-struct Provider: TimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), emoji: "😀")
-    }
-
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), emoji: "😀")
-        completion(entry)
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
-
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, emoji: "😀")
-            entries.append(entry)
-        }
-
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
-    }
-
-//    func relevances() async -> WidgetRelevances<Void> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
-}
-
-struct SimpleEntry: TimelineEntry {
+struct PaperlessEntry: TimelineEntry {
     let date: Date
-    let emoji: String
+    let docs: [WidgetDocument]
+    let inboxCount: Int
+    let totalCount: Int
+    let lastSync: Date?
+    let mode: String
+    let enabled: Bool
 }
 
-struct PaperlessWidgetEntryView : View {
-    var entry: Provider.Entry
+struct PaperlessTimelineProvider: TimelineProvider {
+    func placeholder(in context: Context) -> PaperlessEntry {
+        PaperlessEntry(
+            date: Date(),
+            docs: [
+                WidgetDocument(id: 1, title: "Rechnung Amazon", created: "2026-05-01", correspondent: "Amazon"),
+                WidgetDocument(id: 2, title: "Kontoauszug Mai", created: "2026-05-10", correspondent: "Bank")
+            ],
+            inboxCount: 3,
+            totalCount: 142,
+            lastSync: Date(),
+            mode: "documents",
+            enabled: true
+        )
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (PaperlessEntry) -> Void) {
+        completion(makeEntry())
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<PaperlessEntry>) -> Void) {
+        let entry = makeEntry()
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
+        completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
+    }
+
+    private func makeEntry() -> PaperlessEntry {
+        let stats = WidgetDataService.readStats()
+        return PaperlessEntry(
+            date: Date(),
+            docs: WidgetDataService.readDocuments(),
+            inboxCount: stats.inbox,
+            totalCount: stats.total,
+            lastSync: stats.lastSync,
+            mode: WidgetDataService.readMode(),
+            enabled: WidgetDataService.isEnabled()
+        )
+    }
+}
+
+struct PaperlessWidgetEntryView: View {
+    let entry: PaperlessEntry
+    @Environment(\.widgetFamily) var family
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
+        if !entry.enabled {
+            WidgetDisabledView()
+        } else if entry.mode == "overview" {
+            overviewView
+        } else {
+            documentsView
+        }
+    }
 
-            Text("Emoji:")
-            Text(entry.emoji)
+    @ViewBuilder
+    private var documentsView: some View {
+        switch family {
+        case .systemSmall:
+            SmallDocumentsView(doc: entry.docs.first)
+        case .systemMedium:
+            MediumDocumentsView(docs: entry.docs)
+        case .systemLarge:
+            LargeDocumentsView(docs: entry.docs)
+        default:
+            SmallDocumentsView(doc: entry.docs.first)
+        }
+    }
+
+    @ViewBuilder
+    private var overviewView: some View {
+        switch family {
+        case .systemSmall:
+            SmallOverviewView(inbox: entry.inboxCount)
+        case .systemMedium:
+            MediumOverviewView(inbox: entry.inboxCount, total: entry.totalCount, lastSync: entry.lastSync)
+        case .systemLarge:
+            LargeOverviewView(inbox: entry.inboxCount, total: entry.totalCount, lastSync: entry.lastSync, docs: entry.docs)
+        default:
+            SmallOverviewView(inbox: entry.inboxCount)
         }
     }
 }
 
 struct PaperlessWidget: Widget {
-    let kind: String = "PaperlessWidget"
+    let kind = "PaperlessWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            if #available(iOS 17.0, *) {
-                PaperlessWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                PaperlessWidgetEntryView(entry: entry)
-                    .padding()
-                    .background()
-            }
+        StaticConfiguration(kind: kind, provider: PaperlessTimelineProvider()) { entry in
+            PaperlessWidgetEntryView(entry: entry)
+                .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("Paperless TeDi")
+        .description("Zeigt deine zuletzt hinzugefügten Dokumente oder eine Übersicht.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
-}
-
-#Preview(as: .systemSmall) {
-    PaperlessWidget()
-} timeline: {
-    SimpleEntry(date: .now, emoji: "😀")
-    SimpleEntry(date: .now, emoji: "🤩")
 }
