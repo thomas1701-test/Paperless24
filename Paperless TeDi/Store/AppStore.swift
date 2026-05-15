@@ -37,6 +37,7 @@ class AppStore: ObservableObject {
     @Published var isLoadingMore = false
     @Published var needsReLogin = false
     @Published var savedFilters: [SavedFilter] = []
+    @Published var widgetOpenDocId: Int? = nil
 
     var inboxCount: Int { documents.filter { $0.correspondent == nil }.count }
 
@@ -717,6 +718,10 @@ class AppStore: ObservableObject {
             enabled: enabled
         )
         WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    func triggerOpenDocument(id: Int) {
+        widgetOpenDocId = id
     }
 
     // MARK: - Toast

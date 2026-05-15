@@ -12,6 +12,12 @@ struct Paperless_TeDiApp: App {
                     if url.scheme == AppConstants.urlScheme {
                         if url.host == "check_shared" {
                             checkForSharedFile()
+                        } else if url.host == "document" {
+                            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+                            if let idStr = components?.queryItems?.first(where: { $0.name == "id" })?.value,
+                               let id = Int(idStr) {
+                                store.triggerOpenDocument(id: id)
+                            }
                         } else if url.host == "exchange" || url.host == "import" {
                             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                             let filename = components?.queryItems?.first(where: { $0.name == "name" })?.value ?? "Import.pdf"
