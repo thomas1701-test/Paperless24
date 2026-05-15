@@ -18,8 +18,14 @@ struct ContentView: View {
                 switch appState {
                 case .loading:  ProgressView()
                 case .welcome:  WelcomeView(onStart: checkLogin)
-                case .login:    LoginView(useFaceID: $useFaceID, onConnect: { appState = .main })
-                case .main:     RootTabView(onLogout: { store.serverUrl = ""; appState = .login })
+                case .login:
+                    LoginView(
+                        useFaceID: $useFaceID,
+                        onConnect: { appState = .main },
+                        prefillServerUrl: store.serverUrl,
+                        prefillUsername: store.username
+                    )
+                case .main:     RootTabView(onLogout: { appState = .login })
                 }
             }
             .preferredColorScheme(appearanceMode == 1 ? .light : (appearanceMode == 2 ? .dark : nil))
@@ -67,7 +73,7 @@ struct ContentView: View {
 
     private func checkLogin() {
         guard !store.serverUrl.isEmpty else { appState = .login; return }
-        guard KeychainService.loadToken(for: store.serverUrl) != nil else { appState = .login; return }
+        guard store.hasValidToken() else { appState = .login; return }
         if useFaceID { authenticate() } else { appState = .main }
     }
 

@@ -34,6 +34,12 @@ struct SettingsView: View {
                     .padding(.vertical, 8)
                 }
 
+                Section("Konten") {
+                    NavigationLink(destination: AccountsView()) {
+                        Label("Konten verwalten", systemImage: "person.2")
+                    }
+                }
+
                 Section("Verwaltung") {
                     NavigationLink(destination: OfflineDocsView()) {
                         HStack {
@@ -106,7 +112,6 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
                     Button("Abmelden", role: .destructive) {
                         store.clearLocalData()
-                        KeychainService.deleteToken(for: store.serverUrl)
                         onLogout()
                     }
                     HStack {
