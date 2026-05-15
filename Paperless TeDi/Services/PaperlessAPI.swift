@@ -3,16 +3,18 @@ import Foundation
 enum APIError: Error, LocalizedError {
     case invalidURL
     case unauthorized
+    case otpRequired
     case serverError(Int)
     case noData
     case decodingError(Error)
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL:         return "Ungültige URL"
-        case .unauthorized:       return "Nicht autorisiert (401)"
-        case .serverError(let c): return "Server Fehler: \(c)"
-        case .noData:             return "Keine Daten erhalten"
+        case .invalidURL:           return "Ungültige URL"
+        case .unauthorized:         return "Nicht autorisiert (401)"
+        case .otpRequired:          return "2FA-Code erforderlich"
+        case .serverError(let c):   return "Server Fehler: \(c)"
+        case .noData:               return "Keine Daten erhalten"
         case .decodingError(let e): return "Datenfehler: \(e.localizedDescription)"
         }
     }
@@ -61,7 +63,12 @@ struct PaperlessAPI {
 
     // MARK: - Token Exchange
 
-    static func fetchToken(serverUrl: String, username: String, password: String) async throws -> String {
+    static func fetchToken(
+        serverUrl: String,
+        username: String,
+        password: String,
+        otp: String? = nil
+    ) async throws -> String {
         var clean = serverUrl.trimmingCharacters(in: .whitespacesAndNewlines)
         if clean.hasSuffix("/") { clean.removeLast() }
         let prefix = clean.lowercased().hasPrefix("http") ? "" : "http://"
@@ -70,13 +77,23 @@ struct PaperlessAPI {
         var req = URLRequest(url: url)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        req.httpBody = try? JSONSerialization.data(withJSONObject: ["username": username, "password": password])
+        var body: [String: String] = ["username": username, "password": password]
+        if let otp { body["otp"] = otp }
+        req.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: req)
-        if let http = response as? HTTPURLResponse {
-            if http.statusCode == 401 { throw APIError.unauthorized }
-            if !(200...299).contains(http.statusCode) { throw APIError.serverError(http.statusCode) }
+        guard let http = response as? HTTPURLResponse else { throw APIError.noData }
+
+        if (400...401).contains(http.statusCode) {
+            let raw = String(data: data, encoding: .utf8)?.lowercased() ?? ""
+            let otpKeywords = ["otp", "totp", "mfa", "2fa", "one-time"]
+            if otpKeywords.contains(where: { raw.contains($0) }) {
+                throw APIError.otpRequired
+            }
+            throw APIError.unauthorized
         }
+        if !(200...299).contains(http.statusCode) { throw APIError.serverError(http.statusCode) }
+
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let token = json["token"] as? String else { throw APIError.noData }
         return token
