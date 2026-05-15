@@ -1,12 +1,15 @@
 import SwiftUI
+import WidgetKit
 
 struct SettingsView: View {
     @EnvironmentObject var store: AppStore
-    @Binding var isPresented: Bool
     let onLogout: () -> Void
 
     @AppStorage("appearanceMode") private var appearanceMode = 0
+    @AppStorage("pageSize") private var pageSize = 25
     @State private var stats: PaperlessStatistics? = nil
+    @State private var widgetEnabled: Bool = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
+    @State private var widgetMode: String = UserDefaults(suiteName: "group.com.Thomas.paperless")?.string(forKey: "widget_mode") ?? "documents"
 
     var body: some View {
         NavigationView {
@@ -62,6 +65,35 @@ struct SettingsView: View {
                     }
                 }
 
+                Section("Laden") {
+                    Picker("Dokumente beim Start", selection: $pageSize) {
+                        Text("25").tag(25)
+                        Text("50").tag(50)
+                        Text("100").tag(100)
+                        Text("250").tag(250)
+                        Text("500").tag(500)
+                    }
+                }
+
+                Section("Widget") {
+                    Toggle("Widget aktiv", isOn: $widgetEnabled)
+                        .onChange(of: widgetEnabled) { val in
+                            UserDefaults(suiteName: "group.com.Thomas.paperless")?.set(val, forKey: "widget_enabled")
+                            store.updateWidget()
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                    if widgetEnabled {
+                        Picker("Anzeige", selection: $widgetMode) {
+                            Text("Letzte Dokumente").tag("documents")
+                            Text("Übersicht").tag("overview")
+                        }
+                        .onChange(of: widgetMode) { val in
+                            UserDefaults(suiteName: "group.com.Thomas.paperless")?.set(val, forKey: "widget_mode")
+                            WidgetCenter.shared.reloadAllTimelines()
+                        }
+                    }
+                }
+
                 Section {
                     NavigationLink(destination: ChangelogView()) {
                         Label("Changelog", systemImage: "list.bullet.rectangle")
@@ -73,7 +105,6 @@ struct SettingsView: View {
                     }
                     .pickerStyle(.segmented)
                     Button("Abmelden", role: .destructive) {
-                        isPresented = false
                         store.clearLocalData()
                         KeychainService.deleteToken(for: store.serverUrl)
                         onLogout()
@@ -86,11 +117,6 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Einstellungen")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Fertig") { isPresented = false }
-                }
-            }
             .onAppear {
                 Task { stats = await store.fetchStatistics() }
             }
