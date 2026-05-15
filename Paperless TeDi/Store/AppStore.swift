@@ -43,9 +43,17 @@ class AppStore: ObservableObject {
 
     // MARK: - Settings
 
-    @AppStorage("serverUrl") var serverUrl = ""
-    @AppStorage("username") var username = ""
     @AppStorage("isDemoMode") var isDemoMode = false
+
+    @Published var accounts: [Account] = []
+    @Published var activeAccountId: UUID? = nil
+
+    var activeAccount: Account? {
+        accounts.first { $0.id == activeAccountId }
+    }
+
+    var serverUrl: String { activeAccount?.serverUrl ?? "" }
+    var username: String { activeAccount?.username ?? "" }
 
     // MARK: - Filter & Sort State (set by MainDocView)
 
@@ -61,8 +69,10 @@ class AppStore: ObservableObject {
     // MARK: - Private
 
     private var api: PaperlessAPI? {
-        guard let token = KeychainService.loadToken(for: serverUrl), !serverUrl.isEmpty else { return nil }
-        return PaperlessAPI(serverUrl: serverUrl, token: token)
+        guard let account = activeAccount,
+              let token = KeychainService.loadToken(for: account.serverUrl, username: account.username),
+              !account.serverUrl.isEmpty else { return nil }
+        return PaperlessAPI(serverUrl: account.serverUrl, token: token)
     }
 
     private var currentPage = 1
@@ -73,14 +83,47 @@ class AppStore: ObservableObject {
     // MARK: - Init
 
     init() {
+        var loadedAccounts = AccountService.load()
+        var loadedActiveId = AccountService.activeId()
+
+        // Migration: Single-Account → Multi-Account
+        if loadedAccounts.isEmpty {
+            let legacyUrl = UserDefaults.standard.string(forKey: "serverUrl") ?? ""
+            let legacyUser = UserDefaults.standard.string(forKey: "username") ?? ""
+            if !legacyUrl.isEmpty, !legacyUser.isEmpty {
+                let account = Account(id: UUID(), serverUrl: legacyUrl, username: legacyUser)
+                if let token = KeychainService.loadLegacyToken(for: legacyUrl) {
+                    KeychainService.saveToken(token, for: legacyUrl, username: legacyUser)
+                    KeychainService.deleteLegacyToken(for: legacyUrl)
+                }
+                PersistenceService.migrateLegacyDocFiles(to: account.id)
+                for filename in ["documents.json", "tags.json", "corrs.json", "types.json",
+                                 "pending.json", "edits.json", "savedfilters.json"] {
+                    let oldURL = PersistenceService.legacyDataURL(filename)
+                    let newURL = PersistenceService.accountDataURL(for: account.id, filename: filename)
+                    try? FileManager.default.moveItem(at: oldURL, to: newURL)
+                }
+                loadedAccounts = [account]
+                loadedActiveId = account.id
+                AccountService.save(loadedAccounts)
+                AccountService.setActiveId(loadedActiveId)
+                UserDefaults.standard.removeObject(forKey: "serverUrl")
+                UserDefaults.standard.removeObject(forKey: "username")
+            }
+        }
+
         let isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
         if isFirstLaunch {
             UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
-            let savedUrl = UserDefaults.standard.string(forKey: "serverUrl") ?? ""
-            if !savedUrl.isEmpty { KeychainService.deleteToken(for: savedUrl) }
         }
-        if !serverUrl.isEmpty, KeychainService.loadToken(for: serverUrl) != nil {
-            loadFromDisk()
+
+        accounts = loadedAccounts
+        activeAccountId = loadedActiveId
+
+        if let id = loadedActiveId,
+           let account = loadedAccounts.first(where: { $0.id == id }),
+           KeychainService.loadToken(for: account.serverUrl, username: account.username) != nil {
+            loadFromDisk(for: id)
             calculateStorage()
             startAutoSync()
         }
@@ -97,7 +140,60 @@ class AppStore: ObservableObject {
     }
 
     func authToken() -> String {
-        KeychainService.loadToken(for: serverUrl) ?? ""
+        guard let account = activeAccount else { return "" }
+        return KeychainService.loadToken(for: account.serverUrl, username: account.username) ?? ""
+    }
+
+    func hasValidToken() -> Bool {
+        guard let account = activeAccount else { return false }
+        return KeychainService.loadToken(for: account.serverUrl, username: account.username) != nil
+    }
+
+    // MARK: - Account Management
+
+    func addAccount(_ account: Account) {
+        if let existing = accounts.first(where: {
+            $0.serverUrl == account.serverUrl && $0.username == account.username
+        }) {
+            switchAccount(to: existing.id)
+            return
+        }
+        accounts.append(account)
+        AccountService.save(accounts)
+        switchAccount(to: account.id)
+    }
+
+    func switchAccount(to id: UUID) {
+        guard accounts.contains(where: { $0.id == id }) else { return }
+        activeAccountId = id
+        AccountService.setActiveId(id)
+        documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []
+        pendingUploads = []; pendingEdits = []; savedFilters = []
+        autoSyncTask?.cancel()
+        if KeychainService.loadToken(for: serverUrl, username: username) != nil {
+            loadFromDisk(for: id)
+            calculateStorage()
+            startAutoSync()
+        }
+    }
+
+    func removeAccount(id: UUID) {
+        guard let account = accounts.first(where: { $0.id == id }) else { return }
+        KeychainService.deleteToken(for: account.serverUrl, username: account.username)
+        PersistenceService.deleteAccountFiles(accountId: id)
+        accounts.removeAll { $0.id == id }
+        AccountService.save(accounts)
+        if activeAccountId == id {
+            if let first = accounts.first {
+                switchAccount(to: first.id)
+            } else {
+                activeAccountId = nil
+                AccountService.setActiveId(nil)
+                documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []
+                pendingUploads = []; pendingEdits = []; savedFilters = []
+                autoSyncTask?.cancel()
+            }
+        }
     }
 
     // MARK: - Sync
@@ -156,7 +252,9 @@ class AppStore: ObservableObject {
                 isSyncing = false
                 return
             } catch APIError.unauthorized {
-                KeychainService.deleteToken(for: serverUrl)
+                if let account = activeAccount {
+                    KeychainService.deleteToken(for: account.serverUrl, username: account.username)
+                }
                 lastSyncError = "Sitzung abgelaufen, bitte neu einloggen"
                 needsReLogin = true
                 isSyncing = false
@@ -418,11 +516,11 @@ class AppStore: ObservableObject {
 
     func deleteDocument(id: Int) {
         Task {
-            guard let api = api else { return }
+            guard let api = api, let accountId = activeAccountId else { return }
             try? await api.deleteDocument(id: id)
             documents.removeAll { $0.id == id }
             updateFilteredDocs()
-            PersistenceService.deleteDocFile(docId: id)
+            PersistenceService.deleteDocFile(docId: id, accountId: accountId)
         }
     }
 
@@ -487,8 +585,17 @@ class AppStore: ObservableObject {
 
     // MARK: - Offline / Download
 
-    func fileExists(docId: Int) -> Bool { PersistenceService.fileExists(docId: docId) }
-    func localFileURL(for docId: Int) -> URL { PersistenceService.docFileURL(for: docId) }
+    func fileExists(docId: Int) -> Bool {
+        guard let id = activeAccountId else { return false }
+        return PersistenceService.fileExists(docId: docId, accountId: id)
+    }
+
+    func localFileURL(for docId: Int) -> URL {
+        guard let id = activeAccountId else {
+            return URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("doc_\(docId).pdf")
+        }
+        return PersistenceService.docFileURL(for: docId, accountId: id)
+    }
 
     func loadPDFData(for docId: Int) async -> Data? {
         if fileExists(docId: docId) { return try? Data(contentsOf: localFileURL(for: docId)) }
@@ -501,7 +608,8 @@ class AppStore: ObservableObject {
     }
 
     func deleteLocalFile(docId: Int) {
-        PersistenceService.deleteDocFile(docId: docId)
+        guard let id = activeAccountId else { return }
+        PersistenceService.deleteDocFile(docId: docId, accountId: id)
         calculateStorage()
     }
 
@@ -542,8 +650,9 @@ class AppStore: ObservableObject {
     }
 
     func calculateStorage() {
+        guard let id = activeAccountId else { return }
         Task.detached(priority: .background) {
-            let result = PersistenceService.calculateStorage()
+            let result = PersistenceService.calculateStorage(accountId: id)
             await MainActor.run {
                 self.storageSize = result.sizeString
                 self.cachedCount = result.cachedCount
@@ -601,23 +710,24 @@ class AppStore: ObservableObject {
     // MARK: - Persistence
 
     func saveToDisk() {
-        PersistenceService.save(documents, to: "documents.json")
-        PersistenceService.save(allTags, to: "tags.json")
-        PersistenceService.save(allCorrespondents, to: "corrs.json")
-        PersistenceService.save(allDocTypes, to: "types.json")
-        PersistenceService.save(pendingUploads, to: "pending.json")
-        PersistenceService.save(pendingEdits, to: "edits.json")
-        PersistenceService.save(savedFilters, to: "savedfilters.json")
+        guard let id = activeAccountId else { return }
+        PersistenceService.save(documents,         toURL: PersistenceService.accountDataURL(for: id, filename: "documents.json"))
+        PersistenceService.save(allTags,           toURL: PersistenceService.accountDataURL(for: id, filename: "tags.json"))
+        PersistenceService.save(allCorrespondents, toURL: PersistenceService.accountDataURL(for: id, filename: "corrs.json"))
+        PersistenceService.save(allDocTypes,       toURL: PersistenceService.accountDataURL(for: id, filename: "types.json"))
+        PersistenceService.save(pendingUploads,    toURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))
+        PersistenceService.save(pendingEdits,      toURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))
+        PersistenceService.save(savedFilters,      toURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json"))
     }
 
-    func loadFromDisk() {
-        documents = PersistenceService.load([Document].self, from: "documents.json") ?? []
-        allTags = PersistenceService.load([Tag].self, from: "tags.json") ?? []
-        allCorrespondents = PersistenceService.load([Correspondent].self, from: "corrs.json") ?? []
-        allDocTypes = PersistenceService.load([DocumentType].self, from: "types.json") ?? []
-        pendingUploads = PersistenceService.load([PendingUpload].self, from: "pending.json") ?? []
-        pendingEdits = PersistenceService.load([PendingEdit].self, from: "edits.json") ?? []
-        savedFilters = PersistenceService.load([SavedFilter].self, from: "savedfilters.json") ?? []
+    func loadFromDisk(for id: UUID) {
+        documents         = PersistenceService.load([Document].self,      fromURL: PersistenceService.accountDataURL(for: id, filename: "documents.json"))    ?? []
+        allTags           = PersistenceService.load([Tag].self,            fromURL: PersistenceService.accountDataURL(for: id, filename: "tags.json"))         ?? []
+        allCorrespondents = PersistenceService.load([Correspondent].self,  fromURL: PersistenceService.accountDataURL(for: id, filename: "corrs.json"))        ?? []
+        allDocTypes       = PersistenceService.load([DocumentType].self,   fromURL: PersistenceService.accountDataURL(for: id, filename: "types.json"))        ?? []
+        pendingUploads    = PersistenceService.load([PendingUpload].self,  fromURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))      ?? []
+        pendingEdits      = PersistenceService.load([PendingEdit].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))        ?? []
+        savedFilters      = PersistenceService.load([SavedFilter].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json")) ?? []
         updateFilteredDocs()
     }
 
@@ -651,6 +761,14 @@ class AppStore: ObservableObject {
     // MARK: - Clear
 
     func clearLocalData() {
+        for account in accounts {
+            KeychainService.deleteToken(for: account.serverUrl, username: account.username)
+        }
+        accounts = []
+        activeAccountId = nil
+        AccountService.save([])
+        AccountService.setActiveId(nil)
+        isDemoMode = false
         documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []
         pendingUploads = []; pendingEdits = []; cachedCount = 0; storageSize = "0 MB"; lastSyncError = nil
         PersistenceService.clearAll()
@@ -685,12 +803,17 @@ class AppStore: ObservableObject {
 
     func setupDemoData() {
         isDemoMode = true
-        serverUrl = "demo.local"
-        username = "demo"
+        let demoAccount = Account(id: UUID(), serverUrl: "demo.local", username: "demo")
+        accounts = [demoAccount]
+        activeAccountId = demoAccount.id
+        AccountService.save(accounts)
+        AccountService.setActiveId(demoAccount.id)
         allTags = [Tag(id: 1, name: "Rechnung", color: "#ff0000")]
         allCorrespondents = [Correspondent(id: 1, name: "Amazon")]
         allDocTypes = [DocumentType(id: 1, name: "Rechnung")]
-        documents = [Document(id: 1, title: "Demo", content: "Text", created: "2026-01-26", added: nil, correspondent: 1, documentType: 1, archiveSerialNumber: 100, tags: [1])]
+        documents = [Document(id: 1, title: "Demo", content: "Text", created: "2026-01-26",
+                              added: nil, correspondent: 1, documentType: 1,
+                              archiveSerialNumber: 100, tags: [1])]
         updateFilteredDocs()
         saveToDisk()
     }
