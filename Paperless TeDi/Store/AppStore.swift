@@ -2,6 +2,7 @@ import SwiftUI
 import CoreSpotlight
 import PDFKit
 import Vision
+import WidgetKit
 
 @MainActor
 class AppStore: ObservableObject {
@@ -34,6 +35,10 @@ class AppStore: ObservableObject {
 
     @Published var hasNextPage = false
     @Published var isLoadingMore = false
+    @Published var needsReLogin = false
+    @Published var savedFilters: [SavedFilter] = []
+
+    var inboxCount: Int { documents.filter { $0.correspondent == nil }.count }
 
     // MARK: - Settings
 
@@ -67,6 +72,12 @@ class AppStore: ObservableObject {
     // MARK: - Init
 
     init() {
+        let isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
+        if isFirstLaunch {
+            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            let savedUrl = UserDefaults.standard.string(forKey: "serverUrl") ?? ""
+            if !savedUrl.isEmpty { KeychainService.deleteToken(for: savedUrl) }
+        }
         if !serverUrl.isEmpty, KeychainService.loadToken(for: serverUrl) != nil {
             loadFromDisk()
             calculateStorage()
@@ -108,36 +119,55 @@ class AppStore: ObservableObject {
         async let tags = try? api.fetchTags()
         async let corrs = try? api.fetchCorrespondents()
         async let types = try? api.fetchDocumentTypes()
+        async let stats = try? api.fetchStatistics()
 
         if let t = await tags { allTags = t }
         if let c = await corrs { allCorrespondents = c }
         if let tp = await types { allDocTypes = tp }
         saveToDisk()
+
+        let resolvedStats = await stats
+        updateWidget(stats: resolvedStats)
     }
 
     // MARK: - Pagination
 
     func loadFirstPage() async {
-        guard let api = api else { return }
+        guard let api = api else {
+            isSyncing = false
+            needsReLogin = true
+            return
+        }
         currentPage = 1
         isSyncing = true
-        do {
-            let page = try await api.fetchDocuments(page: 1, ordering: orderingParam())
-            documents = page.documents
-            hasNextPage = page.hasNext
-            currentPage = 1
-            isOffline = false
-            lastSyncError = nil
-            reApplyPendingEdits()
-            saveToDisk()
-            updateFilteredDocs()
-            indexDocumentsForSpotlight()
-        } catch APIError.unauthorized {
-            KeychainService.deleteToken(for: serverUrl)
-            lastSyncError = "Sitzung abgelaufen, bitte neu einloggen"
-        } catch {
-            isOffline = true
-            lastSyncError = error.localizedDescription
+        for attempt in 1...2 {
+            do {
+                let page = try await api.fetchDocuments(page: 1, ordering: orderingParam())
+                documents = page.documents
+                hasNextPage = page.hasNext
+                currentPage = 1
+                isOffline = false
+                lastSyncError = nil
+                reApplyPendingEdits()
+                saveToDisk()
+                updateFilteredDocs()
+                indexDocumentsForSpotlight()
+                isSyncing = false
+                return
+            } catch APIError.unauthorized {
+                KeychainService.deleteToken(for: serverUrl)
+                lastSyncError = "Sitzung abgelaufen, bitte neu einloggen"
+                needsReLogin = true
+                isSyncing = false
+                return
+            } catch {
+                if attempt < 2 {
+                    try? await Task.sleep(nanoseconds: 2_000_000_000)
+                } else {
+                    isOffline = true
+                    lastSyncError = error.localizedDescription
+                }
+            }
         }
         isSyncing = false
     }
@@ -171,6 +201,10 @@ class AppStore: ObservableObject {
 
     // MARK: - Search
 
+    private(set) var currentSearchPage = 1
+    private(set) var searchHasNextPage = false
+    @Published var recentSearches: [String] = []
+
     func runSearch(query: String) {
         currentSearchText = query
         searchTask?.cancel()
@@ -185,24 +219,67 @@ class AppStore: ObservableObject {
 
             if isOffline {
                 let low = query.lowercased()
-                let results = documents.filter {
+                filteredDocs = documents.filter {
                     $0.title.localizedCaseInsensitiveContains(low) ||
                     ($0.content?.localizedCaseInsensitiveContains(low) ?? false)
                 }
-                filteredDocs = results
                 isSearching = false
                 return
             }
 
             guard let api = api else { isSearching = false; return }
             do {
-                let page = try await api.searchDocuments(query: query)
-                documents = page.documents
-                hasNextPage = page.hasNext
-                currentPage = 1
-                updateFilteredDocs()
-            } catch { lastSyncError = error.localizedDescription }
+                let page = try await api.searchDocuments(query: query, page: 1)
+                filteredDocs = page.documents
+                searchHasNextPage = page.hasNext
+                currentSearchPage = 1
+                addRecentSearch(query)
+            } catch {
+                let isCancelled = (error is CancellationError) ||
+                    (error as? URLError)?.code == .cancelled
+                if !isCancelled { lastSyncError = error.localizedDescription }
+            }
             isSearching = false
+        }
+    }
+
+    func loadNextSearchPage() async {
+        guard !isSearching, searchHasNextPage, let api = api, !currentSearchText.isEmpty else { return }
+        isSearching = true
+        let nextPage = currentSearchPage + 1
+        do {
+            let page = try await api.searchDocuments(query: currentSearchText, page: nextPage)
+            filteredDocs.append(contentsOf: page.documents)
+            searchHasNextPage = page.hasNext
+            currentSearchPage = nextPage
+        } catch {
+            let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
+            if !isCancelled { lastSyncError = error.localizedDescription }
+        }
+        isSearching = false
+    }
+
+    func addRecentSearch(_ query: String) {
+        var searches = recentSearches
+        searches.removeAll { $0.lowercased() == query.lowercased() }
+        searches.insert(query, at: 0)
+        recentSearches = Array(searches.prefix(8))
+    }
+
+    func bulkAssignTags(_ tagIds: [Int], to docIds: Set<Int>) {
+        for id in docIds {
+            guard let doc = documents.first(where: { $0.id == id }) else { continue }
+            let merged = Array(Set(doc.tags).union(Set(tagIds)))
+            addPendingEdit(docId: id, title: doc.title, created: doc.dateObject ?? Date(),
+                           corr: doc.correspondent, type: doc.documentType, asn: doc.archiveSerialNumber, tags: merged)
+        }
+    }
+
+    func bulkAssignCorrespondent(_ corrId: Int, to docIds: Set<Int>) {
+        for id in docIds {
+            guard let doc = documents.first(where: { $0.id == id }) else { continue }
+            addPendingEdit(docId: id, title: doc.title, created: doc.dateObject ?? Date(),
+                           corr: corrId, type: doc.documentType, asn: doc.archiveSerialNumber, tags: doc.tags)
         }
     }
 
@@ -412,20 +489,40 @@ class AppStore: ObservableObject {
     func fileExists(docId: Int) -> Bool { PersistenceService.fileExists(docId: docId) }
     func localFileURL(for docId: Int) -> URL { PersistenceService.docFileURL(for: docId) }
 
+    func loadPDFData(for docId: Int) async -> Data? {
+        if fileExists(docId: docId) { return try? Data(contentsOf: localFileURL(for: docId)) }
+        guard let api = api else { return nil }
+        if let data = try? await api.downloadDocument(id: docId) {
+            try? data.write(to: localFileURL(for: docId))
+            return data
+        }
+        return nil
+    }
+
     func deleteLocalFile(docId: Int) {
         PersistenceService.deleteDocFile(docId: docId)
         calculateStorage()
     }
 
     func startFullDownload() {
+        guard let api = api else { return }
         isDownloadingAll = true
         downloadProgress = 0.0
+        downloadStatusText = "Lade Dokumentliste..."
         downloadTask = Task {
-            for (index, doc) in documents.enumerated() {
+            let allDocs: [Document]
+            do {
+                allDocs = try await api.fetchAllDocuments()
+            } catch {
+                isDownloadingAll = false
+                downloadStatusText = "Fehler: \(error.localizedDescription)"
+                return
+            }
+            for (index, doc) in allDocs.enumerated() {
                 guard isDownloadingAll, !Task.isCancelled else { break }
-                downloadProgress = Double(index) / Double(documents.count)
-                downloadStatusText = "Lade \(index + 1) von \(documents.count)..."
-                if !fileExists(docId: doc.id), let api = api {
+                downloadProgress = Double(index) / Double(allDocs.count)
+                downloadStatusText = "Lade \(index + 1) von \(allDocs.count)..."
+                if !fileExists(docId: doc.id) {
                     if let data = try? await api.downloadDocument(id: doc.id) {
                         try? data.write(to: localFileURL(for: doc.id))
                     }
@@ -509,6 +606,7 @@ class AppStore: ObservableObject {
         PersistenceService.save(allDocTypes, to: "types.json")
         PersistenceService.save(pendingUploads, to: "pending.json")
         PersistenceService.save(pendingEdits, to: "edits.json")
+        PersistenceService.save(savedFilters, to: "savedfilters.json")
     }
 
     func loadFromDisk() {
@@ -518,7 +616,23 @@ class AppStore: ObservableObject {
         allDocTypes = PersistenceService.load([DocumentType].self, from: "types.json") ?? []
         pendingUploads = PersistenceService.load([PendingUpload].self, from: "pending.json") ?? []
         pendingEdits = PersistenceService.load([PendingEdit].self, from: "edits.json") ?? []
+        savedFilters = PersistenceService.load([SavedFilter].self, from: "savedfilters.json") ?? []
         updateFilteredDocs()
+    }
+
+    func saveCurrentFilter(name: String, tag: Int?, correspondent: Int?, type: Int?, dateFilter: DateFilter) {
+        let f = SavedFilter(name: name, tag: tag, correspondent: correspondent, type: type, dateFilter: dateFilter)
+        savedFilters.append(f)
+        saveToDisk()
+    }
+
+    func deleteSavedFilter(id: UUID) {
+        savedFilters.removeAll { $0.id == id }
+        saveToDisk()
+    }
+
+    func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
+        UIImpactFeedbackGenerator(style: style).impactOccurred()
     }
 
     // MARK: - Auto Sync
@@ -578,6 +692,31 @@ class AppStore: ObservableObject {
         documents = [Document(id: 1, title: "Demo", content: "Text", created: "2026-01-26", added: nil, correspondent: 1, documentType: 1, archiveSerialNumber: 100, tags: [1])]
         updateFilteredDocs()
         saveToDisk()
+    }
+
+    // MARK: - Widget
+
+    func updateWidget(stats: PaperlessStatistics? = nil) {
+        let enabled = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
+        guard enabled else { return }
+
+        let widgetDocs = documents.prefix(5).map { doc in
+            WidgetDocument(
+                id: doc.id,
+                title: doc.title,
+                created: doc.created,
+                correspondent: allCorrespondents.first { $0.id == doc.correspondent }?.safeName
+            )
+        }
+
+        WidgetDataService.write(
+            docs: Array(widgetDocs),
+            inboxCount: stats?.documentsInbox ?? 0,
+            totalCount: stats?.documentsTotal ?? documents.count,
+            lastSync: Date(),
+            enabled: enabled
+        )
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     // MARK: - Toast
