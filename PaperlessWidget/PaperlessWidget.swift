@@ -33,7 +33,8 @@ struct PaperlessTimelineProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<PaperlessEntry>) -> Void) {
         let entry = makeEntry()
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date()) ?? Date()
+        let nextUpdate = Calendar.current.date(byAdding: .minute, value: 30, to: Date())
+            ?? Date().addingTimeInterval(30 * 60)
         completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
     }
 
