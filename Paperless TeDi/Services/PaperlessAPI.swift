@@ -90,7 +90,8 @@ struct PaperlessAPI {
             if otpKeywords.contains(where: { raw.contains($0) }) {
                 throw APIError.otpRequired
             }
-            throw APIError.unauthorized
+            if http.statusCode == 401 { throw APIError.unauthorized }
+            throw APIError.serverError(http.statusCode)
         }
         if !(200...299).contains(http.statusCode) { throw APIError.serverError(http.statusCode) }
 
