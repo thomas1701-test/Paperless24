@@ -390,16 +390,20 @@ struct MainDocView: View {
                             showSaveFilterSheet = true
                         } label: {
                             Label("Speichern", systemImage: "bookmark")
-                                .padding(.horizontal, 12).padding(.vertical, 8)
-                                .background(Color.accentColor.opacity(0.15)).cornerRadius(20)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.accentColor)
+                                .padding(.horizontal, 12).padding(.vertical, 7)
+                                .background(Color.accentColor.opacity(0.1)).cornerRadius(8)
                         }
                         Button {
                             filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
                             applyFilters(); store.haptic(.light)
                         } label: {
                             Label("Zurücksetzen", systemImage: "xmark.circle.fill")
-                                .padding(.horizontal, 12).padding(.vertical, 8)
-                                .background(Color.red.opacity(0.12)).cornerRadius(20)
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 12).padding(.vertical, 7)
+                                .background(Color.red.opacity(0.1)).cornerRadius(8)
                         }
                     }
                 }
