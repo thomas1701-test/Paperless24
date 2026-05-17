@@ -325,6 +325,14 @@ struct MainDocView: View {
 
     // MARK: - Filter Bar
 
+    private func chipBackground(active: Bool) -> Color {
+        active ? Color.accentColor : Color.accentColor.opacity(0.1)
+    }
+
+    private func chipForeground(active: Bool) -> Color {
+        active ? .white : .accentColor
+    }
+
     var filterBar: some View {
         VStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
@@ -343,29 +351,38 @@ struct MainDocView: View {
                             Image(systemName: "calendar")
                             Text(filterDate == .all ? "Zeitraum" : filterDate.rawValue)
                         }
-                        .padding(.horizontal, 10).padding(.vertical, 6)
-                        .background(Material.thickMaterial).cornerRadius(20)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(chipForeground(active: filterDate != .all))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(chipBackground(active: filterDate != .all))
+                        .cornerRadius(8)
                     }
 
                     Button { showTagPicker = true } label: {
-                        Label(filterTag == nil ? "Tags" : (store.allTags.first { $0.id == filterTag }?.safeName ?? "Tag Aktiv"), systemImage: "tag")
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(filterTag == nil ? AnyShapeStyle(Material.thickMaterial) : AnyShapeStyle(Color.accentColor.opacity(0.2)))
-                            .cornerRadius(20)
+                        Label(filterTag == nil ? "Tags" : (store.allTags.first { $0.id == filterTag }?.safeName ?? "Tag"), systemImage: "tag")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(chipForeground(active: filterTag != nil))
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(chipBackground(active: filterTag != nil))
+                            .cornerRadius(8)
                     }
 
                     Button { showCorrPicker = true } label: {
-                        Label(filterCorr == nil ? "Sender" : (store.allCorrespondents.first { $0.id == filterCorr }?.safeName ?? "Sender Aktiv"), systemImage: "person")
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(filterCorr == nil ? AnyShapeStyle(Material.thickMaterial) : AnyShapeStyle(Color.accentColor.opacity(0.2)))
-                            .cornerRadius(20)
+                        Label(filterCorr == nil ? "Sender" : (store.allCorrespondents.first { $0.id == filterCorr }?.safeName ?? "Sender"), systemImage: "person")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(chipForeground(active: filterCorr != nil))
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(chipBackground(active: filterCorr != nil))
+                            .cornerRadius(8)
                     }
 
                     Button { showTypePicker = true } label: {
-                        Label(filterType == nil ? "Typ" : (store.allDocTypes.first { $0.id == filterType }?.safeName ?? "Typ Aktiv"), systemImage: "doc")
-                            .padding(.horizontal, 12).padding(.vertical, 8)
-                            .background(filterType == nil ? AnyShapeStyle(Material.thickMaterial) : AnyShapeStyle(Color.accentColor.opacity(0.2)))
-                            .cornerRadius(20)
+                        Label(filterType == nil ? "Typ" : (store.allDocTypes.first { $0.id == filterType }?.safeName ?? "Typ"), systemImage: "doc")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(chipForeground(active: filterType != nil))
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(chipBackground(active: filterType != nil))
+                            .cornerRadius(8)
                     }
 
                     if filterTag != nil || filterCorr != nil || filterType != nil || filterDate != .all {
