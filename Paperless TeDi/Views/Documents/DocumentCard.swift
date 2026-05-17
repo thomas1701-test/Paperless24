@@ -8,6 +8,7 @@ struct DocumentCard: View {
     let allCorrespondents: [Correspondent]
     var allDocTypes: [DocumentType] = []
     var isSelected: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
 
     private var firstTagColor: Color {
         guard let firstTagId = doc.tags.first,
@@ -90,10 +91,19 @@ struct DocumentCard: View {
                 .padding(.horizontal, 8).padding(.vertical, 6)
                 .frame(height: 72)
             }
-            .background(Material.thickMaterial)
+            .background(Color(UIColor.secondarySystemBackground))
             .cornerRadius(14)
-            .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 2)
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2))
+            .shadow(
+                color: colorScheme == .dark ? .clear : Color.black.opacity(0.07),
+                radius: 5, x: 0, y: 2
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(
+                        isSelected ? Color.accentColor : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
+                        lineWidth: isSelected ? 2 : 1
+                    )
+            )
 
             if isSelected {
                 Image(systemName: "checkmark.circle.fill").foregroundColor(.accentColor).padding(6)
