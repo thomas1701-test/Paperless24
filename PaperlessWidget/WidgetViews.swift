@@ -42,7 +42,7 @@ struct WidgetDisabledView: View {
         VStack(spacing: 6) {
             Image(systemName: "doc.text.fill")
                 .font(.system(size: 28)).foregroundColor(.accentColor)
-            Text("Paperless TeDi")
+            Text("Paperless24")
                 .font(.caption).foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -56,7 +56,7 @@ struct SmallDocumentsView: View {
 
     var body: some View {
         if let doc = doc {
-            Link(destination: URL(string: "paperlesstedi://document?id=\(doc.id)")!) {
+            Link(destination: URL(string: "paperless24://document?id=\(doc.id)")!) {
                 VStack(alignment: .leading, spacing: 4) {
                     Image(systemName: "doc.text.fill")
                         .foregroundColor(.accentColor)
@@ -87,7 +87,7 @@ struct SmallOverviewView: View {
                 .font(.caption2).foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .widgetURL(URL(string: "paperlesstedi://open"))
+        .widgetURL(URL(string: "paperless24://open"))
     }
 }
 
@@ -114,7 +114,7 @@ struct MediumDocumentsView: View {
 
             let sliced = Array(docs.prefix(2))
             ForEach(Array(sliced.enumerated()), id: \.element.id) { index, doc in
-                Link(destination: URL(string: "paperlesstedi://document?id=\(doc.id)")!) {
+                Link(destination: URL(string: "paperless24://document?id=\(doc.id)")!) {
                     DocRow(doc: doc)
                         .padding(.horizontal, 12).padding(.vertical, 4)
                 }
@@ -142,7 +142,7 @@ struct MediumOverviewView: View {
             statItem(value: relativeSyncText(lastSync), label: "Sync", icon: "arrow.clockwise", color: .green)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .widgetURL(URL(string: "paperlesstedi://open"))
+        .widgetURL(URL(string: "paperless24://open"))
     }
 
     private func statItem(value: String, label: String, icon: String, color: Color) -> some View {
@@ -170,7 +170,7 @@ struct LargeDocumentsView: View {
             .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 6)
 
             ForEach(docs.prefix(5)) { doc in
-                Link(destination: URL(string: "paperlesstedi://document?id=\(doc.id)")!) {
+                Link(destination: URL(string: "paperless24://document?id=\(doc.id)")!) {
                     DocRow(doc: doc).padding(.horizontal, 14).padding(.vertical, 5)
                 }
                 Divider().padding(.horizontal, 14)
@@ -203,7 +203,7 @@ struct LargeOverviewView: View {
                 .padding(.horizontal, 14).padding(.top, 6).padding(.bottom, 2)
 
             ForEach(docs.prefix(2)) { doc in
-                Link(destination: URL(string: "paperlesstedi://document?id=\(doc.id)")!) {
+                Link(destination: URL(string: "paperless24://document?id=\(doc.id)")!) {
                     DocRow(doc: doc).padding(.horizontal, 14).padding(.vertical, 4)
                 }
                 Divider().padding(.horizontal, 14)
@@ -211,7 +211,7 @@ struct LargeOverviewView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .widgetURL(URL(string: "paperlesstedi://open"))
+        .widgetURL(URL(string: "paperless24://open"))
     }
 
     private func overviewStat(value: String, label: String, icon: String, color: Color) -> some View {

@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct Paperless_TeDiApp: App {
+struct Paperless24App: App {
     @StateObject private var store = AppStore()
 
     var body: some Scene {
@@ -22,10 +22,10 @@ struct Paperless_TeDiApp: App {
                             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                             let filename = components?.queryItems?.first(where: { $0.name == "name" })?.value ?? "Import.pdf"
                             if let pasteboard = UIPasteboard(name: UIPasteboard.Name("PaperlessExchange"), create: false),
-                               let data = pasteboard.data(forPasteboardType: "com.paperlesstedi.data") {
+                               let data = pasteboard.data(forPasteboardType: "com.paperless24.data") {
                                 store.handleImportData(data: data, filename: filename)
                                 pasteboard.items = []
-                            } else if let data = UIPasteboard.general.data(forPasteboardType: "com.paperlesstedi.shared") {
+                            } else if let data = UIPasteboard.general.data(forPasteboardType: "com.paperless24.shared") {
                                 store.handleImportData(data: data, filename: filename)
                                 UIPasteboard.general.items = []
                             }

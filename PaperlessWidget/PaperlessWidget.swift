@@ -103,7 +103,7 @@ struct PaperlessWidget: Widget {
             PaperlessWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
-        .configurationDisplayName("Paperless TeDi")
+        .configurationDisplayName("Paperless24")
         .description("Zeigt deine zuletzt hinzugefügten Dokumente oder eine Übersicht.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }

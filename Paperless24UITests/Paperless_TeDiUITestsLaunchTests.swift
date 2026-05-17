@@ -1,13 +1,13 @@
 //
 //  Paperless_TeDiUITestsLaunchTests.swift
-//  Paperless TeDiUITests
+//  Paperless24UITests
 //
 //  Created by Thomas on 25.01.26.
 //
 
 import XCTest
 
-final class Paperless_TeDiUITestsLaunchTests: XCTestCase {
+final class Paperless24UITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

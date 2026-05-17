@@ -81,7 +81,7 @@ class ShareViewController: UIViewController {
     private func openMainApp() {
         DispatchQueue.main.async {
             // Wir rufen einfach nur "check" auf, die App weiß dann, wo sie suchen muss
-            let url = URL(string: "paperlesstedi://check_shared")!
+            let url = URL(string: "paperless24://check_shared")!
             
             var responder: UIResponder? = self
             var success = false

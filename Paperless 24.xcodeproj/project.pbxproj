@@ -19,14 +19,14 @@
 			containerPortal = E9139FF32F26774B008A4933 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E9139FFA2F26774B008A4933;
-			remoteInfo = "Paperless TeDi";
+			remoteInfo = "Paperless24";
 		};
 		E913A0162F267759008A4933 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E9139FF32F26774B008A4933 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E9139FFA2F26774B008A4933;
-			remoteInfo = "Paperless TeDi";
+			remoteInfo = "Paperless24";
 		};
 		E913A0432F2679B3008A4933 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -60,9 +60,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E9139FFB2F26774B008A4933 /* Paperless TeDi.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Paperless TeDi.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E913A00B2F267759008A4933 /* Paperless TeDiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless TeDiTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E913A0152F267759008A4933 /* Paperless TeDiUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless TeDiUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9139FFB2F26774B008A4933 /* Paperless24.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Paperless24.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E913A00B2F267759008A4933 /* Paperless24Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless24Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E913A0152F267759008A4933 /* Paperless24UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless24UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E913A03B2F2679B3008A4933 /* PaperlessShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PaperlessShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E972FD982FB79B730074F8AF /* PaperlessWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PaperlessWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E972FD9A2FB79B730074F8AF /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -88,19 +88,19 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E9139FFD2F26774B008A4933 /* Paperless TeDi */ = {
+		E9139FFD2F26774B008A4933 /* Paperless24 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Paperless TeDi";
+			path = "Paperless24";
 			sourceTree = "<group>";
 		};
-		E913A00E2F267759008A4933 /* Paperless TeDiTests */ = {
+		E913A00E2F267759008A4933 /* Paperless24Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Paperless TeDiTests";
+			path = "Paperless24Tests";
 			sourceTree = "<group>";
 		};
-		E913A0182F267759008A4933 /* Paperless TeDiUITests */ = {
+		E913A0182F267759008A4933 /* Paperless24UITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Paperless TeDiUITests";
+			path = "Paperless24UITests";
 			sourceTree = "<group>";
 		};
 		E913A03C2F2679B3008A4933 /* PaperlessShare */ = {
@@ -166,9 +166,9 @@
 			isa = PBXGroup;
 			children = (
 				E972FDB12FB79C150074F8AF /* PaperlessWidgetExtension.entitlements */,
-				E9139FFD2F26774B008A4933 /* Paperless TeDi */,
-				E913A00E2F267759008A4933 /* Paperless TeDiTests */,
-				E913A0182F267759008A4933 /* Paperless TeDiUITests */,
+				E9139FFD2F26774B008A4933 /* Paperless24 */,
+				E913A00E2F267759008A4933 /* Paperless24Tests */,
+				E913A0182F267759008A4933 /* Paperless24UITests */,
 				E913A03C2F2679B3008A4933 /* PaperlessShare */,
 				E972FD9E2FB79B730074F8AF /* PaperlessWidget */,
 				E972FD992FB79B730074F8AF /* Frameworks */,
@@ -179,9 +179,9 @@
 		E9139FFC2F26774B008A4933 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E9139FFB2F26774B008A4933 /* Paperless TeDi.app */,
-				E913A00B2F267759008A4933 /* Paperless TeDiTests.xctest */,
-				E913A0152F267759008A4933 /* Paperless TeDiUITests.xctest */,
+				E9139FFB2F26774B008A4933 /* Paperless24.app */,
+				E913A00B2F267759008A4933 /* Paperless24Tests.xctest */,
+				E913A0152F267759008A4933 /* Paperless24UITests.xctest */,
 				E913A03B2F2679B3008A4933 /* PaperlessShare.appex */,
 				E972FD982FB79B730074F8AF /* PaperlessWidgetExtension.appex */,
 			);
@@ -200,9 +200,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E9139FFA2F26774B008A4933 /* Paperless TeDi */ = {
+		E9139FFA2F26774B008A4933 /* Paperless24 */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E913A01F2F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless TeDi" */;
+			buildConfigurationList = E913A01F2F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless24" */;
 			buildPhases = (
 				E9139FF72F26774B008A4933 /* Sources */,
 				E9139FF82F26774B008A4933 /* Frameworks */,
@@ -217,18 +217,18 @@
 				E972FDAB2FB79B740074F8AF /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				E9139FFD2F26774B008A4933 /* Paperless TeDi */,
+				E9139FFD2F26774B008A4933 /* Paperless24 */,
 			);
-			name = "Paperless TeDi";
+			name = "Paperless24";
 			packageProductDependencies = (
 			);
-			productName = "Paperless TeDi";
-			productReference = E9139FFB2F26774B008A4933 /* Paperless TeDi.app */;
+			productName = "Paperless24";
+			productReference = E9139FFB2F26774B008A4933 /* Paperless24.app */;
 			productType = "com.apple.product-type.application";
 		};
-		E913A00A2F267759008A4933 /* Paperless TeDiTests */ = {
+		E913A00A2F267759008A4933 /* Paperless24Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E913A0222F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless TeDiTests" */;
+			buildConfigurationList = E913A0222F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless24Tests" */;
 			buildPhases = (
 				E913A0072F267759008A4933 /* Sources */,
 				E913A0082F267759008A4933 /* Frameworks */,
@@ -240,18 +240,18 @@
 				E913A00D2F267759008A4933 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				E913A00E2F267759008A4933 /* Paperless TeDiTests */,
+				E913A00E2F267759008A4933 /* Paperless24Tests */,
 			);
-			name = "Paperless TeDiTests";
+			name = "Paperless24Tests";
 			packageProductDependencies = (
 			);
-			productName = "Paperless TeDiTests";
-			productReference = E913A00B2F267759008A4933 /* Paperless TeDiTests.xctest */;
+			productName = "Paperless24Tests";
+			productReference = E913A00B2F267759008A4933 /* Paperless24Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		E913A0142F267759008A4933 /* Paperless TeDiUITests */ = {
+		E913A0142F267759008A4933 /* Paperless24UITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E913A0252F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless TeDiUITests" */;
+			buildConfigurationList = E913A0252F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless24UITests" */;
 			buildPhases = (
 				E913A0112F267759008A4933 /* Sources */,
 				E913A0122F267759008A4933 /* Frameworks */,
@@ -263,13 +263,13 @@
 				E913A0172F267759008A4933 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				E913A0182F267759008A4933 /* Paperless TeDiUITests */,
+				E913A0182F267759008A4933 /* Paperless24UITests */,
 			);
-			name = "Paperless TeDiUITests";
+			name = "Paperless24UITests";
 			packageProductDependencies = (
 			);
-			productName = "Paperless TeDiUITests";
-			productReference = E913A0152F267759008A4933 /* Paperless TeDiUITests.xctest */;
+			productName = "Paperless24UITests";
+			productReference = E913A0152F267759008A4933 /* Paperless24UITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		E913A03A2F2679B3008A4933 /* PaperlessShare */ = {
@@ -359,9 +359,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E9139FFA2F26774B008A4933 /* Paperless TeDi */,
-				E913A00A2F267759008A4933 /* Paperless TeDiTests */,
-				E913A0142F267759008A4933 /* Paperless TeDiUITests */,
+				E9139FFA2F26774B008A4933 /* Paperless24 */,
+				E913A00A2F267759008A4933 /* Paperless24Tests */,
+				E913A0142F267759008A4933 /* Paperless24UITests */,
 				E913A03A2F2679B3008A4933 /* PaperlessShare */,
 				E972FD972FB79B730074F8AF /* PaperlessWidgetExtension */,
 			);
@@ -468,12 +468,12 @@
 /* Begin PBXTargetDependency section */
 		E913A00D2F267759008A4933 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E9139FFA2F26774B008A4933 /* Paperless TeDi */;
+			target = E9139FFA2F26774B008A4933 /* Paperless24 */;
 			targetProxy = E913A00C2F267759008A4933 /* PBXContainerItemProxy */;
 		};
 		E913A0172F267759008A4933 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E9139FFA2F26774B008A4933 /* Paperless TeDi */;
+			target = E9139FFA2F26774B008A4933 /* Paperless24 */;
 			targetProxy = E913A0162F267759008A4933 /* PBXContainerItemProxy */;
 		};
 		E913A0442F2679B3008A4933 /* PBXTargetDependency */ = {
@@ -613,19 +613,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Paperless TeDi/Paperless TeDi.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Paperless24/Paperless24.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Paperless TeDi/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Paperless24/Preview Content\"";
 				DEVELOPMENT_TEAM = RVXL7PUD42;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Paperless-TeDi-Info.plist";
+				INFOPLIST_FILE = "Paperless24-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Paperless 24";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Wir benötigen die Kamera um Dokumente für das Archiv zu scannen";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Um die App zu entsperren";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Paperless TeDi verbindet sich mit deinem selbst gehosteten Paperless-ngx-Server im lokalen Netzwerk, um Dokumente abzurufen, hochzuladen und zu verwalten.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Paperless24 verbindet sich mit deinem selbst gehosteten Paperless-ngx-Server im lokalen Netzwerk, um Dokumente abzurufen, hochzuladen und zu verwalten.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Importieren von Fotos in das Archiv";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -638,7 +638,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -651,19 +651,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Paperless TeDi/Paperless TeDi.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Paperless24/Paperless24.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"Paperless TeDi/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"Paperless24/Preview Content\"";
 				DEVELOPMENT_TEAM = RVXL7PUD42;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "Paperless-TeDi-Info.plist";
+				INFOPLIST_FILE = "Paperless24-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Paperless 24";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Wir benötigen die Kamera um Dokumente für das Archiv zu scannen";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Um die App zu entsperren";
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Paperless TeDi verbindet sich mit deinem selbst gehosteten Paperless-ngx-Server im lokalen Netzwerk, um Dokumente abzurufen, hochzuladen und zu verwalten.";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "Paperless24 verbindet sich mit deinem selbst gehosteten Paperless-ngx-Server im lokalen Netzwerk, um Dokumente abzurufen, hochzuladen und zu verwalten.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Importieren von Fotos in das Archiv";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -676,7 +676,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -694,12 +694,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless-TeDiTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Paperless TeDi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Paperless TeDi";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Paperless24.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Paperless24";
 			};
 			name = Debug;
 		};
@@ -713,12 +713,12 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless-TeDiTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Paperless TeDi.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Paperless TeDi";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Paperless24.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Paperless24";
 			};
 			name = Release;
 		};
@@ -730,12 +730,12 @@
 				DEVELOPMENT_TEAM = RVXL7PUD42;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless-TeDiUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24UITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Paperless TeDi";
+				TEST_TARGET_NAME = "Paperless24";
 			};
 			name = Debug;
 		};
@@ -747,12 +747,12 @@
 				DEVELOPMENT_TEAM = RVXL7PUD42;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless-TeDiUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24UITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Paperless TeDi";
+				TEST_TARGET_NAME = "Paperless24";
 			};
 			name = Release;
 		};
@@ -773,7 +773,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.70.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app.PaperlessShare;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app.PaperlessShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -799,7 +799,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.70.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app.PaperlessShare;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app.PaperlessShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -828,7 +828,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app.PaperlessWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app.PaperlessWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -860,7 +860,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.paperlesstedi.app.PaperlessWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app.PaperlessWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -884,7 +884,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E913A01F2F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless TeDi" */ = {
+		E913A01F2F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless24" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E913A0202F267759008A4933 /* Debug */,
@@ -893,7 +893,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E913A0222F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless TeDiTests" */ = {
+		E913A0222F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless24Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E913A0232F267759008A4933 /* Debug */,
@@ -902,7 +902,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E913A0252F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless TeDiUITests" */ = {
+		E913A0252F267759008A4933 /* Build configuration list for PBXNativeTarget "Paperless24UITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E913A0262F267759008A4933 /* Debug */,

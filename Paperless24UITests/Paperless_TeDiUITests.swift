@@ -1,13 +1,13 @@
 //
 //  Paperless_TeDiUITests.swift
-//  Paperless TeDiUITests
+//  Paperless24UITests
 //
 //  Created by Thomas on 25.01.26.
 //
 
 import XCTest
 
-final class Paperless_TeDiUITests: XCTestCase {
+final class Paperless24UITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

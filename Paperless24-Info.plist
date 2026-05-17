@@ -8,17 +8,17 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.paperlesstedi.url</string>
+			<string>com.paperless24.url</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>paperlesstedi</string>
+				<string>paperless24</string>
 			</array>
 		</dict>
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<!--
-		NSAllowsArbitraryLoads ist notwendig, weil Paperless TeDi ein Client für
+		NSAllowsArbitraryLoads ist notwendig, weil Paperless24 ein Client für
 		selbst gehostete Paperless-ngx-Server ist. Nutzer betreiben ihre Server
 		auf eigener Infrastruktur mit selbst gewählten URLs (HTTP oder HTTPS).
 		Da die Server-URL vollständig vom Nutzer konfiguriert wird und sowohl
