@@ -9,6 +9,14 @@ struct DocumentCard: View {
     var allDocTypes: [DocumentType] = []
     var isSelected: Bool = false
 
+    private var firstTagColor: Color {
+        guard let firstTagId = doc.tags.first,
+              let tag = allTags.first(where: { $0.id == firstTagId }) else {
+            return Color(.systemGray4)
+        }
+        return Color(hex: tag.safeColor)
+    }
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
