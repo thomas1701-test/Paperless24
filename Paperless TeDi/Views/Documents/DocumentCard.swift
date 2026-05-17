@@ -59,10 +59,15 @@ struct DocumentCard: View {
                     Spacer(minLength: 4)
                     HStack {
                         if let cid = doc.correspondent, let name = allCorrespondents.first(where: { $0.id == cid })?.safeName {
-                            Text(name)
-                                .font(.system(size: 10))
-                                .foregroundColor(.accentColor)
-                                .lineLimit(1)
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(firstTagColor)
+                                    .frame(width: 6, height: 6)
+                                Text(name)
+                                    .font(.system(size: 10, weight: .medium))
+                                    .foregroundColor(.accentColor)
+                                    .lineLimit(1)
+                            }
                         }
                         Spacer()
                         if let date = doc.dateObject {
@@ -73,10 +78,10 @@ struct DocumentCard: View {
                     }
                     if let tid = doc.documentType, let typeName = allDocTypes.first(where: { $0.id == tid })?.safeName {
                         Text(typeName)
-                            .font(.system(size: 9))
-                            .foregroundColor(.secondary)
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(firstTagColor)
                             .padding(.horizontal, 4).padding(.vertical, 1)
-                            .background(Color(.systemGray5))
+                            .background(firstTagColor.opacity(0.15))
                             .cornerRadius(4)
                     } else {
                         Color.clear.frame(height: 16)
