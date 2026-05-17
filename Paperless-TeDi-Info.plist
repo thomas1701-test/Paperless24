@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.paperlesstedi.url</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>paperlesstedi</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<!--
+		NSAllowsArbitraryLoads ist notwendig, weil Paperless TeDi ein Client für
+		selbst gehostete Paperless-ngx-Server ist. Nutzer betreiben ihre Server
+		auf eigener Infrastruktur mit selbst gewählten URLs (HTTP oder HTTPS).
+		Da die Server-URL vollständig vom Nutzer konfiguriert wird und sowohl
+		HTTP- als auch HTTPS-Verbindungen unterstützt werden müssen, ist eine
+		Vorab-Einschränkung auf bestimmte Domains nicht möglich.
+		-->
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

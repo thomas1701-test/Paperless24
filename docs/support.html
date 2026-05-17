@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support – Paperless TeDi</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f5f5f7; color: #1d1d1f; }
+    header { background: #3f51b5; color: white; padding: 40px 20px; text-align: center; }
+    header h1 { font-size: 2rem; font-weight: 700; }
+    header p { margin-top: 8px; opacity: 0.9; }
+    nav { text-align: center; padding: 12px; background: white; border-bottom: 1px solid #e5e5e5; }
+    nav a { color: #3f51b5; text-decoration: none; font-size: 0.9rem; }
+    nav a:hover { text-decoration: underline; }
+    main { max-width: 680px; margin: 0 auto; padding: 48px 20px; }
+    h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 12px; color: #1d1d1f; }
+    .card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 24px; }
+    p { line-height: 1.6; color: #3d3d3d; margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+    ul { padding-left: 20px; color: #3d3d3d; line-height: 1.8; }
+    .contact-btn { display: inline-block; margin-top: 16px; padding: 12px 24px; background: #3f51b5; color: white; border-radius: 8px; text-decoration: none; font-weight: 500; }
+    .contact-btn:hover { background: #5c6bc0; }
+    footer { text-align: center; padding: 32px 20px; color: #6e6e73; font-size: 0.85rem; }
+    footer a { color: #3f51b5; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Support</h1>
+    <p>Wir helfen dir gerne weiter</p>
+  </header>
+  <nav><a href="index.html">← Zurück zur Übersicht</a></nav>
+
+  <main>
+    <div class="card">
+      <h2>Häufige Fragen</h2>
+
+      <p><strong>Die App verbindet sich nicht mit meinem Server.</strong><br>
+      Stelle sicher, dass die Server-URL korrekt eingegeben ist (inkl. Protokoll, z.B. <code>http://192.168.1.10:8000</code>). Der Server muss vom iPhone aus erreichbar sein. Bei HTTPS-Servern muss das Zertifikat gültig sein.</p>
+
+      <p><strong>Login funktioniert nicht.</strong><br>
+      Überprüfe Benutzername und Passwort in deinen Paperless-ngx-Einstellungen. Ein API-Token kann alternativ in den App-Einstellungen hinterlegt werden.</p>
+
+      <p><strong>Scan-Funktion startet nicht.</strong><br>
+      Die App benötigt Kamerazugriff. Gehe zu Einstellungen → Paperless TeDi → Kamera und erlaube den Zugriff.</p>
+
+      <p><strong>Face ID fragt immer wieder nach dem Login.</strong><br>
+      Stelle sicher, dass Face ID in den App-Einstellungen aktiviert ist und die App Berechtigung für Face ID hat (Einstellungen → Paperless TeDi → Face ID).</p>
+    </div>
+
+    <div class="card">
+      <h2>Voraussetzungen</h2>
+      <ul>
+        <li>iOS 17 oder neuer</li>
+        <li>Eigener Paperless-ngx-Server (Version 2.0+)</li>
+        <li>Netzwerkverbindung zum Server (lokal oder per VPN/Domain)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Kontakt</h2>
+      <p>Hast du ein Problem gefunden oder eine Frage, die hier nicht beantwortet wird? Schreib mir eine E-Mail oder öffne ein Issue auf GitHub.</p>
+      <a class="contact-btn" href="mailto:thomas.dillmann@gmx.net">E-Mail schreiben</a>
+      &nbsp;
+      <a class="contact-btn" href="https://github.com/thomas1701-test/Paperless-TeDi/issues" style="background: #5c6bc0;">GitHub Issues</a>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Thomas Dillmann &nbsp;·&nbsp; <a href="privacy.html">Datenschutzerklärung</a></p>
+  </footer>
+</body>
+</html>
