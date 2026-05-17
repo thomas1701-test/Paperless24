@@ -42,6 +42,7 @@ struct DocumentCard: View {
                     Text(doc.title)
                         .font(.system(size: 12, weight: .semibold))
                         .lineLimit(2)
+                    Spacer(minLength: 4)
                     HStack {
                         if let cid = doc.correspondent, let name = allCorrespondents.first(where: { $0.id == cid })?.safeName {
                             Text(name)
@@ -63,9 +64,12 @@ struct DocumentCard: View {
                             .padding(.horizontal, 4).padding(.vertical, 1)
                             .background(Color(.systemGray5))
                             .cornerRadius(4)
+                    } else {
+                        Color.clear.frame(height: 16)
                     }
                 }
                 .padding(.horizontal, 8).padding(.vertical, 6)
+                .frame(height: 72)
             }
             .background(Material.thickMaterial)
             .cornerRadius(10)
