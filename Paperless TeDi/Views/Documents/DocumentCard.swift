@@ -24,8 +24,14 @@ struct DocumentCard: View {
 
                 ZStack(alignment: .bottomTrailing) {
                     AuthImage(docId: doc.id, urlString: thumbUrl, token: token, contentMode: .fill)
-                        .frame(height: 100)
-                        .background(Color(.systemGray6))
+                        .frame(height: 80)
+                        .background(
+                            LinearGradient(
+                                colors: [firstTagColor.opacity(0.5), firstTagColor.opacity(0.2)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                         .clipped()
 
                     if !doc.tags.isEmpty {
@@ -80,9 +86,9 @@ struct DocumentCard: View {
                 .frame(height: 72)
             }
             .background(Material.thickMaterial)
-            .cornerRadius(10)
+            .cornerRadius(14)
             .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 2)
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2))
 
             if isSelected {
                 Image(systemName: "checkmark.circle.fill").foregroundColor(.accentColor).padding(6)
