@@ -18,14 +18,14 @@ class ShareViewController: UIViewController {
               let item = items.first,
               let attachments = item.attachments,
               let provider = attachments.first else {
-            self.kill("Keine Daten gefunden.")
+            self.kill(String(localized: "share_no_data"))
             return
         }
 
         // Wir laden ALLES als "public.data"
         provider.loadItem(forTypeIdentifier: "public.data", options: nil) { (result, error) in
             if let error = error {
-                self.kill("Fehler: \(error.localizedDescription)")
+                self.kill(String(format: String(localized: "share_error_fmt"), error.localizedDescription))
                 return
             }
 
@@ -45,7 +45,7 @@ class ShareViewController: UIViewController {
             if let validData = sourceData {
                 self.saveToAppGroup(data: validData, filename: filename)
             } else {
-                self.kill("Daten waren leer.")
+                self.kill(String(localized: "share_empty_data"))
             }
         }
     }
@@ -74,7 +74,7 @@ class ShareViewController: UIViewController {
             self.openMainApp()
             
         } catch {
-            self.kill("Speicherfehler: \(error.localizedDescription)")
+            self.kill(String(format: String(localized: "share_save_error_fmt"), error.localizedDescription))
         }
     }
     
