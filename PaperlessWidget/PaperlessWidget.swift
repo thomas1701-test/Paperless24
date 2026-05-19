@@ -104,7 +104,7 @@ struct PaperlessWidget: Widget {
                 .containerBackground(.fill.tertiary, for: .widget)
         }
         .configurationDisplayName("Paperless24")
-        .description("Zeigt deine zuletzt hinzugefügten Dokumente oder eine Übersicht.")
+        .description(String(localized: "widget_description"))
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
