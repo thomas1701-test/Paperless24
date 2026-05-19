@@ -119,7 +119,7 @@ struct LoginView: View {
                     if store.accounts.contains(where: {
                         $0.serverUrl == serverUrl && $0.username == username
                     }) {
-                        errorMessage = "Dieses Konto ist bereits vorhanden"
+                        errorMessage = String(localized: "account_already_exists")
                         isChecking = false
                         return
                     }
@@ -141,7 +141,7 @@ struct LoginView: View {
                 otpRequired = true
                 errorMessage = ""
             } catch APIError.unauthorized {
-                errorMessage = otpRequired ? "Falscher Code" : "Login fehlgeschlagen"
+                errorMessage = otpRequired ? String(localized: "wrong_otp_code") : String(localized: "login_failed")
             } catch {
                 errorMessage = error.localizedDescription
             }
