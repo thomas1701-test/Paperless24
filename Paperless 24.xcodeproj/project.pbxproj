@@ -346,10 +346,14 @@
 				};
 			};
 			buildConfigurationList = E9139FF62F26774B008A4933 /* Build configuration list for PBXProject "Paperless 24" */;
-			developmentRegion = en;
+			developmentRegion = de;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				de,
+				fr,
+				es,
+				it,
 				Base,
 			);
 			mainGroup = E9139FF22F26774B008A4933;
