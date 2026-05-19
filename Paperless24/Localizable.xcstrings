@@ -308,6 +308,7 @@
     },
     "gewählt" : {
       "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "gewählt" } },
         "en" : { "stringUnit" : { "state" : "translated", "value" : "selected" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "seleccionados" } },
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "sélectionné(s)" } },
@@ -756,6 +757,7 @@
     },
     "unbearbeitet" : {
       "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "unbearbeitet" } },
         "en" : { "stringUnit" : { "state" : "translated", "value" : "unprocessed" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "sin procesar" } },
         "fr" : { "stringUnit" : { "state" : "translated", "value" : "non traités" } },
