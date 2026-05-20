@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InboxView: View {
     @EnvironmentObject var store: AppStore
+    @Environment(\.locale) private var locale
 
     @AppStorage("layoutStyle") private var layoutStyleRaw = LayoutStyle.grid.rawValue
     @State private var selectedDocId: Int? = nil
@@ -76,7 +77,7 @@ struct InboxView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("\(inboxDocs.count) \(String(localized: "unbearbeitet"))")
+                    Text("\(inboxDocs.count) \(String(localized: "unbearbeitet", locale: locale))")
                         .font(.caption).foregroundColor(.secondary)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {

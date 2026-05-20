@@ -4,6 +4,7 @@ import LocalAuthentication
 struct ContentView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.scenePhase) var scenePhase
+    @Environment(\.locale) private var locale
     @AppStorage("useFaceID") private var useFaceID = false
     @AppStorage("appearanceMode") private var appearanceMode = 0
 
@@ -83,7 +84,7 @@ struct ContentView: View {
         let context = LAContext()
         var error: NSError?
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: String(localized: "biometric_reason")) { success, _ in
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: String(localized: "biometric_reason", locale: locale)) { success, _ in
                 DispatchQueue.main.async {
                     self.isAuthenticating = false
                     if success {

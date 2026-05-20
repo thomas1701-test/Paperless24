@@ -4,6 +4,7 @@ import Vision
 
 struct MetadataFormSection: View {
     @EnvironmentObject var store: AppStore
+    @Environment(\.locale) private var locale
 
     @Binding var correspondent: Int?
     @Binding var documentType: Int?
@@ -61,7 +62,7 @@ struct MetadataFormSection: View {
                     }
                 } label: {
                     if tags.isEmpty { Text("Keine").foregroundColor(.secondary) }
-                    else { Text("\(tags.count) \(String(localized: "gewählt"))").foregroundColor(.blue) }
+                    else { Text("\(tags.count) \(String(localized: "gewählt", locale: locale))").foregroundColor(.blue) }
                 }
                 Button {
                     newName = ""; sheetType = .tag; showSheet = true

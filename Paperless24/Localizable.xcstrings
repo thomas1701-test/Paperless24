@@ -1,911 +1,3341 @@
 {
-  "sourceLanguage" : "de",
-  "strings" : {
-    "6-stelliger Code" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "6-digit code" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Código de 6 dígitos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Code à 6 chiffres" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Codice a 6 cifre" } }
-      }
-    },
-    "Abbrechen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cancelar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Annuler" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Annulla" } }
-      }
-    },
-    "Abbruch" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cancelar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Annuler" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Annulla" } }
-      }
-    },
-    "Abmelden" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign out" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerrar sesión" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Se déconnecter" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Esci" } }
-      }
-    },
-    "Alle" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "All" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Todos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tous" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Tutti" } }
-      }
-    },
-    "Alle Dokumente haben einen Sender." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "All documents have a correspondent." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Todos los documentos tienen un remitente." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tous les documents ont un expéditeur." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Tutti i documenti hanno un mittente." } }
-      }
-    },
-    "Alle Dokumente herunterladen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Download all documents" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Descargar todos los documentos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Télécharger tous les documents" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Scarica tutti i documenti" } }
-      }
-    },
-    "Anzeige" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Display" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pantalla" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Affichage" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Visualizzazione" } }
-      }
-    },
-    "Ansicht" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "View" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Vista" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vue" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Vista" } }
-      }
-    },
-    "App Speicher" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "App storage" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Almacenamiento de la app" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Stockage de l'app" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Archiviazione app" } }
-      }
-    },
-    "ASN" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "ASN" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "ASN" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "ASN" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "ASN" } }
-      }
-    },
-    "Auto" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Auto" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Automático" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Automatique" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Automatico" } }
-      }
-    },
-    "Bearbeiten" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Editar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Modifier" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Modifica" } }
-      }
-    },
-    "Bearbeitungen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Changes" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cambios" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Modifications" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Modifiche" } }
-      }
-    },
-    "Benutzer" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Username" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Usuario" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nom d'utilisateur" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nome utente" } }
-      }
-    },
-    "Changelog" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Changelog" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Registro de cambios" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Journal des modifications" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Registro modifiche" } }
-      }
-    },
-    "Code bestätigen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirm code" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Confirmar código" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Confirmer le code" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Conferma codice" } }
-      }
-    },
-    "Dashboard" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Dashboard" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Panel" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tableau de bord" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Dashboard" } }
-      }
-    },
-    "Das letzte Konto kann nicht gelöscht werden. Melde dich stattdessen ab." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "The last account cannot be deleted. Sign out instead." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "La última cuenta no se puede eliminar. Cierra sesión en su lugar." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Le dernier compte ne peut pas être supprimé. Déconnectez-vous à la place." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "L'ultimo account non può essere eliminato. Effettua il logout." } }
-      }
-    },
-    "Datum" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Date" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fecha" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Date" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Data" } }
-      }
-    },
-    "Demo" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Demo" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Demo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Démo" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Demo" } }
-      }
-    },
-    "Demo-Modus" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Demo mode" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Modo demo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mode démo" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Modalità demo" } }
-      }
-    },
-    "Design" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Appearance" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Diseño" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Apparence" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aspetto" } }
-      }
-    },
-    "Dokument" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Document" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Documento" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Document" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Documento" } }
-      }
-    },
-    "Dokumente" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Documents" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Documentos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Documents" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Documenti" } }
-      }
-    },
-    "Dokumente beim Start" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Documents on start" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Documentos al iniciar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Documents au démarrage" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Documenti all'avvio" } }
-      }
-    },
-    "Dokumente werden geladen..." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading documents..." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargando documentos..." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Chargement des documents..." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Caricamento documenti..." } }
-      }
-    },
-    "Dunkel" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Dark" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Oscuro" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sombre" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Scuro" } }
-      }
-    },
-    "Edit" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bearbeiten" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edit" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Editar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Modifier" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Modifica" } }
-      }
-    },
-    "Einstellungen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Impostazioni" } }
-      }
-    },
-    "Enddatum" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "End date" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fecha de fin" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Date de fin" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Data di fine" } }
-      }
-    },
-    "Erstellen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Crear" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Créer" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Crea" } }
-      }
-    },
-    "FaceID" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Face ID" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Face ID" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Face ID" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Face ID" } }
-      }
-    },
-    "Fehler" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Error" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Error" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Erreur" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Errore" } }
-      }
-    },
-    "Fertig" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Listo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Terminé" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Fine" } }
-      }
-    },
-    "Filter speichern" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save filter" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guardar filtro" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrer le filtre" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Salva filtro" } }
-      }
-    },
-    "Geschützt" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Protected" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Protegido" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Protégé" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Protetto" } }
-      }
-    },
-    "Gib deinen Authentifikator-Code ein" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Enter your authenticator code" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Introduce tu código de autenticación" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Entrez votre code d'authentification" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Inserisci il tuo codice di autenticazione" } }
-      }
-    },
-    "gewählt" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "gewählt" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "selected" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "seleccionados" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "sélectionné(s)" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "selezionati" } }
-      }
-    },
-    "Hell" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Light" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Claro" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Clair" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Chiaro" } }
-      }
-    },
-    "Import" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Import" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Importar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Importer" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Importa" } }
-      }
-    },
-    "Ja" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Yes" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sí" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Oui" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Sì" } }
-      }
-    },
-    "KI denkt..." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "AI thinking..." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "IA pensando..." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "IA en cours de réflexion..." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "IA in elaborazione..." } }
-      }
-    },
-    "Kein OCR-Text vorhanden" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No OCR text available" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay texto OCR disponible" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun texte OCR disponible" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nessun testo OCR disponibile" } }
-      }
-    },
-    "Kein Sender" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No correspondent" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin remitente" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun expéditeur" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nessun mittente" } }
-      }
-    },
-    "Keine" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "None" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ninguno" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nessuno" } }
-      }
-    },
-    "Keine Dokumente gefunden" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No documents found" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se encontraron documentos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun document trouvé" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nessun documento trovato" } }
-      }
-    },
-    "Keine Downloads" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No downloads" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin descargas" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun téléchargement" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nessun download" } }
-      }
-    },
-    "Konten" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Accounts" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cuentas" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Comptes" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Account" } }
-      }
-    },
-    "Konto hinzufügen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add account" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir cuenta" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouter un compte" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiungi account" } }
-      }
-    },
-    "Konto löschen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete account" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar cuenta" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer le compte" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Elimina account" } }
-      }
-    },
-    "Konten verwalten" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage accounts" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Administrar cuentas" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Gérer les comptes" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Gestisci account" } }
-      }
-    },
-    "Lade Dokument..." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading document..." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargando documento..." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Chargement du document..." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Caricamento documento..." } }
-      }
-    },
-    "Laden erzwingen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Force reload" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Forzar recarga" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Forcer le chargement" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Forza ricarica" } }
-      }
-    },
-    "Leer" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Empty" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Vacío" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vide" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Vuoto" } }
-      }
-    },
-    "Letzte ASN" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last ASN" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Último ASN" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dernier ASN" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Ultimo ASN" } }
-      }
-    },
-    "Letzte Dokumente" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recent documents" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Documentos recientes" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Documents récents" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Documenti recenti" } }
-      }
-    },
-    "Letztes Konto" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last account" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Última cuenta" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dernier compte" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Ultimo account" } }
-      }
-    },
-    "Login" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Login" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar sesión" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Connexion" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Accedi" } }
-      }
-    },
-    "Löschen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Eliminar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Elimina" } }
-      }
-    },
-    "Löschen?" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete?" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Eliminar?" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer?" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Eliminare?" } }
-      }
-    },
-    "Modus" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mode" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Modo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mode" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Modalità" } }
-      }
-    },
-    "Name" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Name" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nombre" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nom" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nome" } }
-      }
-    },
-    "Name für diesen Filter:" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Name for this filter:" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nombre para este filtro:" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nom pour ce filtre:" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nome per questo filtro:" } }
-      }
-    },
-    "Neue Notiz..." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New note..." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nueva nota..." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nouvelle note..." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nuova nota..." } }
-      }
-    },
-    "Neuer Sender" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New correspondent" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nuevo remitente" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nouvel expéditeur" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nuovo mittente" } }
-      }
-    },
-    "Neuer Tag" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New tag" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nueva etiqueta" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nouveau tag" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nuovo tag" } }
-      }
-    },
-    "Neuer Typ" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New type" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nuevo tipo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Nouveau type" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nuovo tipo" } }
-      }
-    },
-    "Notizen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Notes" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Notas" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Notes" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Note" } }
-      }
-    },
-    "Offline Dateien" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Offline files" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Archivos sin conexión" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fichiers hors ligne" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "File offline" } }
-      }
-    },
-    "Offline – letzte Daten werden angezeigt" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Offline – showing last data" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin conexión – mostrando últimos datos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Hors ligne – dernières données affichées" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Offline – ultimi dati visualizzati" } }
-      }
-    },
-    "OK" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "OK" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "OK" } }
-      }
-    },
-    "Passwort" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Password" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Contraseña" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mot de passe" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Password" } }
-      }
-    },
-    "Posteingang" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Inbox" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Bandeja de entrada" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Boîte de réception" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Posta in arrivo" } }
-      }
-    },
-    "Posteingang leer" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Inbox empty" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Bandeja vacía" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Boîte vide" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Posta vuota" } }
-      }
-    },
-    "Scan" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scan" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escanear" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Scanner" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Scansiona" } }
-      }
-    },
-    "Schnellzuweisung" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quick assign" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Asignación rápida" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Attribution rapide" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Assegnazione rapida" } }
-      }
-    },
-    "Sender" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Correspondent" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Remitente" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Expéditeur" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Mittente" } }
-      }
-    },
-    "Sender verwalten" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage correspondents" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Administrar remitentes" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Gérer les expéditeurs" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Gestisci mittenti" } }
-      }
-    },
-    "Server" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Server" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Servidor" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Serveur" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Server" } }
-      }
-    },
-    "Speichern" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guardar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrer" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Salva" } }
-      }
-    },
-    "Spotlight Index neu erstellen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rebuild Spotlight index" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reconstruir índice de Spotlight" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Reconstruire l'index Spotlight" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Ricostruisci indice Spotlight" } }
-      }
-    },
-    "Startdatum" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start date" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fecha de inicio" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Date de début" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Data di inizio" } }
-      }
-    },
-    "Starten" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Start" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Démarrer" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Avvia" } }
-      }
-    },
-    "Stop" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Detener" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Arrêter" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Ferma" } }
-      }
-    },
-    "Suche..." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search..." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar..." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rechercher..." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Cerca..." } }
-      }
-    },
-    "Tags" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Etiquetas" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Étiquettes" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Tag" } }
-      }
-    },
-    "Tags verwalten" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage tags" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Administrar etiquetas" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Gérer les étiquettes" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Gestisci tag" } }
-      }
-    },
-    "Tags:" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tags:" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Etiquetas:" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Étiquettes:" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Tag:" } }
-      }
-    },
-    "Text" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Text" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Texto" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Texte" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Testo" } }
-      }
-    },
-    "Titel" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Title" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Título" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Titre" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Titolo" } }
-      }
-    },
-    "Typ" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Type" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tipo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Type" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Tipo" } }
-      }
-    },
-    "Typen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Types" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tipos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Types" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Tipi" } }
-      }
-    },
-    "Typen verwalten" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage types" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Administrar tipos" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Gérer les types" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Gestisci tipi" } }
-      }
-    },
-    "unbearbeitet" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "unbearbeitet" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "unprocessed" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "sin procesar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "non traités" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "non elaborati" } }
-      }
-    },
-    "Upload" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upload" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Subir" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Téléverser" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Carica" } }
-      }
-    },
-    "uploads_ausstehend" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "ausstehend" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "pending" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "pendiente(s)" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "en attente" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "in attesa" } }
-      }
-    },
-    "Uploads" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Uploads" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Subidas" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Téléversements" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Caricamenti" } }
-      }
-    },
-    "Übersicht" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Overview" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Resumen" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vue d'ensemble" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Panoramica" } }
-      }
-    },
-    "Warteschlange" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Queue" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cola" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "File d'attente" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Coda" } }
-      }
-    },
-    "Wählen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Select" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Seleccionar" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sélectionner" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Seleziona" } }
-      }
-    },
-    "Widget aktiv" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Widget active" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Widget activo" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Widget actif" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Widget attivo" } }
-      }
-    },
-    "Zeichen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Characters" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Caracteres" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Caractères" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Caratteri" } }
-      }
-    },
-    "Zeitraum" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Period" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Período" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Période" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Periodo" } }
-      }
-    },
-    "Zeitraum wählen" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Select period" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Seleccionar período" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sélectionner une période" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Seleziona periodo" } }
-      }
-    },
-    "Zeigt Beispieldaten. Es wird keine Verbindung zum Server hergestellt." : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Showing demo data. No connection to server." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrando datos de demostración. Sin conexión al servidor." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Affichage des données de démonstration. Aucune connexion au serveur." } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Visualizzazione dati demo. Nessuna connessione al server." } }
-      }
-    },
-    "Zuletzt hinzugefügt" : {
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recently added" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadido recientemente" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouté récemment" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiunto di recente" } }
-      }
-    },
-    "account_already_exists" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dieses Konto ist bereits vorhanden" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "This account already exists" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esta cuenta ya existe" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ce compte existe déjà" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Questo account esiste già" } }
-      }
-    },
-    "biometric_reason" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Anmelden" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar sesión" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Se connecter" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Accedi" } }
-      }
-    },
-    "delete_account_fmt" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "%@ @ %@ und alle gespeicherten Dateien löschen?" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete %@ @ %@ and all saved files?" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Eliminar %@ @ %@ y todos los archivos guardados?" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Supprimer %@ @ %@ et tous les fichiers enregistrés?" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Eliminare %@ @ %@ e tutti i file salvati?" } }
-      }
-    },
-    "login_failed" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Login fehlgeschlagen" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Login failed" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Inicio de sesión fallido" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Connexion échouée" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Accesso non riuscito" } }
-      }
-    },
-    "wrong_otp_code" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Falscher Code" } },
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Wrong code" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Código incorrecto" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Code incorrect" } },
-        "it" : { "stringUnit" : { "state" : "translated", "value" : "Codice errato" } }
-      }
-    }
+  "sourceLanguage": "de",
+  "strings": {
+    "": {},
+    "%@ suchen": {},
+    "%lld": {},
+    "%lld %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld %2$@"
+          }
+        }
+      }
+    },
+    "%lld Upload%@ %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld Upload%2$@ %3$@"
+          }
+        }
+      }
+    },
+    "-": {},
+    "100": {},
+    "25": {},
+    "250": {},
+    "50": {},
+    "500": {},
+    "6-stelliger Code": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "6-digit code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código de 6 dígitos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code à 6 chiffres"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codice a 6 cifre"
+          }
+        }
+      }
+    },
+    "ASN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ASN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ASN"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ASN"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ASN"
+          }
+        }
+      }
+    },
+    "Abbrechen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        }
+      }
+    },
+    "Abbruch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        }
+      }
+    },
+    "Abmelden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar sesión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se déconnecter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esci"
+          }
+        }
+      }
+    },
+    "Alle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutti"
+          }
+        }
+      }
+    },
+    "Alle Dokumente haben einen Sender.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All documents have a correspondent."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todos los documentos tienen un remitente."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tous les documents ont un expéditeur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutti i documenti hanno un mittente."
+          }
+        }
+      }
+    },
+    "Alle Dokumente herunterladen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download all documents"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar todos los documentos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger tous les documents"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scarica tutti i documenti"
+          }
+        }
+      }
+    },
+    "Ansicht": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vue"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vista"
+          }
+        }
+      }
+    },
+    "Anzeige": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Display"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affichage"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualizzazione"
+          }
+        }
+      }
+    },
+    "App Speicher": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App storage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Almacenamiento de la app"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stockage de l'app"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archiviazione app"
+          }
+        }
+      }
+    },
+    "Auto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automático"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatique"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatico"
+          }
+        }
+      }
+    },
+    "Bearbeiten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica"
+          }
+        }
+      }
+    },
+    "Bearbeitungen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambios"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifications"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifiche"
+          }
+        }
+      }
+    },
+    "Benutzer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Username"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuario"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom d'utilisateur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome utente"
+          }
+        }
+      }
+    },
+    "Benutzerdefiniert": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personnalisé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personalizzato"
+          }
+        }
+      }
+    },
+    "Changelog": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changelog"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registro de cambios"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Journal des modifications"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registro modifiche"
+          }
+        }
+      }
+    },
+    "Code bestätigen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar código"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmer le code"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conferma codice"
+          }
+        }
+      }
+    },
+    "Darstellung": {},
+    "Das letzte Konto kann nicht gelöscht werden. Melde dich stattdessen ab.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The last account cannot be deleted. Sign out instead."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La última cuenta no se puede eliminar. Cierra sesión en su lugar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le dernier compte ne peut pas être supprimé. Déconnectez-vous à la place."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'ultimo account non può essere eliminato. Effettua il logout."
+          }
+        }
+      }
+    },
+    "Dashboard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tableau de bord"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
+        }
+      }
+    },
+    "Datei": {},
+    "Datum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data"
+          }
+        }
+      }
+    },
+    "Demo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo"
+          }
+        }
+      }
+    },
+    "Demo-Modus": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demo mode"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo demo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode démo"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modalità demo"
+          }
+        }
+      }
+    },
+    "Design": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appearance"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diseño"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apparence"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aspetto"
+          }
+        }
+      }
+    },
+    "Details": {},
+    "Dieses Jahr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Year"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este año"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette année"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quest'anno"
+          }
+        }
+      }
+    },
+    "Dokument": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Document"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documento"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Document"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documento"
+          }
+        }
+      }
+    },
+    "Dokumente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documents"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documentos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documents"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documenti"
+          }
+        }
+      }
+    },
+    "Dokumente beim Start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documents on start"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documentos al iniciar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documents au démarrage"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documenti all'avvio"
+          }
+        }
+      }
+    },
+    "Dokumente werden geladen...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading documents..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando documentos..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement des documents..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento documenti..."
+          }
+        }
+      }
+    },
+    "Dunkel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dark"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oscuro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sombre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scuro"
+          }
+        }
+      }
+    },
+    "Edit": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bearbeiten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Editar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifica"
+          }
+        }
+      }
+    },
+    "Einstellungen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réglages"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impostazioni"
+          }
+        }
+      }
+    },
+    "Enddatum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End date"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha de fin"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date de fin"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data di fine"
+          }
+        }
+      }
+    },
+    "Erstellen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Créer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crea"
+          }
+        }
+      }
+    },
+    "FaceID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face ID"
+          }
+        }
+      }
+    },
+    "Fehler": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erreur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Errore"
+          }
+        }
+      }
+    },
+    "Fehler: %@": {},
+    "Fertig": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terminé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fine"
+          }
+        }
+      }
+    },
+    "Filter speichern": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save filter"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar filtro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer le filtre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva filtro"
+          }
+        }
+      }
+    },
+    "Foto": {},
+    "Geschützt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protegido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protégé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protetto"
+          }
+        }
+      }
+    },
+    "Gib deinen Authentifikator-Code ein": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter your authenticator code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduce tu código de autenticación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrez votre code d'authentification"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inserisci il tuo codice di autenticazione"
+          }
+        }
+      }
+    },
+    "Hell": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claro"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clair"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiaro"
+          }
+        }
+      }
+    },
+    "Import": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importa"
+          }
+        }
+      }
+    },
+    "Ja": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sí"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oui"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sì"
+          }
+        }
+      }
+    },
+    "KI denkt...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI thinking..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA pensando..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA en cours de réflexion..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IA in elaborazione..."
+          }
+        }
+      }
+    },
+    "Kein OCR-Text vorhanden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No OCR text available"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay texto OCR disponible"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun texte OCR disponible"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun testo OCR disponibile"
+          }
+        }
+      }
+    },
+    "Kein Sender": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No correspondent"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin remitente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun expéditeur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun mittente"
+          }
+        }
+      }
+    },
+    "Keine": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguno"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuno"
+          }
+        }
+      }
+    },
+    "Keine Dokumente gefunden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No documents found"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontraron documentos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun document trouvé"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun documento trovato"
+          }
+        }
+      }
+    },
+    "Keine Downloads": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No downloads"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin descargas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun téléchargement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessun download"
+          }
+        }
+      }
+    },
+    "Konten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accounts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuentas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comptes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "Konten verwalten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage accounts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrar cuentas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gérer les comptes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci account"
+          }
+        }
+      }
+    },
+    "Konto hinzufügen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter un compte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiungi account"
+          }
+        }
+      }
+    },
+    "Konto löschen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer le compte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina account"
+          }
+        }
+      }
+    },
+    "Lade Dokument...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading document..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando documento..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chargement du document..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamento documento..."
+          }
+        }
+      }
+    },
+    "Lade...": {},
+    "Laden": {},
+    "Laden erzwingen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Force reload"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forzar recarga"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forcer le chargement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forza ricarica"
+          }
+        }
+      }
+    },
+    "Leer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empty"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vacío"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vide"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuoto"
+          }
+        }
+      }
+    },
+    "Letzte ASN": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last ASN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último ASN"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier ASN"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultimo ASN"
+          }
+        }
+      }
+    },
+    "Letzte Dokumente": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent documents"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documentos recientes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documents récents"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Documenti recenti"
+          }
+        }
+      }
+    },
+    "Letzter Monat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last Month"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Último mes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mois dernier"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultimo mese"
+          }
+        }
+      }
+    },
+    "Letztes Konto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Última cuenta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dernier compte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ultimo account"
+          }
+        }
+      }
+    },
+    "Login": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Login"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi"
+          }
+        }
+      }
+    },
+    "Löschen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina"
+          }
+        }
+      }
+    },
+    "Löschen?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare?"
+          }
+        }
+      }
+    },
+    "Meta": {},
+    "Modus": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mode"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modalità"
+          }
+        }
+      }
+    },
+    "Name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome"
+          }
+        }
+      }
+    },
+    "Name für diesen Filter:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Name for this filter:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre para este filtro:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nom pour ce filtre:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nome per questo filtro:"
+          }
+        }
+      }
+    },
+    "Neue Notiz...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New note..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva nota..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvelle note..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuova nota..."
+          }
+        }
+      }
+    },
+    "Neuer Sender": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New correspondent"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo remitente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouvel expéditeur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuovo mittente"
+          }
+        }
+      }
+    },
+    "Neuer Tag": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New tag"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva etiqueta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveau tag"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuovo tag"
+          }
+        }
+      }
+    },
+    "Neuer Typ": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New type"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo tipo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nouveau type"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuovo tipo"
+          }
+        }
+      }
+    },
+    "Notizen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Note"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "Offline Dateien": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline files"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos sin conexión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichiers hors ligne"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File offline"
+          }
+        }
+      }
+    },
+    "Offline – letzte Daten werden angezeigt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline – showing last data"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión – mostrando últimos datos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hors ligne – dernières données affichées"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline – ultimi dati visualizzati"
+          }
+        }
+      }
+    },
+    "Paperless 24": {},
+    "Passwort": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mot de passe"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password"
+          }
+        }
+      }
+    },
+    "Posteingang": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbox"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bandeja de entrada"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boîte de réception"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posta in arrivo"
+          }
+        }
+      }
+    },
+    "Posteingang leer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inbox empty"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bandeja vacía"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Boîte vide"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Posta vuota"
+          }
+        }
+      }
+    },
+    "Scan": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scan"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escanear"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scanner"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scansiona"
+          }
+        }
+      }
+    },
+    "Schnellzuweisung": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quick assign"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asignación rápida"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attribution rapide"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assegnazione rapida"
+          }
+        }
+      }
+    },
+    "Sender": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correspondent"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remitente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expéditeur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mittente"
+          }
+        }
+      }
+    },
+    "Sender verwalten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage correspondents"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrar remitentes"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gérer les expéditeurs"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci mittenti"
+          }
+        }
+      }
+    },
+    "Server": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servidor"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serveur"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server"
+          }
+        }
+      }
+    },
+    "Speichern": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salva"
+          }
+        }
+      }
+    },
+    "Spotlight Index neu erstellen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rebuild Spotlight index"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconstruir índice de Spotlight"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconstruire l'index Spotlight"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ricostruisci indice Spotlight"
+          }
+        }
+      }
+    },
+    "Sprache": {},
+    "Startdatum": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start date"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha de inicio"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date de début"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data di inizio"
+          }
+        }
+      }
+    },
+    "Starten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avvia"
+          }
+        }
+      }
+    },
+    "Status": {},
+    "Stop": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferma"
+          }
+        }
+      }
+    },
+    "Suche...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Search..."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar..."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher..."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerca..."
+          }
+        }
+      }
+    },
+    "Tag": {},
+    "Tags": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiquetas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Étiquettes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag"
+          }
+        }
+      }
+    },
+    "Tags verwalten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage tags"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrar etiquetas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gérer les étiquettes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci tag"
+          }
+        }
+      }
+    },
+    "Tags:": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tags:"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Etiquetas:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Étiquettes:"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag:"
+          }
+        }
+      }
+    },
+    "Text": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Texte"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testo"
+          }
+        }
+      }
+    },
+    "Titel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Título"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titre"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titolo"
+          }
+        }
+      }
+    },
+    "Typ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipo"
+          }
+        }
+      }
+    },
+    "Typen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Types"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Types"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tipi"
+          }
+        }
+      }
+    },
+    "Typen verwalten": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage types"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Administrar tipos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gérer les types"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestisci tipi"
+          }
+        }
+      }
+    },
+    "Upload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subir"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléverser"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carica"
+          }
+        }
+      }
+    },
+    "Uploads": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uploads"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subidas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Téléversements"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caricamenti"
+          }
+        }
+      }
+    },
+    "Verwaltung": {},
+    "Vorschau": {},
+    "Warteschlange": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Queue"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cola"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File d'attente"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coda"
+          }
+        }
+      }
+    },
+    "Widget": {},
+    "Widget aktiv": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widget active"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widget activo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widget actif"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widget attivo"
+          }
+        }
+      }
+    },
+    "Wählen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionner"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleziona"
+          }
+        }
+      }
+    },
+    "Zeichen": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Characters"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caracteres"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caractères"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caratteri"
+          }
+        }
+      }
+    },
+    "Zeigt Beispieldaten. Es wird keine Verbindung zum Server hergestellt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Showing demo data. No connection to server."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrando datos de demostración. Sin conexión al servidor."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Affichage des données de démonstration. Aucune connexion au serveur."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualizzazione dati demo. Nessuna connessione al server."
+          }
+        }
+      }
+    },
+    "Zeitraum": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Period"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Período"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Période"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Periodo"
+          }
+        }
+      }
+    },
+    "Zeitraum wählen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select period"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleccionar período"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionner une période"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seleziona periodo"
+          }
+        }
+      }
+    },
+    "Zuletzt hinzugefügt": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recently added"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadido recientemente"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouté récemment"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aggiunto di recente"
+          }
+        }
+      }
+    },
+    "Zurücksetzen": {},
+    "account_already_exists": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Konto ist bereits vorhanden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account already exists"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta cuenta ya existe"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce compte existe déjà"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo account esiste già"
+          }
+        }
+      }
+    },
+    "biometric_reason": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anmelden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se connecter"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accedi"
+          }
+        }
+      }
+    },
+    "delete_account_fmt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ @ %@ und alle gespeicherten Dateien löschen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete %@ @ %@ and all saved files?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Eliminar %@ @ %@ y todos los archivos guardados?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Supprimer %@ @ %@ et tous les fichiers enregistrés?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminare %@ @ %@ e tutti i file salvati?"
+          }
+        }
+      }
+    },
+    "gewählt": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gewählt"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "selected"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seleccionados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sélectionné(s)"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "selezionati"
+          }
+        }
+      }
+    },
+    "login_failed": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Login fehlgeschlagen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Login failed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio de sesión fallido"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connexion échouée"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso non riuscito"
+          }
+        }
+      }
+    },
+    "unbearbeitet": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unbearbeitet"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unprocessed"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sin procesar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "non traités"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "non elaborati"
+          }
+        }
+      }
+    },
+    "uploads_ausstehend": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ausstehend"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pending"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pendiente(s)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "en attente"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "in attesa"
+          }
+        }
+      }
+    },
+    "v%@": {},
+    "wrong_otp_code": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Falscher Code"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wrong code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Código incorrecto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code incorrect"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codice errato"
+          }
+        }
+      }
+    },
+    "Übersicht": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overview"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resumen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vue d'ensemble"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panoramica"
+          }
+        }
+      }
+    },
+    "•": {},
+    "• %@": {},
+    "🇩🇪 Deutsch": {},
+    "🇪🇸 Español": {},
+    "🇫🇷 Français": {},
+    "🇬🇧 English": {},
+    "🇮🇹 Italiano": {},
+    "🌐 Systemsprache": {}
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

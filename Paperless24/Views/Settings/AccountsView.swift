@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AccountsView: View {
     @EnvironmentObject var store: AppStore
+    @Environment(\.locale) private var locale
     @State private var showAddAccount = false
     @State private var accountToDelete: Account? = nil
     @State private var showDeleteConfirm = false
@@ -60,7 +61,7 @@ struct AccountsView: View {
             }
         } message: {
             if let account = accountToDelete {
-                Text(verbatim: String(format: String(localized: "delete_account_fmt"), account.username, account.serverUrl))
+                Text(verbatim: String(format: String(localized: "delete_account_fmt", locale: locale), account.username, account.serverUrl))
             }
         }
         .alert("Letztes Konto", isPresented: $showLastAccountAlert) {

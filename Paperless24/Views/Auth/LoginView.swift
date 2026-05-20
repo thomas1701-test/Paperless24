@@ -12,6 +12,7 @@ struct LoginView: View {
     let onConnect: () -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
 
     @State private var serverUrl: String
     @State private var username: String
@@ -119,7 +120,7 @@ struct LoginView: View {
                     if store.accounts.contains(where: {
                         $0.serverUrl == serverUrl && $0.username == username
                     }) {
-                        errorMessage = String(localized: "account_already_exists")
+                        errorMessage = String(localized: "account_already_exists", locale: locale)
                         isChecking = false
                         return
                     }
@@ -141,7 +142,7 @@ struct LoginView: View {
                 otpRequired = true
                 errorMessage = ""
             } catch APIError.unauthorized {
-                errorMessage = otpRequired ? String(localized: "wrong_otp_code") : String(localized: "login_failed")
+                errorMessage = otpRequired ? String(localized: "wrong_otp_code", locale: locale) : String(localized: "login_failed", locale: locale)
             } catch {
                 errorMessage = error.localizedDescription
             }
