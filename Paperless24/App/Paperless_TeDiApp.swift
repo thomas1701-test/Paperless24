@@ -3,11 +3,17 @@ import SwiftUI
 @main
 struct Paperless24App: App {
     @StateObject private var store = AppStore()
+    @AppStorage("appLanguage") private var appLanguage = ""
+
+    private var locale: Locale {
+        appLanguage.isEmpty ? .current : Locale(identifier: appLanguage)
+    }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
+                .environment(\.locale, locale)
                 .onOpenURL { url in
                     if url.scheme == AppConstants.urlScheme {
                         if url.host == "check_shared" {

@@ -7,6 +7,7 @@ struct SettingsView: View {
 
     @AppStorage("appearanceMode") private var appearanceMode = 0
     @AppStorage("pageSize") private var pageSize = 25
+    @AppStorage("appLanguage") private var appLanguage = ""
     @State private var stats: PaperlessStatistics? = nil
     @State private var widgetEnabled: Bool = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
     @State private var widgetMode: String = UserDefaults(suiteName: "group.com.Thomas.paperless")?.string(forKey: "widget_mode") ?? "documents"
@@ -100,9 +101,14 @@ struct SettingsView: View {
                     }
                 }
 
-                Section {
-                    NavigationLink(destination: ChangelogView()) {
-                        Label("Changelog", systemImage: "list.bullet.rectangle")
+                Section("Darstellung") {
+                    Picker("Sprache", selection: $appLanguage) {
+                        Text("🌐 Systemsprache").tag("")
+                        Text("🇩🇪 Deutsch").tag("de")
+                        Text("🇬🇧 English").tag("en")
+                        Text("🇫🇷 Français").tag("fr")
+                        Text("🇪🇸 Español").tag("es")
+                        Text("🇮🇹 Italiano").tag("it")
                     }
                     Picker("Design", selection: $appearanceMode) {
                         Text("Auto").tag(0)
@@ -110,6 +116,12 @@ struct SettingsView: View {
                         Text("Dunkel").tag(2)
                     }
                     .pickerStyle(.segmented)
+                }
+
+                Section {
+                    NavigationLink(destination: ChangelogView()) {
+                        Label("Changelog", systemImage: "list.bullet.rectangle")
+                    }
                     Button("Abmelden", role: .destructive) {
                         store.clearLocalData()
                         onLogout()
