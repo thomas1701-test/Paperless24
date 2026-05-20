@@ -76,7 +76,7 @@ struct InboxView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("\(inboxDocs.count) unbearbeitet")
+                    Text("\(inboxDocs.count) \(String(localized: "unbearbeitet"))")
                         .font(.caption).foregroundColor(.secondary)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {

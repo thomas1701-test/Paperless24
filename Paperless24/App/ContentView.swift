@@ -83,7 +83,7 @@ struct ContentView: View {
         let context = LAContext()
         var error: NSError?
         if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: "Anmelden") { success, _ in
+            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: String(localized: "biometric_reason")) { success, _ in
                 DispatchQueue.main.async {
                     self.isAuthenticating = false
                     if success {

@@ -60,7 +60,7 @@ struct AccountsView: View {
             }
         } message: {
             if let account = accountToDelete {
-                Text("\(account.username) @ \(account.serverUrl) und alle gespeicherten Dateien löschen?")
+                Text(verbatim: String(format: String(localized: "delete_account_fmt"), account.username, account.serverUrl))
             }
         }
         .alert("Letztes Konto", isPresented: $showLastAccountAlert) {

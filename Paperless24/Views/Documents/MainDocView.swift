@@ -144,7 +144,7 @@ struct MainDocView: View {
                     Spacer()
                     HStack {
                         ProgressView().scaleEffect(0.8)
-                        Text("\(store.pendingUploads.count) Upload\(store.pendingUploads.count > 1 ? "s" : "") ausstehend")
+                        Text("\(store.pendingUploads.count) Upload\(store.pendingUploads.count > 1 ? "s" : "") \(String(localized: "uploads_ausstehend"))")
                             .font(.caption)
                     }
                     .padding(10)
@@ -548,7 +548,7 @@ struct MainDocView: View {
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            Text("\(store.filteredDocs.count) Dokumente")
+            Text("\(store.filteredDocs.count) \(String(localized: "Dokumente"))")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }

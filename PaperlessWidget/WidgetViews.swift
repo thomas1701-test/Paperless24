@@ -145,7 +145,7 @@ struct MediumOverviewView: View {
         .widgetURL(URL(string: "paperless24://open"))
     }
 
-    private func statItem(value: String, label: String, icon: String, color: Color) -> some View {
+    private func statItem(value: String, label: LocalizedStringKey, icon: String, color: Color) -> some View {
         VStack(spacing: 4) {
             Image(systemName: icon).foregroundColor(color).font(.system(size: 18))
             Text(value).font(.headline).fontWeight(.bold)
@@ -214,7 +214,7 @@ struct LargeOverviewView: View {
         .widgetURL(URL(string: "paperless24://open"))
     }
 
-    private func overviewStat(value: String, label: String, icon: String, color: Color) -> some View {
+    private func overviewStat(value: String, label: LocalizedStringKey, icon: String, color: Color) -> some View {
         VStack(spacing: 2) {
             Image(systemName: icon).foregroundColor(color).font(.system(size: 14))
             Text(value).font(.subheadline).fontWeight(.bold)

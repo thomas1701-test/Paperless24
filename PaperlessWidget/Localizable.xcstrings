@@ -1,0 +1,47 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "Dokumente" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Documents" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Documentos" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Documents" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Documenti" } }
+      }
+    },
+    "Posteingang" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Inbox" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Bandeja de entrada" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Boîte de réception" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Posta in arrivo" } }
+      }
+    },
+    "Sync" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sync" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sync" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sync" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Sync" } }
+      }
+    },
+    "Zuletzt hinzugefügt" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recently added" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadido recientemente" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajouté récemment" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Aggiunto di recente" } }
+      }
+    },
+    "widget_description" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zeigt deine zuletzt hinzugefügten Dokumente oder eine Übersicht." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shows your recently added documents or an overview." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Muestra tus documentos añadidos recientemente o un resumen." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Affiche vos documents récemment ajoutés ou une vue d'ensemble." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Mostra i tuoi documenti aggiunti di recente o una panoramica." } }
+      }
+    }
+  },
+  "version" : "1.0"
+}

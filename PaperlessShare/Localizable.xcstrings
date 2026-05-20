@@ -1,0 +1,42 @@
+{
+  "sourceLanguage" : "de",
+  "strings" : {
+    "share_no_data" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Keine Daten gefunden." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No data found." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se encontraron datos." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucune donnée trouvée." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Nessun dato trovato." } }
+      }
+    },
+    "share_empty_data" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Daten waren leer." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Data was empty." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los datos estaban vacíos." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les données étaient vides." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "I dati erano vuoti." } }
+      }
+    },
+    "share_error_fmt" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Fehler: %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Error: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Error: %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Erreur: %@" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Errore: %@" } }
+      }
+    },
+    "share_save_error_fmt" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Speicherfehler: %@" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save error: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Error de guardado: %@" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Erreur d'enregistrement: %@" } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Errore di salvataggio: %@" } }
+      }
+    }
+  },
+  "version" : "1.0"
+}
