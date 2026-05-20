@@ -360,30 +360,48 @@ struct MainDocView: View {
                     }
 
                     Button { showTagPicker = true } label: {
-                        Label(filterTag == nil ? LocalizedStringKey("Tags") : LocalizedStringKey(verbatim: store.allTags.first { $0.id == filterTag }?.safeName ?? "Tag"), systemImage: "tag")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(chipForeground(active: filterTag != nil))
-                            .padding(.horizontal, 12).padding(.vertical, 7)
-                            .background(chipBackground(active: filterTag != nil))
-                            .cornerRadius(8)
+                        Group {
+                            if filterTag == nil {
+                                Label("Tags", systemImage: "tag")
+                            } else {
+                                Label(store.allTags.first { $0.id == filterTag }?.safeName ?? "Tag", systemImage: "tag")
+                            }
+                        }
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(chipForeground(active: filterTag != nil))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(chipBackground(active: filterTag != nil))
+                        .cornerRadius(8)
                     }
 
                     Button { showCorrPicker = true } label: {
-                        Label(filterCorr == nil ? LocalizedStringKey("Sender") : LocalizedStringKey(verbatim: store.allCorrespondents.first { $0.id == filterCorr }?.safeName ?? "Sender"), systemImage: "person")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(chipForeground(active: filterCorr != nil))
-                            .padding(.horizontal, 12).padding(.vertical, 7)
-                            .background(chipBackground(active: filterCorr != nil))
-                            .cornerRadius(8)
+                        Group {
+                            if filterCorr == nil {
+                                Label("Sender", systemImage: "person")
+                            } else {
+                                Label(store.allCorrespondents.first { $0.id == filterCorr }?.safeName ?? "Sender", systemImage: "person")
+                            }
+                        }
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(chipForeground(active: filterCorr != nil))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(chipBackground(active: filterCorr != nil))
+                        .cornerRadius(8)
                     }
 
                     Button { showTypePicker = true } label: {
-                        Label(filterType == nil ? LocalizedStringKey("Typ") : LocalizedStringKey(verbatim: store.allDocTypes.first { $0.id == filterType }?.safeName ?? "Typ"), systemImage: "doc")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(chipForeground(active: filterType != nil))
-                            .padding(.horizontal, 12).padding(.vertical, 7)
-                            .background(chipBackground(active: filterType != nil))
-                            .cornerRadius(8)
+                        Group {
+                            if filterType == nil {
+                                Label("Typ", systemImage: "doc")
+                            } else {
+                                Label(store.allDocTypes.first { $0.id == filterType }?.safeName ?? "Typ", systemImage: "doc")
+                            }
+                        }
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(chipForeground(active: filterType != nil))
+                        .padding(.horizontal, 12).padding(.vertical, 7)
+                        .background(chipBackground(active: filterType != nil))
+                        .cornerRadius(8)
                     }
 
                     if filterTag != nil || filterCorr != nil || filterType != nil || filterDate != .all {
