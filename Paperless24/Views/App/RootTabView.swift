@@ -34,6 +34,9 @@ struct RootTabView: View {
         .onChange(of: store.widgetOpenDocId) { id in
             if id != nil { selectedTab = 0 }
         }
+        .onChange(of: store.pickerCallbackURL) { url in
+            if url != nil { selectedTab = 0 }
+        }
         .sheet(isPresented: $showScanner) {
             ScannerView(isPresented: $showScanner) { data in
                 store.handleImportData(data: data, filename: "Scan_\(Date().timeIntervalSince1970).pdf")
