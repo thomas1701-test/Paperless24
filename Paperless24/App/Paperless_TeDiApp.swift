@@ -35,6 +35,11 @@ struct Paperless24App: App {
                                 store.handleImportData(data: data, filename: filename)
                                 UIPasteboard.general.items = []
                             }
+                        } else if url.host == "pick" {
+                            let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+                            if let callback = components?.queryItems?.first(where: { $0.name == "callback" })?.value {
+                                store.pickerCallbackURL = callback
+                            }
                         }
                     } else if url.isFileURL {
                         store.handleIncomingFile(url: url)
