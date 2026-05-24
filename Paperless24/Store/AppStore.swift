@@ -38,6 +38,7 @@ class AppStore: ObservableObject {
     @Published var needsReLogin = false
     @Published var savedFilters: [SavedFilter] = []
     @Published var widgetOpenDocId: Int? = nil
+    @Published var pickerCallbackURL: String? = nil
 
     var inboxCount: Int { documents.filter { $0.correspondent == nil }.count }
 
@@ -845,6 +846,36 @@ class AppStore: ObservableObject {
 
     func triggerOpenDocument(id: Int) {
         widgetOpenDocId = id
+    }
+
+    func selectDocumentForPicker(doc: Document) {
+        guard let callbackURLStr = pickerCallbackURL,
+              let callbackURL = URL(string: callbackURLStr) else { return }
+
+        pickerCallbackURL = nil
+
+        Task {
+            guard let api = api else { return }
+            do {
+                let pdfData = try await api.downloadDocument(id: doc.id)
+                let pasteboard = UIPasteboard(name: UIPasteboard.Name("PaperlessExchange"), create: true)
+                pasteboard.setData(pdfData, forPasteboardType: "com.paperless24.data")
+            } catch {
+                // PDF-Download fehlgeschlagen — Callback trotzdem aufrufen (ohne PDF)
+            }
+
+            var components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
+            let existingItems = components?.queryItems ?? []
+            components?.queryItems = existingItems + [
+                URLQueryItem(name: "id", value: "\(doc.id)"),
+                URLQueryItem(name: "title", value: doc.title)
+            ]
+            if let finalURL = components?.url {
+                await MainActor.run {
+                    UIApplication.shared.open(finalURL)
+                }
+            }
+        }
     }
 
     // MARK: - Toast
