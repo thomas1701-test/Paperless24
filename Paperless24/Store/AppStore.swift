@@ -859,7 +859,7 @@ class AppStore: ObservableObject {
             do {
                 let pdfData = try await api.downloadDocument(id: doc.id)
                 let pasteboard = UIPasteboard(name: UIPasteboard.Name("PaperlessExchange"), create: true)
-                pasteboard.setData(pdfData, forPasteboardType: "com.paperless24.data")
+                pasteboard?.setData(pdfData, forPasteboardType: "com.paperless24.data")
             } catch {
                 // PDF-Download fehlgeschlagen — Callback trotzdem aufrufen (ohne PDF)
             }
