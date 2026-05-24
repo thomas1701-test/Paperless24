@@ -92,6 +92,27 @@ struct MainDocView: View {
                     ProgressView().padding(5).frame(maxWidth: .infinity).background(Color.blue.opacity(0.07))
                 }
 
+                if store.pickerCallbackURL != nil {
+                    HStack {
+                        Image(systemName: "doc.badge.plus")
+                            .foregroundStyle(.white)
+                        Text("Dokument für Vermietoo auswählen")
+                            .font(.caption)
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                        Spacer()
+                        Button {
+                            store.pickerCallbackURL = nil
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.white.opacity(0.8))
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.purple)
+                }
+
                 if store.documents.isEmpty && store.isSyncing {
                     Spacer()
                     VStack(spacing: 16) {
@@ -481,33 +502,52 @@ struct MainDocView: View {
                             else { selectedDocIDs.insert(doc.id) }
                         }
                     } else {
-                        NavigationLink(
-                            destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
-                            tag: doc.id, selection: $selectedDocId
-                        ) {
-                            DocumentCard(
-                                doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
-                                allTags: store.allTags, allCorrespondents: store.allCorrespondents,
-                                allDocTypes: store.allDocTypes
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .onLongPressGesture {
-                            store.haptic(.medium)
-                            quickLookDoc = doc
-                        }
-                        .contextMenu {
-                            Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
-                            Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
-                            Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
-                        }
-                        .onAppear {
-                            if doc.id == store.filteredDocs.last?.id {
-                                if !store.currentSearchText.isEmpty {
-                                    Task { await store.loadNextSearchPage() }
-                                } else {
-                                    Task { await store.loadNextPage() }
+                        ZStack(alignment: .topTrailing) {
+                            NavigationLink(
+                                destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
+                                tag: doc.id, selection: $selectedDocId
+                            ) {
+                                DocumentCard(
+                                    doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
+                                    allTags: store.allTags, allCorrespondents: store.allCorrespondents,
+                                    allDocTypes: store.allDocTypes
+                                )
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                            .onLongPressGesture {
+                                store.haptic(.medium)
+                                quickLookDoc = doc
+                            }
+                            .contextMenu {
+                                Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
+                                Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
+                                Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+                            }
+                            .onAppear {
+                                if doc.id == store.filteredDocs.last?.id {
+                                    if !store.currentSearchText.isEmpty {
+                                        Task { await store.loadNextSearchPage() }
+                                    } else {
+                                        Task { await store.loadNextPage() }
+                                    }
                                 }
+                            }
+
+                            if store.pickerCallbackURL != nil {
+                                Color.clear
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        store.selectDocumentForPicker(doc: doc)
+                                    }
+                                Text("Auswählen")
+                                    .font(.caption2)
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 4)
+                                    .background(Color.purple)
+                                    .clipShape(Capsule())
+                                    .padding(6)
                             }
                         }
                     }
@@ -524,36 +564,55 @@ struct MainDocView: View {
     var documentList: some View {
         List {
             ForEach(store.filteredDocs) { doc in
-                NavigationLink(
-                    destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
-                    tag: doc.id, selection: $selectedDocId
-                ) {
-                    DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
-                }
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) {
-                        store.haptic(.heavy)
-                        store.deleteDocument(id: doc.id)
-                    } label: { Label("Löschen", systemImage: "trash") }
-                    Button { documentToEdit = doc } label: { Label("Edit", systemImage: "pencil") }.tint(.orange)
-                }
-                .swipeActions(edge: .leading) {
-                    Button { quickTagDoc = doc; store.haptic(.light) } label: {
-                        Label("Tag", systemImage: "tag.fill")
-                    }.tint(.blue)
-                }
-                .contextMenu {
-                    Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
-                    Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
-                    Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
-                }
-                .onAppear {
-                    if doc.id == store.filteredDocs.last?.id {
-                        if !store.currentSearchText.isEmpty {
-                            Task { await store.loadNextSearchPage() }
-                        } else {
-                            Task { await store.loadNextPage() }
+                ZStack(alignment: .trailing) {
+                    NavigationLink(
+                        destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
+                        tag: doc.id, selection: $selectedDocId
+                    ) {
+                        DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            store.haptic(.heavy)
+                            store.deleteDocument(id: doc.id)
+                        } label: { Label("Löschen", systemImage: "trash") }
+                        Button { documentToEdit = doc } label: { Label("Edit", systemImage: "pencil") }.tint(.orange)
+                    }
+                    .swipeActions(edge: .leading) {
+                        Button { quickTagDoc = doc; store.haptic(.light) } label: {
+                            Label("Tag", systemImage: "tag.fill")
+                        }.tint(.blue)
+                    }
+                    .contextMenu {
+                        Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
+                        Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
+                        Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+                    }
+                    .onAppear {
+                        if doc.id == store.filteredDocs.last?.id {
+                            if !store.currentSearchText.isEmpty {
+                                Task { await store.loadNextSearchPage() }
+                            } else {
+                                Task { await store.loadNextPage() }
+                            }
                         }
+                    }
+
+                    if store.pickerCallbackURL != nil {
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                store.selectDocumentForPicker(doc: doc)
+                            }
+                        Text("Auswählen")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.purple)
+                            .clipShape(Capsule())
+                            .padding(.trailing, 8)
                     }
                 }
             }
