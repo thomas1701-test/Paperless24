@@ -2,10 +2,14 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "1.3.0"
+    static let appVersion = "1.4.0"
     static let urlScheme = "paperless24"
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.4.0", date: "24.05.2026", changes: [
+            "Neu: Dokument-Auswahl für Vermietoo — Dokument direkt an Vermietoo übergeben",
+            "Neu: Picker-Modus mit lila Banner zeigt aktive Auswahl-Sitzung an",
+        ]),
         ChangelogEntry(version: "1.3.0", date: "20.05.2026", changes: [
             "Neu: App in 5 Sprachen verfügbar (DE, EN, FR, ES, IT)",
             "Neu: Sprachauswahl direkt in den Einstellungen",
