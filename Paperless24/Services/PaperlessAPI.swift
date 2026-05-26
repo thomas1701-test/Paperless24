@@ -78,20 +78,19 @@ struct PaperlessAPI {
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
         var body: [String: String] = ["username": username, "password": password]
-        if let otp { body["otp"] = otp }
+        if let otp { body["code"] = otp }
         req.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await URLSession.shared.data(for: req)
         guard let http = response as? HTTPURLResponse else { throw APIError.noData }
 
         if (400...401).contains(http.statusCode) {
-            let raw = String(data: data, encoding: .utf8)?.lowercased() ?? ""
+            let rawLower = (String(data: data, encoding: .utf8) ?? "").lowercased()
             let otpKeywords = ["otp", "totp", "mfa", "2fa", "one-time"]
-            if otpKeywords.contains(where: { raw.contains($0) }) {
+            if otp == nil && otpKeywords.contains(where: { rawLower.contains($0) }) {
                 throw APIError.otpRequired
             }
-            if http.statusCode == 401 { throw APIError.unauthorized }
-            throw APIError.serverError(http.statusCode)
+            throw APIError.unauthorized
         }
         if !(200...299).contains(http.statusCode) { throw APIError.serverError(http.statusCode) }
 

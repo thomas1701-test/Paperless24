@@ -101,13 +101,6 @@ struct LoginView: View {
         errorMessage = ""
         Task { @MainActor in
             do {
-                if !otpRequired {
-                    try await PaperlessAPI.checkConnection(
-                        serverUrl: serverUrl,
-                        username: username,
-                        password: password
-                    )
-                }
                 let token = try await PaperlessAPI.fetchToken(
                     serverUrl: serverUrl,
                     username: username,
