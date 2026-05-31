@@ -19,14 +19,14 @@
 			containerPortal = E9139FF32F26774B008A4933 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E9139FFA2F26774B008A4933;
-			remoteInfo = "Paperless24";
+			remoteInfo = Paperless24;
 		};
 		E913A0162F267759008A4933 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E9139FF32F26774B008A4933 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E9139FFA2F26774B008A4933;
-			remoteInfo = "Paperless24";
+			remoteInfo = Paperless24;
 		};
 		E913A0432F2679B3008A4933 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -60,9 +60,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		E9139FFB2F26774B008A4933 /* Paperless24.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Paperless24.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E913A00B2F267759008A4933 /* Paperless24Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless24Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E913A0152F267759008A4933 /* Paperless24UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Paperless24UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9139FFB2F26774B008A4933 /* Paperless24.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Paperless24.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E913A00B2F267759008A4933 /* Paperless24Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Paperless24Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E913A0152F267759008A4933 /* Paperless24UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Paperless24UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E913A03B2F2679B3008A4933 /* PaperlessShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PaperlessShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E972FD982FB79B730074F8AF /* PaperlessWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PaperlessWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E972FD9A2FB79B730074F8AF /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -90,17 +90,17 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E9139FFD2F26774B008A4933 /* Paperless24 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Paperless24";
+			path = Paperless24;
 			sourceTree = "<group>";
 		};
 		E913A00E2F267759008A4933 /* Paperless24Tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Paperless24Tests";
+			path = Paperless24Tests;
 			sourceTree = "<group>";
 		};
 		E913A0182F267759008A4933 /* Paperless24UITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "Paperless24UITests";
+			path = Paperless24UITests;
 			sourceTree = "<group>";
 		};
 		E913A03C2F2679B3008A4933 /* PaperlessShare */ = {
@@ -219,10 +219,10 @@
 			fileSystemSynchronizedGroups = (
 				E9139FFD2F26774B008A4933 /* Paperless24 */,
 			);
-			name = "Paperless24";
+			name = Paperless24;
 			packageProductDependencies = (
 			);
-			productName = "Paperless24";
+			productName = Paperless24;
 			productReference = E9139FFB2F26774B008A4933 /* Paperless24.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -242,10 +242,10 @@
 			fileSystemSynchronizedGroups = (
 				E913A00E2F267759008A4933 /* Paperless24Tests */,
 			);
-			name = "Paperless24Tests";
+			name = Paperless24Tests;
 			packageProductDependencies = (
 			);
-			productName = "Paperless24Tests";
+			productName = Paperless24Tests;
 			productReference = E913A00B2F267759008A4933 /* Paperless24Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -265,10 +265,10 @@
 			fileSystemSynchronizedGroups = (
 				E913A0182F267759008A4933 /* Paperless24UITests */,
 			);
-			name = "Paperless24UITests";
+			name = Paperless24UITests;
 			packageProductDependencies = (
 			);
-			productName = "Paperless24UITests";
+			productName = Paperless24UITests;
 			productReference = E913A0152F267759008A4933 /* Paperless24UITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
@@ -617,7 +617,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Paperless24/Paperless24.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Paperless24/Paperless24.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Paperless24/Preview Content\"";
@@ -641,7 +641,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -655,7 +655,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = "Paperless24/Paperless24.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Paperless24/Paperless24.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Paperless24/Preview Content\"";
@@ -679,7 +679,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3;
+				MARKETING_VERSION = 1.4.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.paperless24.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -698,7 +698,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MARKETING_VERSION = 1.3;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = k.Paperless24Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -717,7 +717,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
 				MARKETING_VERSION = 1.3;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24Tests";
+				PRODUCT_BUNDLE_IDENTIFIER = k.Paperless24Tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
@@ -734,12 +734,12 @@
 				DEVELOPMENT_TEAM = RVXL7PUD42;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.3;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = k.Paperless24UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Paperless24";
+				TEST_TARGET_NAME = Paperless24;
 			};
 			name = Debug;
 		};
@@ -751,12 +751,12 @@
 				DEVELOPMENT_TEAM = RVXL7PUD42;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.3;
-				PRODUCT_BUNDLE_IDENTIFIER = "k.Paperless24UITests";
+				PRODUCT_BUNDLE_IDENTIFIER = k.Paperless24UITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = "Paperless24";
+				TEST_TARGET_NAME = Paperless24;
 			};
 			name = Release;
 		};
