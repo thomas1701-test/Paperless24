@@ -2,6 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.Thomas.paperless.refresh</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Paperless24 sucht im lokalen Netzwerk nach AirScan-fähigen Dokumentenscannern, um direkt scannen zu können.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_uscan._tcp</string>
+		<string>_uscans._tcp</string>
+		<string>_scanner._tcp</string>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

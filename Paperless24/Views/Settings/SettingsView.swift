@@ -8,6 +8,10 @@ struct SettingsView: View {
     @AppStorage("appearanceMode") private var appearanceMode = 0
     @AppStorage("pageSize") private var pageSize = 25
     @AppStorage("appLanguage") private var appLanguage = ""
+    @AppStorage("gridItemSize") private var gridItemSize: Double = 130
+    @AppStorage("aiEnabled") private var aiEnabled = true
+    @AppStorage("notificationsEnabled") private var notificationsEnabled = false
+    @State private var showAskArchive = false
     @State private var stats: PaperlessStatistics? = nil
     @State private var widgetEnabled: Bool = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
     @State private var widgetMode: String = UserDefaults(suiteName: "group.com.Thomas.paperless")?.string(forKey: "widget_mode") ?? "documents"
@@ -102,7 +106,40 @@ struct SettingsView: View {
                     }
                 }
 
+                Section {
+                    Toggle("KI-Funktionen (Apple Intelligence)", isOn: $aiEnabled)
+                    Button {
+                        showAskArchive = true
+                    } label: {
+                        Label("Archiv fragen", systemImage: "sparkles")
+                    }
+                    .disabled(!aiEnabled)
+                } header: {
+                    Text("Intelligenz")
+                } footer: {
+                    Text(AIService.shared.modelAvailable
+                         ? "Zusammenfassungen, Auto-Tagging und Archiv-Fragen laufen on-device."
+                         : "Apple Intelligence ist auf diesem Gerät nicht verfügbar. Auto-Tagging nutzt weiterhin die Texterkennung.")
+                }
+
+                Section("Benachrichtigungen") {
+                    Toggle("Neue Dokumente melden", isOn: $notificationsEnabled)
+                        .onChange(of: notificationsEnabled) { _, on in
+                            if on {
+                                Task {
+                                    _ = await NotificationService.requestAuthorization()
+                                    NotificationService.scheduleRefresh()
+                                }
+                            }
+                        }
+                }
+
                 Section("Darstellung") {
+                    VStack(alignment: .leading) {
+                        Text("Kachelgröße").font(.subheadline)
+                        Slider(value: $gridItemSize, in: 90...260, step: 10)
+                        Text("\(Int(gridItemSize)) pt").font(.caption).foregroundColor(.secondary)
+                    }
                     Picker("Sprache", selection: $appLanguage) {
                         Text("🌐 Systemsprache").tag("")
                         Text("🇩🇪 Deutsch").tag("de")
@@ -137,6 +174,9 @@ struct SettingsView: View {
             .navigationTitle("Einstellungen")
             .onAppear {
                 Task { stats = await store.fetchStatistics() }
+            }
+            .sheet(isPresented: $showAskArchive) {
+                AskArchiveView()
             }
         }
     }

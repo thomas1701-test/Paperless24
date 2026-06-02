@@ -7,6 +7,9 @@ import WidgetKit
 @MainActor
 class AppStore: ObservableObject {
 
+    /// Schwache Referenz auf die aktive Instanz — von App Intents (Siri/Kurzbefehle) genutzt.
+    static weak var shared: AppStore?
+
     // MARK: - Published State
 
     @Published var documents: [Document] = []
@@ -42,6 +45,12 @@ class AppStore: ObservableObject {
     @Published var savedFilters: [SavedFilter] = []
     @Published var widgetOpenDocId: Int? = nil
     @Published var pickerCallbackURL: String? = nil
+
+    // App-Intent-Aktionen (von Siri/Kurzbefehlen ausgelöst)
+    @Published var requestScan = false
+    @Published var requestInbox = false
+    @Published var pendingSearch: String? = nil
+    @Published var requestAskArchive = false
 
     var inboxCount: Int { documents.filter { $0.correspondent == nil }.count }
 
@@ -89,6 +98,7 @@ class AppStore: ObservableObject {
     // MARK: - Init
 
     init() {
+        Self.shared = self
         var loadedAccounts = AccountService.load()
         var loadedActiveId = AccountService.activeId()
 
@@ -1089,33 +1099,50 @@ class AppStore: ObservableObject {
     }
 
     func selectDocumentForPicker(doc: Document) {
+        selectDocumentsForPicker(docs: [doc])
+    }
+
+    /// Übergibt ein oder mehrere Dokumente an Vermietoo (Mehrfachauswahl).
+    func selectDocumentsForPicker(docs: [Document]) {
         guard let callbackURLStr = pickerCallbackURL,
-              let callbackURL = URL(string: callbackURLStr) else { return }
+              let callbackURL = URL(string: callbackURLStr), !docs.isEmpty else { return }
 
         pickerCallbackURL = nil
 
         Task {
             guard let api = api else { return }
-            do {
-                let pdfData = try await api.downloadDocument(id: doc.id)
+            // Bei Einzelauswahl: PDF wie bisher über die Exchange-Pasteboard übergeben.
+            if docs.count == 1, let only = docs.first,
+               let pdfData = try? await api.downloadDocument(id: only.id) {
                 let pasteboard = UIPasteboard(name: UIPasteboard.Name("PaperlessExchange"), create: true)
                 pasteboard?.setData(pdfData, forPasteboardType: "com.paperless24.data")
-            } catch {
-                // PDF-Download fehlgeschlagen — Callback trotzdem aufrufen (ohne PDF)
             }
 
             var components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)
-            let existingItems = components?.queryItems ?? []
-            components?.queryItems = existingItems + [
-                URLQueryItem(name: "id", value: "\(doc.id)"),
-                URLQueryItem(name: "title", value: doc.title)
-            ]
+            var items = components?.queryItems ?? []
+            for doc in docs {
+                items.append(URLQueryItem(name: "id", value: "\(doc.id)"))
+            }
+            if docs.count == 1 {
+                items.append(URLQueryItem(name: "title", value: docs[0].title))
+            }
+            components?.queryItems = items
             if let finalURL = components?.url {
-                await MainActor.run {
-                    UIApplication.shared.open(finalURL)
-                }
+                await MainActor.run { UIApplication.shared.open(finalURL) }
             }
         }
+    }
+
+    // MARK: - Hintergrund-Benachrichtigung
+
+    /// Lädt die Inbox-Zahl und liefert sie zurück, wenn sie seit dem letzten Check gestiegen ist.
+    /// Wird vom BGAppRefreshTask genutzt. Gibt die neue Zahl zurück, sonst nil.
+    func checkInboxForNotification() async -> Int? {
+        guard let api = api, let stats = try? await api.fetchStatistics() else { return nil }
+        let current = stats.documentsInbox ?? 0
+        let last = UserDefaults.standard.integer(forKey: "lastNotifiedInbox")
+        UserDefaults.standard.set(current, forKey: "lastNotifiedInbox")
+        return current > last ? current : nil
     }
 
     // MARK: - Toast

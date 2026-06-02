@@ -5,8 +5,34 @@ struct DocumentInfoView: View {
     @EnvironmentObject var store: AppStore
     let doc: Document
 
+    @State private var summary: String?
+    @State private var isSummarizing = false
+
     var body: some View {
         List {
+            if AIService.shared.isAvailable, let content = doc.content, !content.isEmpty {
+                Section("Zusammenfassung") {
+                    if let summary {
+                        Text(summary).font(.body)
+                    } else {
+                        Button {
+                            Task {
+                                isSummarizing = true
+                                summary = await AIService.shared.summarize(content) ?? "Keine Zusammenfassung möglich."
+                                isSummarizing = false
+                            }
+                        } label: {
+                            HStack {
+                                if isSummarizing { ProgressView().padding(.trailing, 4) }
+                                Label("Mit Apple Intelligence zusammenfassen", systemImage: "sparkles")
+                                    .foregroundColor(.purple)
+                            }
+                        }
+                        .disabled(isSummarizing)
+                    }
+                }
+            }
+
             Section("Metadaten") {
                 infoRow("Sender", store.allCorrespondents.first { $0.id == doc.correspondent }?.safeName ?? "—")
                 infoRow("Typ", store.allDocTypes.first { $0.id == doc.documentType }?.safeName ?? "—")

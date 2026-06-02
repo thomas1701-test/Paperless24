@@ -36,7 +36,7 @@ struct DocumentDetailView: View {
             } else if selectedTab == 1 {
                 if let content = displayDoc.content, !content.isEmpty {
                     ScrollView {
-                        Text(content)
+                        LinkifiedText(text: content)
                             .font(.body)
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)

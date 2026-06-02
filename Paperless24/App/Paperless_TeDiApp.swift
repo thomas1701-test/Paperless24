@@ -5,6 +5,12 @@ struct Paperless24App: App {
     @StateObject private var store = AppStore()
     @AppStorage("appLanguage") private var appLanguage = ""
 
+    init() {
+        NotificationService.registerBackgroundTask()
+        SettingsSyncService.start()
+        NotificationService.scheduleRefresh()
+    }
+
     private var locale: Locale {
         appLanguage.isEmpty ? .current : Locale(identifier: appLanguage)
     }

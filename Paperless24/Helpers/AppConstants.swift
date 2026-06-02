@@ -2,10 +2,24 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "1.5.0"
+    static let appVersion = "1.6.0"
     static let urlScheme = "paperless24"
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.6.0", date: "02.06.2026", changes: [
+            "Neu: Apple Intelligence – Dokumente on-device zusammenfassen und das Archiv per Frage durchsuchen (semantische Suche & Antworten)",
+            "Neu: Intelligenteres Auto-Tagging mit Apple Intelligence (schlägt auch neue Tags/Sender vor)",
+            "Neu: Siri & Kurzbefehle – Scannen, Posteingang, Suche und Archiv-Frage per Sprachbefehl",
+            "Neu: Benachrichtigungen über neue Dokumente im Posteingang",
+            "Neu: Netzwerkscanner (AirScan) direkt in der App",
+            "Neu: Dokumente per Drag & Drop in andere Apps ziehen",
+            "Neu: Anklickbare Telefonnummern, Links und Adressen im OCR-Text",
+            "Neu: Zwei-Spalten-Ansicht auf iPad und Mac",
+            "Neu: Einstellbare Kachelgröße",
+            "Neu: Einstellungen werden über iCloud zwischen Geräten synchronisiert",
+            "Neu: Mehrere Dokumente gleichzeitig an Vermietoo übergeben",
+            "Einstellungen: KI-Funktionen lassen sich an- und abschalten",
+        ]),
         ChangelogEntry(version: "1.5.0", date: "02.06.2026", changes: [
             "Neu: Eigene Felder (Custom Fields) – alle Typen anzeigen und bearbeiten, inkl. Auswahllisten und Dokument-Verknüpfungen",
             "Neu: Info-Tab in der Dokumentansicht zeigt Metadaten und eigene Felder auf einen Blick",

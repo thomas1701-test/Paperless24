@@ -8,6 +8,7 @@ struct MainDocView: View {
 
     @AppStorage("layoutStyle") private var layoutStyleRaw = LayoutStyle.grid.rawValue
     @AppStorage("sortOrder") private var sortOrderRaw = SortOrder.dateDesc.rawValue
+    @AppStorage("gridItemSize") private var gridItemSize: Double = 130
 
     @State private var searchText = ""
     @State private var filterTag: Int? = nil
@@ -18,6 +19,7 @@ struct MainDocView: View {
     @State private var showCustomFieldSheet = false
     @State private var filterDate: DateFilter = .all
     @State private var showScanner = false
+    @State private var showAirScan = false
     @State private var showFilePicker = false
     @State private var showPhotoPicker = false
     @State private var uploadQueueItem: UploadContainer? = nil
@@ -43,8 +45,24 @@ struct MainDocView: View {
     private var layoutStyle: LayoutStyle { LayoutStyle(rawValue: layoutStyleRaw) ?? .grid }
     private var sortOrder: SortOrder { SortOrder(rawValue: sortOrderRaw) ?? .dateDesc }
 
+    @Environment(\.horizontalSizeClass) private var hSize
+
     var body: some View {
-        NavigationStack { content }
+        if hSize == .regular {
+            // iPad / Mac: zweispaltig — Liste als Sidebar, Detail rechts.
+            NavigationSplitView {
+                content
+            } detail: {
+                VStack(spacing: 12) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 50)).foregroundColor(.secondary)
+                    Text("Dokument auswählen").foregroundColor(.secondary)
+                }
+            }
+            .navigationSplitViewStyle(.balanced)
+        } else {
+            NavigationStack { content }
+        }
     }
 
     var content: some View {
@@ -213,6 +231,16 @@ struct MainDocView: View {
                             Button(role: .destructive) { bulkDelete() } label: {
                                 Image(systemName: "trash").frame(maxWidth: .infinity)
                             }
+                            if store.pickerCallbackURL != nil {
+                                Button {
+                                    let docs = store.documents.filter { selectedDocIDs.contains($0.id) }
+                                    store.selectDocumentsForPicker(docs: docs)
+                                    isSelectionMode = false; selectedDocIDs.removeAll()
+                                } label: {
+                                    Image(systemName: "doc.badge.plus").frame(maxWidth: .infinity)
+                                        .foregroundStyle(.purple)
+                                }
+                            }
                         }
                     }
                     .font(.system(size: 20))
@@ -306,6 +334,9 @@ struct MainDocView: View {
                 store.handleImportData(data: data, filename: "Scan_\(Date().timeIntervalSince1970).pdf")
             }
         }
+        .sheet(isPresented: $showAirScan) {
+            AirScanView()
+        }
         .sheet(isPresented: $showPhotoPicker) {
             PhotoPicker(isPresented: $showPhotoPicker) { data in
                 store.handleImportData(data: data, filename: "Photo_\(Date().timeIntervalSince1970).pdf")
@@ -326,6 +357,12 @@ struct MainDocView: View {
             Text(store.importErrorMessage ?? "")
         }
         .onAppear { applyFilters(); store.sync() }
+        .onChange(of: store.pendingSearch) { q in
+            guard let q else { return }
+            store.pendingSearch = nil
+            searchText = q
+            store.runSearch(query: q)
+        }
         .onChange(of: store.widgetOpenDocId) { id in
             guard let id else { return }
             store.widgetOpenDocId = nil
@@ -520,7 +557,7 @@ struct MainDocView: View {
 
     var documentGrid: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 10)], spacing: 10) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: gridItemSize), spacing: 10)], spacing: 10) {
                 ForEach(store.filteredDocs) { doc in
                     if isSelectionMode {
                         DocumentCard(
@@ -559,6 +596,7 @@ struct MainDocView: View {
                                         )
                                     }
                                     .buttonStyle(PlainButtonStyle())
+                                    .onDrag { dragProvider(for: doc) }
                                     .onLongPressGesture {
                                         store.haptic(.medium)
                                         quickLookDoc = doc
@@ -622,6 +660,7 @@ struct MainDocView: View {
                             ) {
                                 DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
                             }
+                            .onDrag { dragProvider(for: doc) }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
                                     store.haptic(.heavy)
@@ -683,6 +722,7 @@ struct MainDocView: View {
                 Button { showScanner = true } label: { Label("Scan", systemImage: "camera") }
                 Button { showPhotoPicker = true } label: { Label("Foto", systemImage: "photo") }
                 Button { showFilePicker = true } label: { Label("Datei", systemImage: "folder") }
+                Button { showAirScan = true } label: { Label("Netzwerkscanner", systemImage: "scanner") }
             } label: { Image(systemName: "plus") }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -705,6 +745,15 @@ struct MainDocView: View {
     }
 
     // MARK: - Helpers
+
+    private func dragProvider(for doc: Document) -> NSItemProvider {
+        if store.fileExists(docId: doc.id),
+           let provider = NSItemProvider(contentsOf: store.localFileURL(for: doc.id)) {
+            provider.suggestedName = doc.title
+            return provider
+        }
+        return NSItemProvider(object: doc.title as NSString)
+    }
 
     private func applyFilters() {
         store.currentFilterTag = filterTag

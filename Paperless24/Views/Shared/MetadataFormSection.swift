@@ -121,13 +121,30 @@ struct MetadataFormSection: View {
         guard let observations = request.results as? [VNRecognizedTextObservation] else {
             isAnalyzing = false; return
         }
-        let fullText = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ").lowercased()
+        let fullText = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ")
 
+        // Bevorzugt Apple Intelligence; fällt sonst auf die Stichwort-Logik zurück.
+        if AIService.shared.isAvailable {
+            analysisResult = "KI analysiert..."
+            if let suggestion = await AIService.shared.extractMetadata(
+                text: fullText,
+                tags: store.allTags.map { $0.safeName },
+                correspondents: store.allCorrespondents.map { $0.safeName },
+                types: store.allDocTypes.map { $0.safeName }
+            ) {
+                await applySuggestion(suggestion)
+                analysisResult = "KI-Vorschläge übernommen"
+                isAnalyzing = false
+                return
+            }
+        }
+
+        let lower = fullText.lowercased()
         for c in store.allCorrespondents {
-            if fullText.contains(c.safeName.lowercased()) { correspondent = c.id; break }
+            if lower.contains(c.safeName.lowercased()) { correspondent = c.id; break }
         }
         for t in store.allTags {
-            if fullText.contains(t.safeName.lowercased()) { tags.insert(t.id); break }
+            if lower.contains(t.safeName.lowercased()) { tags.insert(t.id); break }
         }
         if let d = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue)
             .matches(in: fullText, range: NSRange(location: 0, length: fullText.utf16.count))
@@ -138,5 +155,31 @@ struct MetadataFormSection: View {
             analysisResult = "Fertig"
         }
         isAnalyzing = false
+    }
+
+    /// Wendet KI-Vorschläge an; legt fehlende Tags/Sender/Typen bei Bedarf an.
+    private func applySuggestion(_ s: AISuggestion) async {
+        if let name = s.correspondent {
+            if let existing = store.allCorrespondents.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) {
+                correspondent = existing.id
+            } else if let id = await store.createCorrespondent(name: name) {
+                correspondent = id
+            }
+        }
+        if let name = s.type {
+            if let existing = store.allDocTypes.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) {
+                documentType = existing.id
+            } else if let id = await store.createDocumentType(name: name) {
+                documentType = id
+            }
+        }
+        for name in s.tags {
+            if let existing = store.allTags.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) {
+                tags.insert(existing.id)
+            } else if let id = await store.createTag(name: name) {
+                tags.insert(id)
+            }
+        }
+        if let d = s.date { date = d }
     }
 }
