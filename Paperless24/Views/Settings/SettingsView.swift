@@ -84,6 +84,9 @@ struct SettingsView: View {
                         Text("100").tag(100)
                         Text("250").tag(250)
                         Text("500").tag(500)
+                        Text("1000").tag(1000)
+                        Text("2000").tag(2000)
+                        Text("Alles").tag(100000)
                     }
                 }
 
