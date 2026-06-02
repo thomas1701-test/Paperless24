@@ -41,6 +41,7 @@ struct MainDocView: View {
     @State private var showSaveFilterSheet = false
     @State private var saveFilterName = ""
     @State private var quickLookDoc: Document? = nil
+    @State private var splitDoc: Document? = nil
 
     private var layoutStyle: LayoutStyle { LayoutStyle(rawValue: layoutStyleRaw) ?? .grid }
     private var sortOrder: SortOrder { SortOrder(rawValue: sortOrderRaw) ?? .dateDesc }
@@ -53,10 +54,22 @@ struct MainDocView: View {
             NavigationSplitView {
                 content
             } detail: {
-                VStack(spacing: 12) {
-                    Image(systemName: "doc.text.magnifyingglass")
-                        .font(.system(size: 50)).foregroundColor(.secondary)
-                    Text("Dokument auswählen").foregroundColor(.secondary)
+                if let doc = splitDoc {
+                    NavigationStack {
+                        DocumentDetailView(
+                            doc: doc,
+                            onSave: updateDocument,
+                            onDelete: { store.deleteDocument(id: $0); splitDoc = nil },
+                            searchQuery: searchText
+                        )
+                        .id(doc.id)
+                    }
+                } else {
+                    VStack(spacing: 12) {
+                        Image(systemName: "doc.text.magnifyingglass")
+                            .font(.system(size: 50)).foregroundColor(.secondary)
+                        Text("Dokument auswählen").foregroundColor(.secondary)
+                    }
                 }
             }
             .navigationSplitViewStyle(.balanced)
@@ -367,27 +380,29 @@ struct MainDocView: View {
             guard let id else { return }
             store.widgetOpenDocId = nil
             if let existing = store.documents.first(where: { $0.id == id }) {
-                deepLinkDoc = existing
-                selectedDocId = 999999
+                openDeepLink(existing)
             } else {
-                Task {
-                    deepLinkDoc = await store.fetchDocumentDetail(id: id)
-                    selectedDocId = 999999
-                }
+                Task { if let d = await store.fetchDocumentDetail(id: id) { openDeepLink(d) } }
             }
         }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in
             if let idStr = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String, let id = Int(idStr) {
                 if let existing = store.documents.first(where: { $0.id == id }) {
-                    deepLinkDoc = existing
-                    selectedDocId = 999999
+                    openDeepLink(existing)
                 } else {
-                    Task {
-                        deepLinkDoc = await store.fetchDocumentDetail(id: id)
-                        selectedDocId = 999999
-                    }
+                    Task { if let d = await store.fetchDocumentDetail(id: id) { openDeepLink(d) } }
                 }
             }
+        }
+    }
+
+    /// Öffnet ein Dokument aus Widget/Spotlight — im iPad-Modus in der Detailspalte, sonst per Push.
+    private func openDeepLink(_ doc: Document) {
+        if hSize == .regular {
+            splitDoc = doc
+        } else {
+            deepLinkDoc = doc
+            selectedDocId = 999999
         }
     }
 
@@ -576,36 +591,31 @@ struct MainDocView: View {
                                 if store.pickerCallbackURL != nil {
                                     Button {
                                         store.selectDocumentForPicker(doc: doc)
-                                    } label: {
-                                        DocumentCard(
-                                            doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
-                                            allTags: store.allTags, allCorrespondents: store.allCorrespondents,
-                                            allDocTypes: store.allDocTypes
-                                        )
-                                    }
+                                    } label: { docCard(doc) }
                                     .buttonStyle(PlainButtonStyle())
+                                } else if hSize == .regular {
+                                    Button {
+                                        splitDoc = doc; store.haptic(.light)
+                                    } label: { docCard(doc) }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(Color.accentColor, lineWidth: splitDoc?.id == doc.id ? 3 : 0)
+                                    )
+                                    .onDrag { dragProvider(for: doc) }
+                                    .contextMenu { docContextMenu(doc) }
                                 } else {
                                     NavigationLink(
                                         destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
                                         tag: doc.id, selection: $selectedDocId
-                                    ) {
-                                        DocumentCard(
-                                            doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
-                                            allTags: store.allTags, allCorrespondents: store.allCorrespondents,
-                                            allDocTypes: store.allDocTypes
-                                        )
-                                    }
+                                    ) { docCard(doc) }
                                     .buttonStyle(PlainButtonStyle())
                                     .onDrag { dragProvider(for: doc) }
                                     .onLongPressGesture {
                                         store.haptic(.medium)
                                         quickLookDoc = doc
                                     }
-                                    .contextMenu {
-                                        Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
-                                        Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
-                                        Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
-                                    }
+                                    .contextMenu { docContextMenu(doc) }
                                 }
                             }
                             .onAppear {
@@ -653,6 +663,28 @@ struct MainDocView: View {
                                 DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
                             }
                             .buttonStyle(PlainButtonStyle())
+                        } else if hSize == .regular {
+                            Button {
+                                splitDoc = doc; store.haptic(.light)
+                            } label: {
+                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                            }
+                            .buttonStyle(.plain)
+                            .listRowBackground(splitDoc?.id == doc.id ? Color.accentColor.opacity(0.12) : nil)
+                            .onDrag { dragProvider(for: doc) }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    store.haptic(.heavy)
+                                    store.deleteDocument(id: doc.id)
+                                } label: { Label("Löschen", systemImage: "trash") }
+                                Button { documentToEdit = doc } label: { Label("Edit", systemImage: "pencil") }.tint(.orange)
+                            }
+                            .swipeActions(edge: .leading) {
+                                Button { quickTagDoc = doc; store.haptic(.light) } label: {
+                                    Label("Tag", systemImage: "tag.fill")
+                                }.tint(.blue)
+                            }
+                            .contextMenu { docContextMenu(doc) }
                         } else {
                             NavigationLink(
                                 destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
@@ -673,11 +705,7 @@ struct MainDocView: View {
                                     Label("Tag", systemImage: "tag.fill")
                                 }.tint(.blue)
                             }
-                            .contextMenu {
-                                Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
-                                Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
-                                Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
-                            }
+                            .contextMenu { docContextMenu(doc) }
                         }
                     }
                     .onAppear {
@@ -745,6 +773,20 @@ struct MainDocView: View {
     }
 
     // MARK: - Helpers
+
+    @ViewBuilder private func docCard(_ doc: Document) -> some View {
+        DocumentCard(
+            doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
+            allTags: store.allTags, allCorrespondents: store.allCorrespondents,
+            allDocTypes: store.allDocTypes
+        )
+    }
+
+    @ViewBuilder private func docContextMenu(_ doc: Document) -> some View {
+        Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
+        Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
+        Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+    }
 
     private func dragProvider(for doc: Document) -> NSItemProvider {
         if store.fileExists(docId: doc.id),
