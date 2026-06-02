@@ -2,10 +2,19 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "1.4.3"
+    static let appVersion = "1.5.0"
     static let urlScheme = "paperless24"
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.5.0", date: "02.06.2026", changes: [
+            "Neu: Eigene Felder (Custom Fields) – alle Typen anzeigen und bearbeiten, inkl. Auswahllisten und Dokument-Verknüpfungen",
+            "Neu: Info-Tab in der Dokumentansicht zeigt Metadaten und eigene Felder auf einen Blick",
+            "Neu: Papierkorb – gelöschte Dokumente wiederherstellen oder endgültig entfernen",
+            "Neu: Freigabe-Links erstellen, kopieren und widerrufen – mit optionalem Ablaufdatum",
+            "Neu: Gespeicherte Ansichten vom Server werden synchronisiert; bestehende lokale Filter werden automatisch übernommen",
+            "Neu: Verschachtelte Tags (Unter-Tags) werden hierarchisch dargestellt",
+            "Neu: Nach eigenen Feldern filtern",
+        ]),
         ChangelogEntry(version: "1.4.3", date: "02.06.2026", changes: [
             "Fix: Im Auswahl-Modus für Vermietoo öffnete ein Tipp auf ein Dokument nur die Detailansicht, statt es auszuwählen — die Auswahl klappt jetzt direkt",
         ]),
