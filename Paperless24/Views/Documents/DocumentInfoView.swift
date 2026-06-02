@@ -18,7 +18,11 @@ struct DocumentInfoView: View {
                         Button {
                             Task {
                                 isSummarizing = true
-                                summary = await AIService.shared.summarize(content) ?? "Keine Zusammenfassung möglich."
+                                if let result = await AIService.shared.summarize(content) {
+                                    summary = result
+                                } else {
+                                    summary = "Keine Zusammenfassung möglich.\n\nGrund: \(AIService.shared.lastErrorDescription ?? "unbekannt")"
+                                }
                                 isSummarizing = false
                             }
                         } label: {

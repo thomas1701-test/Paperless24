@@ -10,6 +10,9 @@ final class AIService {
     static let shared = AIService()
     private init() {}
 
+    /// Letzte Fehlermeldung der KI (für Diagnose/Anzeige).
+    private(set) var lastErrorDescription: String?
+
     /// Vom Nutzer in den Einstellungen steuerbar.
     private var userEnabled: Bool {
         UserDefaults.standard.object(forKey: "aiEnabled") as? Bool ?? true
@@ -76,22 +79,39 @@ final class AIService {
     // MARK: - Intern
 
     private func respond(instructions: String, prompt: String) async -> String? {
+        lastErrorDescription = nil
         #if canImport(FoundationModels)
-        if #available(iOS 26, *), modelAvailable {
+        if #available(iOS 26, *) {
+            switch SystemLanguageModel.default.availability {
+            case .available:
+                break
+            case .unavailable(let reason):
+                lastErrorDescription = "Modell nicht verfügbar: \(reason)"
+                return nil
+            @unknown default:
+                lastErrorDescription = "Modell nicht verfügbar"
+                return nil
+            }
             do {
                 let session = LanguageModelSession(instructions: instructions)
                 let response = try await session.respond(to: prompt)
                 return response.content
             } catch {
+                lastErrorDescription = String(describing: error)
                 return nil
             }
+        } else {
+            lastErrorDescription = "iOS 26 erforderlich"
         }
+        #else
+        lastErrorDescription = "FoundationModels nicht verfügbar"
         #endif
         return nil
     }
 
     private func trimmed(_ s: String) -> String {
-        String(s.trimmingCharacters(in: .whitespacesAndNewlines).prefix(6000))
+        // Konservativ unter dem ~4096-Token-Kontextfenster bleiben (inkl. Platz für die Antwort).
+        String(s.trimmingCharacters(in: .whitespacesAndNewlines).prefix(3500))
     }
 }
 

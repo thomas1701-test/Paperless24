@@ -13,6 +13,16 @@
     "%@ suchen" : {
 
     },
+    "%@:%lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@:%2$lld"
+          }
+        }
+      }
+    },
     "%lld" : {
 
     },
@@ -27,6 +37,9 @@
       }
     },
     "%lld Dokument(e) können nicht wiederhergestellt werden." : {
+
+    },
+    "%lld pt" : {
 
     },
     "%lld Upload%@ %@" : {
@@ -348,6 +361,9 @@
     "Ansicht speichern" : {
 
     },
+    "Antwort" : {
+
+    },
     "Anzeige" : {
       "localizations" : {
         "en" : {
@@ -403,6 +419,12 @@
           }
         }
       }
+    },
+    "Apple Intelligence ist auf diesem Gerät nicht verfügbar. Auto-Tagging nutzt weiterhin die Texterkennung." : {
+
+    },
+    "Archiv fragen" : {
+
     },
     "Archiviert" : {
 
@@ -521,6 +543,9 @@
           }
         }
       }
+    },
+    "Benachrichtigungen" : {
+
     },
     "Benutzer" : {
       "localizations" : {
@@ -943,7 +968,13 @@
         }
       }
     },
+    "Dokument auswählen" : {
+
+    },
     "Dokument für Vermietoo auswählen" : {
+
+    },
+    "Dokument scannen" : {
 
     },
     "Dokument suchen" : {
@@ -1005,6 +1036,9 @@
         }
       }
     },
+    "Dokumente suchen" : {
+
+    },
     "Dokumente werden geladen..." : {
       "localizations" : {
         "en" : {
@@ -1060,6 +1094,9 @@
           }
         }
       }
+    },
+    "Durchsuche dein Archiv …" : {
+
     },
     "Edit" : {
       "localizations" : {
@@ -1313,10 +1350,19 @@
         }
       }
     },
+    "Findet AirScan-/eSCL-fähige Scanner im lokalen Netzwerk. Funktioniert nicht mit jedem Modell." : {
+
+    },
     "Foto" : {
 
     },
+    "Frag dein Archiv …" : {
+
+    },
     "Freigabe-Links" : {
+
+    },
+    "Gefundene Dokumente" : {
 
     },
     "gelöscht: %@" : {
@@ -1440,6 +1486,9 @@
         }
       }
     },
+    "Hinweis: Apple Intelligence ist auf diesem Gerät nicht verfügbar – es wird nur semantisch gesucht." : {
+
+    },
     "https://" : {
 
     },
@@ -1474,6 +1523,9 @@
     "Info" : {
 
     },
+    "Intelligenz" : {
+
+    },
     "Ja" : {
       "localizations" : {
         "en" : {
@@ -1501,6 +1553,9 @@
           }
         }
       }
+    },
+    "Kachelgröße" : {
+
     },
     "Kein Filter" : {
 
@@ -1648,6 +1703,9 @@
     "Keine Links vorhanden" : {
 
     },
+    "Keine Scanner gefunden" : {
+
+    },
     "KI denkt..." : {
       "localizations" : {
         "en" : {
@@ -1675,6 +1733,9 @@
           }
         }
       }
+    },
+    "KI-Funktionen (Apple Intelligence)" : {
+
     },
     "Konten" : {
       "localizations" : {
@@ -2131,6 +2192,9 @@
     "Metadaten" : {
 
     },
+    "Mit Apple Intelligence zusammenfassen" : {
+
+    },
     "Modus" : {
       "localizations" : {
         "en" : {
@@ -2218,6 +2282,12 @@
           }
         }
       }
+    },
+    "Netzwerkscanner" : {
+
+    },
+    "Neue Dokumente melden" : {
+
     },
     "Neue Notiz..." : {
       "localizations" : {
@@ -2421,6 +2491,9 @@
         }
       }
     },
+    "Öffnet den Scanner, um ein neues Dokument aufzunehmen." : {
+
+    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -2545,6 +2618,9 @@
         }
       }
     },
+    "Posteingang öffnen" : {
+
+    },
     "Scan" : {
       "localizations" : {
         "en" : {
@@ -2572,6 +2648,9 @@
           }
         }
       }
+    },
+    "Scannen" : {
+
     },
     "Schnellzuweisung" : {
       "localizations" : {
@@ -2803,6 +2882,9 @@
     "Status" : {
 
     },
+    "Stellt eine Frage an dein Dokumentenarchiv." : {
+
+    },
     "Stop" : {
       "localizations" : {
         "en" : {
@@ -2831,6 +2913,12 @@
         }
       }
     },
+    "Suchbegriff" : {
+
+    },
+    "Suche Scanner …" : {
+
+    },
     "Suche..." : {
       "localizations" : {
         "en" : {
@@ -2858,6 +2946,12 @@
           }
         }
       }
+    },
+    "Suchen" : {
+
+    },
+    "Sucht in Paperless nach Dokumenten." : {
+
     },
     "Tag" : {
 
@@ -3443,6 +3537,9 @@
         }
       }
     },
+    "Zeigt die noch nicht bearbeiteten Dokumente." : {
+
+    },
     "Zeitraum" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3530,6 +3627,12 @@
       }
     },
     "Zurücksetzen" : {
+
+    },
+    "Zusammenfassung" : {
+
+    },
+    "Zusammenfassungen, Auto-Tagging und Archiv-Fragen laufen on-device." : {
 
     }
   },
