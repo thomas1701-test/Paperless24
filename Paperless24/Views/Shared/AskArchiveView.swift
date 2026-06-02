@@ -10,6 +10,7 @@ struct AskArchiveView: View {
     @State private var answer: String?
     @State private var sources: [Document] = []
     @State private var isThinking = false
+    @State private var statusText = ""
     @State private var openDoc: Document?
 
     var body: some View {
@@ -18,7 +19,14 @@ struct AskArchiveView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         if isThinking {
-                            HStack { ProgressView(); Text("Durchsuche dein Archiv …").foregroundColor(.secondary) }
+                            VStack(spacing: 12) {
+                                ProgressView().scaleEffect(1.3)
+                                Text(statusText.isEmpty ? "Einen Moment …" : statusText)
+                                    .font(.subheadline).foregroundColor(.secondary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 24)
                         }
                         if let answer {
                             VStack(alignment: .leading, spacing: 8) {
@@ -56,7 +64,11 @@ struct AskArchiveView: View {
                         .textFieldStyle(.roundedBorder)
                         .onSubmit { Task { await ask() } }
                     Button { Task { await ask() } } label: {
-                        Image(systemName: "arrow.up.circle.fill").font(.title2)
+                        if isThinking {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "arrow.up.circle.fill").font(.title2)
+                        }
                     }
                     .disabled(question.trimmingCharacters(in: .whitespaces).isEmpty || isThinking)
                 }
@@ -82,8 +94,14 @@ struct AskArchiveView: View {
         guard !q.isEmpty else { return }
         isThinking = true
         answer = nil
+        sources = []
+        statusText = "Durchsuche dein Archiv …"
         let top = rankedDocuments(for: q, limit: 5)
         sources = top
+
+        if AIService.shared.isAvailable {
+            statusText = "Formuliere Antwort … (kann einige Sekunden dauern)"
+        }
         let context = top.map { doc in
             "Titel: \(doc.title)\nInhalt: \(doc.content?.prefix(1200) ?? "")"
         }.joined(separator: "\n\n---\n\n")
@@ -92,6 +110,7 @@ struct AskArchiveView: View {
         } else {
             answer = top.isEmpty ? "Keine passenden Dokumente gefunden." : "Passende Dokumente unten."
         }
+        statusText = ""
         isThinking = false
     }
 
