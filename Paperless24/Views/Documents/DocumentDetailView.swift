@@ -4,13 +4,14 @@ import CoreSpotlight
 struct DocumentDetailView: View {
     @EnvironmentObject var store: AppStore
     let doc: Document
-    let onSave: (Int, String, Date, Int?, Int?, Int?, [Int]) -> Void
+    let onSave: (Int, String, Date, Int?, Int?, Int?, [Int], [CustomFieldEdit]) -> Void
     let onDelete: (Int) -> Void
     var searchQuery: String = ""
 
     @State private var pdfData: Data? = nil
     @State private var showEdit = false
     @State private var showShare = false
+    @State private var showShareLink = false
     @State private var shareURL: URL? = nil
     @State private var selectedTab = 0
     @State private var newNote = ""
@@ -23,7 +24,8 @@ struct DocumentDetailView: View {
             Picker("Ansicht", selection: $selectedTab) {
                 Text("Dokument").tag(0)
                 Text("Text").tag(1)
-                Text("Notizen").tag(2)
+                Text("Info").tag(2)
+                Text("Notizen").tag(3)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal)
@@ -44,6 +46,8 @@ struct DocumentDetailView: View {
                     Text("Kein OCR-Text vorhanden").foregroundColor(.gray)
                     Spacer()
                 }
+            } else if selectedTab == 2 {
+                DocumentInfoView(doc: displayDoc)
             } else {
                 VStack {
                     List {
@@ -77,12 +81,16 @@ struct DocumentDetailView: View {
                             showShare = true
                         }
                     } label: { Image(systemName: "square.and.arrow.up") }
+                    Button { showShareLink = true } label: { Image(systemName: "link") }
                     Button("Edit") { showEdit = true }
                 }
             }
         }
         .sheet(isPresented: $showShare) {
             if let url = shareURL { ShareSheet(items: [url]) }
+        }
+        .sheet(isPresented: $showShareLink) {
+            ShareLinkSheet(documentId: doc.id)
         }
         .sheet(isPresented: $showEdit) {
             EditDocumentView(document: doc, onSave: onSave, onDelete: onDelete)

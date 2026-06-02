@@ -13,6 +13,9 @@ struct MainDocView: View {
     @State private var filterTag: Int? = nil
     @State private var filterCorr: Int? = nil
     @State private var filterType: Int? = nil
+    @State private var filterCustomField: Int? = nil
+    @State private var filterCustomText = ""
+    @State private var showCustomFieldSheet = false
     @State private var filterDate: DateFilter = .all
     @State private var showScanner = false
     @State private var showFilePicker = false
@@ -238,17 +241,23 @@ struct MainDocView: View {
         .sheet(item: $quickLookDoc) { doc in
             QuickLookDocSheet(doc: doc)
         }
-        .alert("Filter speichern", isPresented: $showSaveFilterSheet) {
+        .alert("Ansicht speichern", isPresented: $showSaveFilterSheet) {
             TextField("Name", text: $saveFilterName)
             Button("Speichern") {
                 if !saveFilterName.isEmpty {
-                    store.saveCurrentFilter(name: saveFilterName, tag: filterTag, correspondent: filterCorr, type: filterType, dateFilter: filterDate)
+                    store.createServerView(name: saveFilterName, tag: filterTag, corr: filterCorr,
+                                           type: filterType, dateFilter: filterDate,
+                                           start: customStartDate, end: customEndDate, sort: sortOrder)
                     saveFilterName = ""
                 }
             }
             Button("Abbrechen", role: .cancel) { saveFilterName = "" }
         } message: {
-            Text("Name für diesen Filter:")
+            Text("Name für diese Ansicht (wird auf dem Server gespeichert):")
+        }
+        .sheet(isPresented: $showCustomFieldSheet, onDismiss: applyFilters) {
+            CustomFieldFilterSheet(selectedField: $filterCustomField, text: $filterCustomText)
+                .presentationDetents([.medium])
         }
         .sheet(isPresented: $showBulkShare) {
             ShareSheet(items: bulkShareURLs)
@@ -425,7 +434,25 @@ struct MainDocView: View {
                         .cornerRadius(8)
                     }
 
-                    if filterTag != nil || filterCorr != nil || filterType != nil || filterDate != .all {
+                    if !store.allCustomFields.isEmpty {
+                        Button { showCustomFieldSheet = true } label: {
+                            Group {
+                                if filterCustomField == nil {
+                                    Label("Feld", systemImage: "character.textbox")
+                                } else {
+                                    Label(store.customField(id: filterCustomField!)?.safeName ?? "Feld",
+                                          systemImage: "character.textbox")
+                                }
+                            }
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(chipForeground(active: filterCustomField != nil))
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(chipBackground(active: filterCustomField != nil))
+                            .cornerRadius(8)
+                        }
+                    }
+
+                    if filterTag != nil || filterCorr != nil || filterType != nil || filterDate != .all || filterCustomField != nil {
                         Button {
                             showSaveFilterSheet = true
                         } label: {
@@ -437,6 +464,7 @@ struct MainDocView: View {
                         }
                         Button {
                             filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
+                            filterCustomField = nil; filterCustomText = ""
                             applyFilters(); store.haptic(.light)
                         } label: {
                             Label("Zurücksetzen", systemImage: "xmark.circle.fill")
@@ -450,25 +478,29 @@ struct MainDocView: View {
                 .padding(.horizontal).padding(.vertical, 5)
             }
 
-            if !store.savedFilters.isEmpty {
+            if !store.serverViews.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        ForEach(store.savedFilters) { saved in
+                        ForEach(store.serverViews) { view in
                             Button {
-                                filterTag = saved.tag
-                                filterCorr = saved.correspondent
-                                filterType = saved.type
-                                filterDate = saved.dateFilter
+                                let p = store.parse(view)
+                                filterTag = p.tag
+                                filterCorr = p.corr
+                                filterType = p.type
+                                filterDate = p.dateFilter
+                                if let s = p.customStart { customStartDate = s }
+                                if let e = p.customEnd { customEndDate = e }
+                                sortOrderRaw = p.sort.rawValue
                                 applyFilters()
                                 store.haptic(.light)
                             } label: {
-                                Label(saved.name, systemImage: "bookmark.fill")
+                                Label(view.safeName, systemImage: "bookmark.fill")
                                     .font(.caption)
                                     .padding(.horizontal, 10).padding(.vertical, 5)
                                     .background(Color.accentColor.opacity(0.12)).cornerRadius(15)
                             }
                             .contextMenu {
-                                Button(role: .destructive) { store.deleteSavedFilter(id: saved.id) } label: {
+                                Button(role: .destructive) { store.deleteServerView(id: view.id) } label: {
                                     Label("Löschen", systemImage: "trash")
                                 }
                             }
@@ -503,25 +535,40 @@ struct MainDocView: View {
                         }
                     } else {
                         ZStack(alignment: .topTrailing) {
-                            NavigationLink(
-                                destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
-                                tag: doc.id, selection: $selectedDocId
-                            ) {
-                                DocumentCard(
-                                    doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
-                                    allTags: store.allTags, allCorrespondents: store.allCorrespondents,
-                                    allDocTypes: store.allDocTypes
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                            .onLongPressGesture {
-                                store.haptic(.medium)
-                                quickLookDoc = doc
-                            }
-                            .contextMenu {
-                                Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
-                                Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
-                                Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+                            Group {
+                                if store.pickerCallbackURL != nil {
+                                    Button {
+                                        store.selectDocumentForPicker(doc: doc)
+                                    } label: {
+                                        DocumentCard(
+                                            doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
+                                            allTags: store.allTags, allCorrespondents: store.allCorrespondents,
+                                            allDocTypes: store.allDocTypes
+                                        )
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                } else {
+                                    NavigationLink(
+                                        destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
+                                        tag: doc.id, selection: $selectedDocId
+                                    ) {
+                                        DocumentCard(
+                                            doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
+                                            allTags: store.allTags, allCorrespondents: store.allCorrespondents,
+                                            allDocTypes: store.allDocTypes
+                                        )
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    .onLongPressGesture {
+                                        store.haptic(.medium)
+                                        quickLookDoc = doc
+                                    }
+                                    .contextMenu {
+                                        Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
+                                        Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
+                                        Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+                                    }
+                                }
                             }
                             .onAppear {
                                 if doc.id == store.filteredDocs.last?.id {
@@ -534,11 +581,6 @@ struct MainDocView: View {
                             }
 
                             if store.pickerCallbackURL != nil {
-                                Color.clear
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        store.selectDocumentForPicker(doc: doc)
-                                    }
                                 Text("Auswählen")
                                     .font(.caption2)
                                     .fontWeight(.semibold)
@@ -565,28 +607,39 @@ struct MainDocView: View {
         List {
             ForEach(store.filteredDocs) { doc in
                 ZStack(alignment: .trailing) {
-                    NavigationLink(
-                        destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
-                        tag: doc.id, selection: $selectedDocId
-                    ) {
-                        DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
-                    }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) {
-                            store.haptic(.heavy)
-                            store.deleteDocument(id: doc.id)
-                        } label: { Label("Löschen", systemImage: "trash") }
-                        Button { documentToEdit = doc } label: { Label("Edit", systemImage: "pencil") }.tint(.orange)
-                    }
-                    .swipeActions(edge: .leading) {
-                        Button { quickTagDoc = doc; store.haptic(.light) } label: {
-                            Label("Tag", systemImage: "tag.fill")
-                        }.tint(.blue)
-                    }
-                    .contextMenu {
-                        Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
-                        Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
-                        Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+                    Group {
+                        if store.pickerCallbackURL != nil {
+                            Button {
+                                store.selectDocumentForPicker(doc: doc)
+                            } label: {
+                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        } else {
+                            NavigationLink(
+                                destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
+                                tag: doc.id, selection: $selectedDocId
+                            ) {
+                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                            }
+                            .swipeActions(edge: .trailing) {
+                                Button(role: .destructive) {
+                                    store.haptic(.heavy)
+                                    store.deleteDocument(id: doc.id)
+                                } label: { Label("Löschen", systemImage: "trash") }
+                                Button { documentToEdit = doc } label: { Label("Edit", systemImage: "pencil") }.tint(.orange)
+                            }
+                            .swipeActions(edge: .leading) {
+                                Button { quickTagDoc = doc; store.haptic(.light) } label: {
+                                    Label("Tag", systemImage: "tag.fill")
+                                }.tint(.blue)
+                            }
+                            .contextMenu {
+                                Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
+                                Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
+                                Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+                            }
+                        }
                     }
                     .onAppear {
                         if doc.id == store.filteredDocs.last?.id {
@@ -599,11 +652,6 @@ struct MainDocView: View {
                     }
 
                     if store.pickerCallbackURL != nil {
-                        Color.clear
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                store.selectDocumentForPicker(doc: doc)
-                            }
                         Text("Auswählen")
                             .font(.caption2)
                             .fontWeight(.semibold)
@@ -662,6 +710,8 @@ struct MainDocView: View {
         store.currentFilterTag = filterTag
         store.currentFilterCorr = filterCorr
         store.currentFilterType = filterType
+        store.currentFilterCustomField = filterCustomField
+        store.currentFilterCustomText = filterCustomText
         store.currentDateFilter = filterDate
         store.customStartDate = customStartDate
         store.customEndDate = customEndDate
@@ -669,8 +719,8 @@ struct MainDocView: View {
         store.updateFilteredDocs()
     }
 
-    private func updateDocument(id: Int, title: String, date: Date, corr: Int?, type: Int?, asn: Int?, tags: [Int]) {
-        store.addPendingEdit(docId: id, title: title, created: date, corr: corr, type: type, asn: asn, tags: tags)
+    private func updateDocument(id: Int, title: String, date: Date, corr: Int?, type: Int?, asn: Int?, tags: [Int], customFields: [CustomFieldEdit]) {
+        store.addPendingEdit(docId: id, title: title, created: date, corr: corr, type: type, asn: asn, tags: tags, customFields: customFields)
     }
 
     private func bulkDelete() {

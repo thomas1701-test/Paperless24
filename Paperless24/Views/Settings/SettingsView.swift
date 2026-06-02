@@ -52,6 +52,7 @@ struct SettingsView: View {
                     NavigationLink(destination: TagListView()) { Label("Tags verwalten", systemImage: "tag") }
                     NavigationLink(destination: CorrespondentListView()) { Label("Sender verwalten", systemImage: "person.2") }
                     NavigationLink(destination: DocTypeListView()) { Label("Typen verwalten", systemImage: "doc") }
+                    NavigationLink(destination: TrashView()) { Label("Papierkorb", systemImage: "trash") }
                     Button("Spotlight Index neu erstellen") {
                         store.clearSpotlightIndex()
                         store.indexDocumentsForSpotlight()

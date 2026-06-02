@@ -11,11 +11,13 @@ struct Document: Identifiable, Codable, Hashable {
     var archiveSerialNumber: Int?
     var tags: [Int]
     var notes: [Note]?
+    var customFields: [CustomFieldEdit] = []
 
     enum CodingKeys: String, CodingKey {
         case id, title, content, created, added, correspondent, tags, notes
         case documentType = "document_type"
         case archiveSerialNumber = "archive_serial_number"
+        case customFields = "custom_fields"
     }
 
     var dateObject: Date? {
@@ -45,6 +47,7 @@ extension Document {
         archiveSerialNumber = try? c.decode(Int.self, forKey: .archiveSerialNumber)
         tags = (try? c.decode([Int].self, forKey: .tags)) ?? []
         notes = try? c.decode([Note].self, forKey: .notes)
+        customFields = (try? c.decode([CustomFieldEdit].self, forKey: .customFields)) ?? []
     }
 }
 

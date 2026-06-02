@@ -7,14 +7,21 @@ struct TagListView: View {
 
     var body: some View {
         List {
-            ForEach(store.allTags) { tag in
+            ForEach(store.hierarchicalTags(), id: \.tag.id) { entry in
                 HStack {
-                    Circle().fill(Color(hex: tag.safeColor)).frame(width: 10, height: 10)
-                    Text(tag.safeName)
+                    if entry.depth > 0 {
+                        Image(systemName: "arrow.turn.down.right")
+                            .font(.caption2).foregroundColor(.secondary)
+                            .padding(.leading, CGFloat(entry.depth - 1) * 16)
+                    }
+                    Circle().fill(Color(hex: entry.tag.safeColor)).frame(width: 10, height: 10)
+                    Text(entry.tag.safeName)
                 }
-            }
-            .onDelete { offsets in
-                offsets.forEach { store.deleteTag(id: store.allTags[$0].id) }
+                .swipeActions {
+                    Button(role: .destructive) {
+                        store.deleteTag(id: entry.tag.id)
+                    } label: { Label("Löschen", systemImage: "trash") }
+                }
             }
         }
         .navigationTitle("Tags")

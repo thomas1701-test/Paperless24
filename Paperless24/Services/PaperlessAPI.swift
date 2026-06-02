@@ -220,17 +220,20 @@ struct PaperlessAPI {
         try validateResponse(response)
     }
 
-    func patchDocument(id: Int, title: String, created: String, correspondent: Int?, documentType: Int?, archiveSerialNumber: Int?, tags: [Int]) async throws {
+    func patchDocument(id: Int, title: String, created: String, correspondent: Int?, documentType: Int?, archiveSerialNumber: Int?, tags: [Int], customFields: [CustomFieldEdit] = []) async throws {
         let url = try url("documents/\(id)/")
         var req = makeRequest(url)
         req.httpMethod = "PATCH"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "title": title, "created": created, "tags": tags,
             "correspondent": correspondent ?? NSNull(),
             "document_type": documentType ?? NSNull(),
             "archive_serial_number": archiveSerialNumber ?? NSNull()
         ]
+        // Nur gesetzte Felder senden — leere Werte würden sonst leere Einträge anlegen.
+        let nonEmpty = customFields.filter { !$0.value.isEmpty }
+        body["custom_fields"] = nonEmpty.map { ["field": $0.field, "value": $0.value.jsonValue] }
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
         let (_, response) = try await URLSession.shared.data(for: req)
         try validateResponse(response)
@@ -319,6 +322,107 @@ struct PaperlessAPI {
 
     func deleteNote(docId: Int, noteId: Int) async throws {
         let url = try url("documents/\(docId)/notes/\(noteId)/")
+        var req = makeRequest(url)
+        req.httpMethod = "DELETE"
+        let (_, response) = try await URLSession.shared.data(for: req)
+        if let http = response as? HTTPURLResponse, http.statusCode != 204 {
+            throw APIError.serverError(http.statusCode)
+        }
+    }
+
+    // MARK: - Custom Fields
+
+    func fetchCustomFields() async throws -> [CustomField] {
+        let url = try url("custom_fields/?page_size=1000")
+        let (data, response) = try await URLSession.shared.data(for: makeRequest(url))
+        try validateResponse(response)
+        return (try? JSONDecoder().decode(CustomFieldResponse.self, from: data))?.results ?? []
+    }
+
+    // MARK: - Trash
+
+    func fetchTrash() async throws -> [TrashDocument] {
+        let url = try url("trash/?page_size=1000")
+        let (data, response) = try await URLSession.shared.data(for: makeRequest(url))
+        try validateResponse(response)
+        return (try? JSONDecoder().decode(TrashResponse.self, from: data))?.results ?? []
+    }
+
+    func restoreFromTrash(ids: [Int]) async throws { try await trashAction("restore", ids: ids) }
+    func emptyTrash(ids: [Int]) async throws { try await trashAction("empty", ids: ids) }
+
+    private func trashAction(_ action: String, ids: [Int]) async throws {
+        let url = try url("trash/")
+        var req = makeRequest(url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["action": action, "documents": ids])
+        let (_, response) = try await URLSession.shared.data(for: req)
+        try validateResponse(response)
+    }
+
+    // MARK: - Share Links
+
+    func fetchShareLinks(documentId: Int) async throws -> [DocShareLink] {
+        let url = try url("share_links/?document=\(documentId)&page_size=1000")
+        let (data, response) = try await URLSession.shared.data(for: makeRequest(url))
+        try validateResponse(response)
+        return (try? JSONDecoder().decode(ShareLinkResponse.self, from: data))?.results ?? []
+    }
+
+    func createShareLink(documentId: Int, expiration: Date?, fileVersion: String) async throws -> DocShareLink {
+        let url = try url("share_links/")
+        var req = makeRequest(url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var body: [String: Any] = ["document": documentId, "file_version": fileVersion]
+        if let expiration { body["expiration"] = ISO8601DateFormatter().string(from: expiration) }
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await URLSession.shared.data(for: req)
+        try validateResponse(response)
+        return try JSONDecoder().decode(DocShareLink.self, from: data)
+    }
+
+    func deleteShareLink(id: Int) async throws {
+        let url = try url("share_links/\(id)/")
+        var req = makeRequest(url)
+        req.httpMethod = "DELETE"
+        let (_, response) = try await URLSession.shared.data(for: req)
+        if let http = response as? HTTPURLResponse, http.statusCode != 204 {
+            throw APIError.serverError(http.statusCode)
+        }
+    }
+
+    // MARK: - Saved Views
+
+    func fetchSavedViews() async throws -> [SavedView] {
+        let url = try url("saved_views/?page_size=1000")
+        let (data, response) = try await URLSession.shared.data(for: makeRequest(url))
+        try validateResponse(response)
+        return (try? JSONDecoder().decode(SavedViewResponse.self, from: data))?.results ?? []
+    }
+
+    func createSavedView(name: String, sortField: String, sortReverse: Bool, rules: [[String: Any]]) async throws -> SavedView {
+        let url = try url("saved_views/")
+        var req = makeRequest(url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = [
+            "name": name,
+            "show_on_dashboard": false,
+            "show_in_sidebar": true,
+            "sort_field": sortField,
+            "sort_reverse": sortReverse,
+            "filter_rules": rules
+        ]
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await URLSession.shared.data(for: req)
+        try validateResponse(response)
+        return try JSONDecoder().decode(SavedView.self, from: data)
+    }
+
+    func deleteSavedView(id: Int) async throws {
+        let url = try url("saved_views/\(id)/")
         var req = makeRequest(url)
         req.httpMethod = "DELETE"
         let (_, response) = try await URLSession.shared.data(for: req)

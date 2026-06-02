@@ -5,7 +5,7 @@ struct EditDocumentView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.dismiss) var dismiss
     let document: Document
-    let onSave: (Int, String, Date, Int?, Int?, Int?, [Int]) -> Void
+    let onSave: (Int, String, Date, Int?, Int?, Int?, [Int], [CustomFieldEdit]) -> Void
     let onDelete: (Int) -> Void
 
     @State private var title = ""
@@ -14,6 +14,7 @@ struct EditDocumentView: View {
     @State private var documentType: Int?
     @State private var asn = ""
     @State private var tags: Set<Int> = []
+    @State private var customFields: [CustomFieldEdit] = []
     @State private var showDelete = false
     @State private var pdfData: Data? = nil
 
@@ -34,6 +35,8 @@ struct EditDocumentView: View {
                     pdfData: pdfData
                 )
 
+                CustomFieldsSection(values: $customFields)
+
                 Section {
                     Button("Löschen", role: .destructive) { showDelete = true }
                 }
@@ -42,7 +45,7 @@ struct EditDocumentView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Speichern") {
-                        onSave(document.id, title, date, correspondent, documentType, Int(asn), Array(tags))
+                        onSave(document.id, title, date, correspondent, documentType, Int(asn), Array(tags), customFields)
                         dismiss()
                     }
                 }
@@ -59,6 +62,7 @@ struct EditDocumentView: View {
         tags = Set(document.tags)
         correspondent = document.correspondent
         documentType = document.documentType
+        customFields = document.customFields
         if let a = document.archiveSerialNumber { asn = "\(a)" }
         let iso = ISO8601DateFormatter()
         iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]

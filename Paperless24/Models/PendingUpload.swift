@@ -20,4 +20,5 @@ struct PendingEdit: Identifiable, Codable {
     let documentType: Int?
     let archiveSerialNumber: Int?
     let tags: [Int]
+    var customFields: [CustomFieldEdit] = []
 }

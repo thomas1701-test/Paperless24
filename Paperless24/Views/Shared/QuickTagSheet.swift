@@ -84,7 +84,8 @@ struct QuickTagSheet: View {
                             docId: doc.id, title: doc.title,
                             created: doc.dateObject ?? Date(),
                             corr: selectedCorrespondent, type: doc.documentType,
-                            asn: doc.archiveSerialNumber, tags: Array(selectedTags)
+                            asn: doc.archiveSerialNumber, tags: Array(selectedTags),
+                            customFields: doc.customFields
                         )
                         store.haptic(.medium)
                         dismiss()

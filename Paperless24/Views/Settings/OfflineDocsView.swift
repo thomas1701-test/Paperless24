@@ -14,8 +14,8 @@ struct OfflineDocsView: View {
             ForEach(offlineDocs) { doc in
                 NavigationLink(destination: DocumentDetailView(
                     doc: doc,
-                    onSave: { id, title, date, corr, type, asn, tags in
-                        store.addPendingEdit(docId: id, title: title, created: date, corr: corr, type: type, asn: asn, tags: tags)
+                    onSave: { id, title, date, corr, type, asn, tags, customFields in
+                        store.addPendingEdit(docId: id, title: title, created: date, corr: corr, type: type, asn: asn, tags: tags, customFields: customFields)
                     },
                     onDelete: { store.deleteDocument(id: $0) }
                 )) {
