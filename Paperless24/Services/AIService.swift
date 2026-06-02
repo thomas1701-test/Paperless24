@@ -97,7 +97,7 @@ final class AIService {
                 let response = try await session.respond(to: prompt)
                 return response.content
             } catch {
-                lastErrorDescription = String(describing: error)
+                lastErrorDescription = Self.friendlyError(error)
                 return nil
             }
         } else {
@@ -107,6 +107,24 @@ final class AIService {
         lastErrorDescription = "FoundationModels nicht verfügbar"
         #endif
         return nil
+    }
+
+    /// Übersetzt kryptische FoundationModels-Fehler in verständliche Hinweise.
+    private static func friendlyError(_ error: Error) -> String {
+        let desc = String(describing: error)
+        if desc.contains("1026") || desc.contains("ModelManager") || desc.contains("assetsUnavailable") || desc.contains("modelNotReady") {
+            return "Das Apple-Intelligence-Modell ist nicht bereit. Im Simulator wird es nicht unterstützt – bitte auf einem echten Gerät testen. Dort müssen Apple Intelligence aktiviert (Einstellungen › Apple Intelligence & Siri) und der Modell-Download abgeschlossen sein."
+        }
+        if desc.contains("exceededContextWindow") {
+            return "Das Dokument ist zu lang für die Zusammenfassung."
+        }
+        if desc.contains("guardrail") {
+            return "Der Inhalt wurde vom Sicherheitsfilter blockiert."
+        }
+        if desc.contains("unsupportedLanguage") || desc.contains("Locale") {
+            return "Sprache oder Region wird von Apple Intelligence noch nicht unterstützt."
+        }
+        return error.localizedDescription
     }
 
     private func trimmed(_ s: String) -> String {
