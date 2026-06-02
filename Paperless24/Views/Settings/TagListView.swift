@@ -4,10 +4,19 @@ struct TagListView: View {
     @EnvironmentObject var store: AppStore
     @State private var showSheet = false
     @State private var newName = ""
+    @State private var searchText = ""
+
+    private var displayedTags: [(tag: Tag, depth: Int)] {
+        guard !searchText.isEmpty else { return store.hierarchicalTags() }
+        return store.allTags
+            .filter { $0.safeName.localizedCaseInsensitiveContains(searchText) }
+            .sorted { $0.safeName.localizedCompare($1.safeName) == .orderedAscending }
+            .map { ($0, 0) }
+    }
 
     var body: some View {
         List {
-            ForEach(store.hierarchicalTags(), id: \.tag.id) { entry in
+            ForEach(displayedTags, id: \.tag.id) { entry in
                 HStack {
                     if entry.depth > 0 {
                         Image(systemName: "arrow.turn.down.right")
@@ -24,6 +33,7 @@ struct TagListView: View {
                 }
             }
         }
+        .searchable(text: $searchText, prompt: "Tag suchen")
         .navigationTitle("Tags")
         .toolbar {
             Button { showSheet = true } label: { Image(systemName: "plus") }
@@ -41,14 +51,25 @@ struct CorrespondentListView: View {
     @EnvironmentObject var store: AppStore
     @State private var showSheet = false
     @State private var newName = ""
+    @State private var searchText = ""
+
+    private var filtered: [Correspondent] {
+        guard !searchText.isEmpty else { return store.allCorrespondents }
+        return store.allCorrespondents.filter { $0.safeName.localizedCaseInsensitiveContains(searchText) }
+    }
 
     var body: some View {
         List {
-            ForEach(store.allCorrespondents) { c in Text(c.safeName) }
-                .onDelete { offsets in
-                    offsets.forEach { store.deleteCorrespondent(id: store.allCorrespondents[$0].id) }
-                }
+            ForEach(filtered) { c in
+                Text(c.safeName)
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            store.deleteCorrespondent(id: c.id)
+                        } label: { Label("Löschen", systemImage: "trash") }
+                    }
+            }
         }
+        .searchable(text: $searchText, prompt: "Sender suchen")
         .navigationTitle("Sender")
         .toolbar {
             Button { showSheet = true } label: { Image(systemName: "plus") }
@@ -66,14 +87,25 @@ struct DocTypeListView: View {
     @EnvironmentObject var store: AppStore
     @State private var showSheet = false
     @State private var newName = ""
+    @State private var searchText = ""
+
+    private var filtered: [DocumentType] {
+        guard !searchText.isEmpty else { return store.allDocTypes }
+        return store.allDocTypes.filter { $0.safeName.localizedCaseInsensitiveContains(searchText) }
+    }
 
     var body: some View {
         List {
-            ForEach(store.allDocTypes) { t in Text(t.safeName) }
-                .onDelete { offsets in
-                    offsets.forEach { store.deleteDocumentType(id: store.allDocTypes[$0].id) }
-                }
+            ForEach(filtered) { t in
+                Text(t.safeName)
+                    .swipeActions {
+                        Button(role: .destructive) {
+                            store.deleteDocumentType(id: t.id)
+                        } label: { Label("Löschen", systemImage: "trash") }
+                    }
+            }
         }
+        .searchable(text: $searchText, prompt: "Typ suchen")
         .navigationTitle("Typen")
         .toolbar {
             Button { showSheet = true } label: { Image(systemName: "plus") }
