@@ -18,6 +18,11 @@ enum AppConstants {
             "Neu: Einstellbare Kachelgröße",
             "Neu: Einstellungen werden über iCloud zwischen Geräten synchronisiert",
             "Neu: Mehrere Dokumente gleichzeitig an Vermietoo übergeben",
+            "Neu: Suchfeld in der Tags-, Sender- und Typen-Verwaltung",
+            "Neu: Mehr Lade-Optionen – 1000, 2000 und Alles",
+            "Verbessert: Archiv-Fragen zeigt jetzt einen Ladeindikator mit Statustext",
+            "Verbessert: Zwei-Spalten-Ansicht auf iPad/Mac wechselt die Vorschau jetzt zuverlässig",
+            "Verbessert: Klare Hinweise, wenn Apple Intelligence noch nicht bereit ist",
             "Einstellungen: KI-Funktionen lassen sich an- und abschalten",
         ]),
         ChangelogEntry(version: "1.5.0", date: "02.06.2026", changes: [
