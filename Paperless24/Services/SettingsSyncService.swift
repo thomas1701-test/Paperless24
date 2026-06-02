@@ -5,7 +5,9 @@ import Foundation
 enum SettingsSyncService {
     private static let keys = [
         "appearanceMode", "layoutStyle", "appLanguage",
-        "pageSize", "gridItemSize", "aiEnabled", "notificationsEnabled"
+        "pageSize", "gridItemSize", "aiEnabled", "notificationsEnabled",
+        "fristenRadarEnabled", "batchScanEnabled", "translationEnabled",
+        "senderName", "senderAddress"
     ]
 
     static func start() {

@@ -2,10 +2,20 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "1.6.0"
+    static let appVersion = "1.7.0"
     static let urlScheme = "paperless24"
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.7.0", date: "02.06.2026", changes: [
+            "Neu: Fristen-Radar – die KI erkennt Zahlungsziele, Kündigungsfristen, Garantie- und Widerrufstermine und legt auf Wunsch Erinnerungen an",
+            "Neu: Kündigungs-Assistent – entwirft passende Kündigungsschreiben (Absenderprofil in den Einstellungen)",
+            "Neu: Dubletten finden – ähnliche/doppelte Dokumente aufspüren",
+            "Neu: Stapel scannen – einen Stapel am Stück scannen, die KI trennt automatisch in einzelne Dokumente",
+            "Neu: KI-Suche – in eigenen Worten suchen, die KI setzt die passenden Filter",
+            "Neu: Dokumente übersetzen (on-device)",
+            "Neu: Schon vorhanden? – per Kamera prüfen, ob ein Dokument schon im Archiv ist",
+            "Einstellungen: Fristen-Radar, Stapel-Trennung und Übersetzen einzeln an-/abschaltbar",
+        ]),
         ChangelogEntry(version: "1.6.0", date: "02.06.2026", changes: [
             "Neu: Apple Intelligence – Dokumente on-device zusammenfassen und das Archiv per Frage durchsuchen (semantische Suche & Antworten)",
             "Neu: Intelligenteres Auto-Tagging mit Apple Intelligence (schlägt auch neue Tags/Sender vor)",

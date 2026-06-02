@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreSpotlight
+import Translation
 
 struct DocumentDetailView: View {
     @EnvironmentObject var store: AppStore
@@ -12,8 +13,10 @@ struct DocumentDetailView: View {
     @State private var showEdit = false
     @State private var showShare = false
     @State private var showShareLink = false
+    @State private var showTranslation = false
     @State private var shareURL: URL? = nil
     @State private var selectedTab = 0
+    @AppStorage("translationEnabled") private var translationEnabled = true
     @State private var newNote = ""
     @State private var liveDoc: Document? = nil
 
@@ -82,6 +85,9 @@ struct DocumentDetailView: View {
                         }
                     } label: { Image(systemName: "square.and.arrow.up") }
                     Button { showShareLink = true } label: { Image(systemName: "link") }
+                    if translationEnabled, let c = displayDoc.content, !c.isEmpty {
+                        Button { showTranslation = true } label: { Image(systemName: "translate") }
+                    }
                     Button("Edit") { showEdit = true }
                 }
             }
@@ -92,6 +98,7 @@ struct DocumentDetailView: View {
         .sheet(isPresented: $showShareLink) {
             ShareLinkSheet(documentId: doc.id)
         }
+        .translationPresentation(isPresented: $showTranslation, text: displayDoc.content ?? "")
         .sheet(isPresented: $showEdit) {
             EditDocumentView(document: doc, onSave: onSave, onDelete: onDelete)
         }

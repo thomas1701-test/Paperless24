@@ -122,6 +122,12 @@
     "500" : {
 
     },
+    "1000" : {
+
+    },
+    "2000" : {
+
+    },
     "Abbrechen" : {
       "localizations" : {
         "en" : {
@@ -328,6 +334,9 @@
       }
     },
     "Alle leeren" : {
+
+    },
+    "Alles" : {
 
     },
     "Ansicht" : {
@@ -1094,9 +1103,6 @@
           }
         }
       }
-    },
-    "Durchsuche dein Archiv …" : {
-
     },
     "Edit" : {
       "localizations" : {
@@ -2708,6 +2714,9 @@
         }
       }
     },
+    "Sender suchen" : {
+
+    },
     "Sender verwalten" : {
       "localizations" : {
         "en" : {
@@ -2956,6 +2965,9 @@
     "Tag" : {
 
     },
+    "Tag suchen" : {
+
+    },
     "Tags" : {
       "localizations" : {
         "en" : {
@@ -3123,6 +3135,9 @@
           }
         }
       }
+    },
+    "Typ suchen" : {
+
     },
     "Typen" : {
       "localizations" : {

@@ -12,6 +12,8 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Paperless24 sucht im lokalen Netzwerk nach AirScan-fähigen Dokumentenscannern, um direkt scannen zu können.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Paperless24 legt auf deinen Wunsch Erinnerungen für erkannte Fristen (z. B. Zahlungsziele, Kündigungsfristen) an.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_uscan._tcp</string>

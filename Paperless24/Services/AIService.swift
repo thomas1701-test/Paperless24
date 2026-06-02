@@ -76,6 +76,98 @@ final class AIService {
         return AISuggestion(json: raw)
     }
 
+    // MARK: - Fristen-Radar
+
+    func extractDeadlines(text: String) async -> [ExtractedDeadline] {
+        let clean = trimmed(text)
+        guard !clean.isEmpty else { return [] }
+        let today = ISO8601DateFormatter().string(from: Date()).prefix(10)
+        let instructions = """
+        Du extrahierst Fristen und Termine aus Dokumenten. Heutiges Datum: \(today). \
+        Antworte AUSSCHLIESSLICH mit gültigem JSON-Array ohne Markdown. Jedes Element:
+        {"type": "payment|cancellation|warranty|withdrawal|general", "date": "YYYY-MM-DD", "detail": "kurze Beschreibung"}
+        type-Bedeutung: payment=Zahlungsziel, cancellation=Kündigungsfrist/Vertragsende, \
+        warranty=Garantie-Ablauf, withdrawal=Widerrufsfrist, general=sonstiger Termin. \
+        Nur echte zukünftige oder relevante Fristen aufnehmen. Wenn keine, antworte mit [].
+        """
+        guard let raw = await respond(instructions: instructions, prompt: clean) else { return [] }
+        return Self.parseDeadlines(raw)
+    }
+
+    func draftCancellation(documentText: String, senderName: String, senderAddress: String) async -> String? {
+        let instructions = """
+        Du formulierst ein höfliches, rechtssicheres deutsches Kündigungsschreiben. \
+        Nutze die Absenderdaten und den Vertragskontext. Gib NUR den Brieftext zurück (ohne Erklärungen).
+        """
+        let prompt = """
+        Absender:
+        \(senderName)
+        \(senderAddress)
+
+        Vertragsdokument (Kontext):
+        \(trimmed(documentText))
+        """
+        return await respond(instructions: instructions, prompt: prompt)
+    }
+
+    // MARK: - Natürlichsprachliche Suche
+
+    func parseQuery(_ query: String, tags: [String], correspondents: [String], types: [String]) async -> ParsedQuery? {
+        let instructions = """
+        Du übersetzt natürlichsprachliche Suchanfragen in Filter. Antworte AUSSCHLIESSLICH mit JSON ohne Markdown:
+        {"tag": String, "correspondent": String, "type": String, "dateFrom": "YYYY-MM-DD", "dateTo": "YYYY-MM-DD", "text": String}
+        Wähle tag/correspondent/type nur aus den bekannten Werten. Unbenutzte Felder leer lassen ("").
+        Heute: \(ISO8601DateFormatter().string(from: Date()).prefix(10)).
+        """
+        let prompt = """
+        Bekannte Tags: \(tags.joined(separator: ", "))
+        Bekannte Sender: \(correspondents.joined(separator: ", "))
+        Bekannte Typen: \(types.joined(separator: ", "))
+
+        Anfrage: \(query)
+        """
+        guard let raw = await respond(instructions: instructions, prompt: prompt) else { return nil }
+        return ParsedQuery(json: raw)
+    }
+
+    // MARK: - Stapel-Trennung
+
+    /// Liefert je Seite eine Gruppen-Nummer (gleiche Nummer = selbes Dokument). Fallback: alles Gruppe 1.
+    func groupPages(_ pageTexts: [String]) async -> [Int] {
+        guard pageTexts.count > 1 else { return pageTexts.map { _ in 1 } }
+        let instructions = """
+        Du gruppierst gescannte Seiten zu Dokumenten. Seiten mit neuem Briefkopf/Absender beginnen \
+        ein neues Dokument. Antworte AUSSCHLIESSLICH mit einem JSON-Array von Ganzzahlen, \
+        eine pro Seite, gleiche Zahl = selbes Dokument. Beispiel für 3 Seiten: [1,1,2]
+        """
+        let joined = pageTexts.enumerated()
+            .map { "Seite \($0.offset + 1):\n\($0.element.prefix(500))" }
+            .joined(separator: "\n\n")
+        guard let raw = await respond(instructions: instructions, prompt: joined) else {
+            return pageTexts.map { _ in 1 }
+        }
+        if let start = raw.firstIndex(of: "["), let end = raw.lastIndex(of: "]"),
+           let data = String(raw[start...end]).data(using: .utf8),
+           let arr = try? JSONSerialization.jsonObject(with: data) as? [Int], arr.count == pageTexts.count {
+            return arr
+        }
+        return pageTexts.map { _ in 1 }
+    }
+
+    private static func parseDeadlines(_ raw: String) -> [ExtractedDeadline] {
+        guard let start = raw.firstIndex(of: "["), let end = raw.lastIndex(of: "]"),
+              let data = String(raw[start...end]).data(using: .utf8),
+              let arr = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return [] }
+        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
+        return arr.compactMap { obj in
+            guard let dateStr = obj["date"] as? String,
+                  let date = fmt.date(from: String(dateStr.prefix(10))) else { return nil }
+            let type = DeadlineType(rawValue: (obj["type"] as? String) ?? "general") ?? .general
+            let detail = (obj["detail"] as? String) ?? type.label
+            return ExtractedDeadline(type: type, date: date, detail: detail)
+        }
+    }
+
     // MARK: - Intern
 
     private func respond(instructions: String, prompt: String) async -> String? {
@@ -160,5 +252,29 @@ struct AISuggestion {
             let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
             date = fmt.date(from: String(d.prefix(10)))
         }
+    }
+}
+
+/// Geparste natürlichsprachliche Suchanfrage.
+struct ParsedQuery {
+    var tag: String?
+    var correspondent: String?
+    var type: String?
+    var dateFrom: Date?
+    var dateTo: Date?
+    var text: String?
+
+    init?(json raw: String) {
+        guard let start = raw.firstIndex(of: "{"), let end = raw.lastIndex(of: "}"),
+              let data = String(raw[start...end]).data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        func str(_ key: String) -> String? {
+            let v = (obj[key] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            return (v?.isEmpty == false) ? v : nil
+        }
+        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
+        tag = str("tag"); correspondent = str("correspondent"); type = str("type"); text = str("text")
+        if let f = str("dateFrom") { dateFrom = fmt.date(from: String(f.prefix(10))) }
+        if let t = str("dateTo") { dateTo = fmt.date(from: String(t.prefix(10))) }
     }
 }
