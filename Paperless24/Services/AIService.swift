@@ -90,6 +90,26 @@ final class AIService {
         warranty=Garantie-Ablauf, withdrawal=Widerrufsfrist, general=sonstiger Termin. \
         Nur echte zukünftige oder relevante Fristen aufnehmen. Wenn keine, antworte mit [].
         """
+
+        #if canImport(FoundationModels)
+        if #available(iOS 26, *), modelAvailable {
+            do {
+                let session = LanguageModelSession(instructions: instructions)
+                let result = try await session.respond(to: clean, generating: DeadlineListGen.self)
+                let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
+                return result.content.deadlines.compactMap { g in
+                    guard let date = fmt.date(from: String(g.date.prefix(10))) else { return nil }
+                    let type = DeadlineType(rawValue: g.type.lowercased()) ?? .general
+                    return ExtractedDeadline(type: type, date: date,
+                                             detail: g.detail.isEmpty ? type.label : g.detail)
+                }
+            } catch {
+                lastErrorDescription = Self.friendlyError(error)
+                return []
+            }
+        }
+        #endif
+
         guard let raw = await respond(instructions: instructions, prompt: clean) else { return [] }
         return Self.parseDeadlines(raw)
     }
@@ -333,5 +353,26 @@ extension ParsedQuery {
         if let f = nz(gen.dateFrom) { dateFrom = fmt.date(from: String(f.prefix(10))) }
         if let t = nz(gen.dateTo) { dateTo = fmt.date(from: String(t.prefix(10))) }
     }
+}
+#endif
+
+#if canImport(FoundationModels)
+/// Strukturierte Zielform für die Fristen-Erkennung (Guided Generation).
+@available(iOS 26, *)
+@Generable
+struct DeadlineGen {
+    @Guide(description: "Art: payment, cancellation, warranty, withdrawal oder general")
+    var type: String
+    @Guide(description: "Datum als YYYY-MM-DD")
+    var date: String
+    @Guide(description: "Kurze Beschreibung der Frist")
+    var detail: String
+}
+
+@available(iOS 26, *)
+@Generable
+struct DeadlineListGen {
+    @Guide(description: "Alle erkannten Fristen/Termine; leeres Array, wenn keine vorhanden")
+    var deadlines: [DeadlineGen]
 }
 #endif

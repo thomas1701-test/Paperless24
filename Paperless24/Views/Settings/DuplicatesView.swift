@@ -19,6 +19,12 @@ struct DuplicatesView: View {
             } else {
                 ForEach(groups.indices, id: \.self) { i in
                     Section("\(groups[i].count) ähnliche Dokumente") {
+                        NavigationLink {
+                            DuplicateCompareView(docs: groups[i])
+                        } label: {
+                            Label("Nebeneinander vergleichen", systemImage: "rectangle.split.2x1")
+                                .foregroundColor(.accentColor)
+                        }
                         ForEach(groups[i]) { doc in
                             NavigationLink {
                                 DocumentDetailView(doc: doc,

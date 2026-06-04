@@ -8,6 +8,7 @@ struct FristenView: View {
     @State private var showDraft = false
     @State private var draftingId: UUID?
     @State private var toast: String?
+    @State private var openDoc: Document?
 
     private struct Section: Identifiable {
         let id = UUID()
@@ -81,21 +82,48 @@ struct FristenView: View {
                     }
             }
         }
+        .sheet(item: $openDoc) { doc in
+            NavigationView {
+                DocumentDetailView(doc: doc,
+                                   onSave: { _, _, _, _, _, _, _, _ in },
+                                   onDelete: { store.deleteDocument(id: $0); openDoc = nil })
+            }
+        }
+    }
+
+    private func openDocument(_ d: Deadline) {
+        if let doc = store.documents.first(where: { $0.id == d.docId }) {
+            openDoc = doc
+        } else {
+            Task { openDoc = await store.fetchDocumentDetail(id: d.docId) }
+        }
     }
 
     @ViewBuilder
     private func row(_ d: Deadline) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Image(systemName: d.type.icon).foregroundColor(d.type.color)
-                Text(d.type.label).font(.caption).fontWeight(.semibold).foregroundColor(d.type.color)
-                Spacer()
-                Text(d.date, style: .date).font(.caption).foregroundColor(.secondary)
+            Button {
+                openDocument(d)
+            } label: {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Image(systemName: d.type.icon).foregroundColor(d.type.color)
+                        Text(d.type.label).font(.caption).fontWeight(.semibold).foregroundColor(d.type.color)
+                        Spacer()
+                        Text(d.date, style: .date).font(.caption).foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text(d.docTitle).font(.subheadline).lineLimit(1).foregroundColor(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.caption2).foregroundColor(.secondary)
+                    }
+                    if !d.detail.isEmpty {
+                        Text(d.detail).font(.caption).foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
             }
-            Text(d.docTitle).font(.subheadline).lineLimit(1)
-            if !d.detail.isEmpty {
-                Text(d.detail).font(.caption).foregroundColor(.secondary)
-            }
+            .buttonStyle(.plain)
             HStack {
                 Button {
                     Task { await addReminder(d) }
