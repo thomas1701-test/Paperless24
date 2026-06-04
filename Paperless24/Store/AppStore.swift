@@ -45,6 +45,8 @@ class AppStore: ObservableObject {
 
     @Published var hasNextPage = false
     @Published var isLoadingMore = false
+    /// Aktiv, solange eine semantische KI-Suche die Ergebnisliste bestimmt.
+    @Published var semanticActive = false
     @Published var needsReLogin = false
     @Published var savedFilters: [SavedFilter] = []
     @Published var widgetOpenDocId: Int? = nil
@@ -272,6 +274,7 @@ class AppStore: ObservableObject {
                 currentPage = 1
                 isOffline = false
                 lastSyncError = nil
+                semanticActive = false
                 reApplyPendingEdits()
                 saveToDisk()
                 updateFilteredDocs()
@@ -341,6 +344,7 @@ class AppStore: ObservableObject {
     @Published var recentSearches: [String] = []
 
     func runSearch(query: String) {
+        semanticActive = false
         currentSearchText = query
         searchTask?.cancel()
         if query.isEmpty {
@@ -422,7 +426,16 @@ class AppStore: ObservableObject {
 
     // MARK: - Filter & Sort
 
+    /// Semantische KI-Suche: rangiert die aktuell gefilterten Dokumente nach inhaltlicher Nähe.
+    func runSemanticSearch(_ query: String) {
+        semanticActive = true
+        let base = filteredDocs.isEmpty ? documents : filteredDocs
+        filteredDocs = SemanticRanker.rank(query, in: base)
+    }
+
     func updateFilteredDocs() {
+        // Während eine semantische Suche aktiv ist, die Ergebnisliste nicht überschreiben.
+        guard !semanticActive else { return }
         let calendar = Calendar.current
         let now = Date()
 

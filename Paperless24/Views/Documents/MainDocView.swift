@@ -458,7 +458,20 @@ struct MainDocView: View {
         VStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    if AIService.shared.isAvailable {
+                    if store.semanticActive {
+                        Button {
+                            store.semanticActive = false
+                            searchText = ""
+                            applyFilters()
+                            store.haptic(.light)
+                        } label: {
+                            Label("KI-Suche aktiv", systemImage: "xmark.circle.fill")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 12).padding(.vertical, 7)
+                                .background(Color.purple).cornerRadius(8)
+                        }
+                    } else if AIService.shared.isAvailable {
                         Button { aiQuery = ""; showAISearch = true } label: {
                             Label("KI-Suche", systemImage: "sparkles")
                                 .font(.system(size: 13, weight: .medium))
@@ -858,25 +871,31 @@ struct MainDocView: View {
             correspondents: store.allCorrespondents.map { $0.safeName },
             types: store.allDocTypes.map { $0.safeName }
         )
-        var applied = false
+        // 1) Strukturierte Filter (Tag/Sender/Typ/Datum) setzen, wenn die KI welche erkennt.
+        var structured = false
         if let p = parsed {
-            if let name = p.tag, let t = store.allTags.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterTag = t.id; applied = true }
-            if let name = p.correspondent, let c = store.allCorrespondents.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterCorr = c.id; applied = true }
-            if let name = p.type, let ty = store.allDocTypes.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterType = ty.id; applied = true }
-            if let from = p.dateFrom { filterDate = .custom; customStartDate = from; customEndDate = p.dateTo ?? Date(); applied = true }
-            if applied { applyFilters() }
-            if let text = p.text, !text.isEmpty { searchText = text; store.runSearch(query: text); applied = true }
+            if let name = p.tag, let t = store.allTags.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterTag = t.id; structured = true }
+            if let name = p.correspondent, let c = store.allCorrespondents.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterCorr = c.id; structured = true }
+            if let name = p.type, let ty = store.allDocTypes.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterType = ty.id; structured = true }
+            if let from = p.dateFrom { filterDate = .custom; customStartDate = from; customEndDate = p.dateTo ?? Date(); structured = true }
         }
-        // Fallback: Konnte die KI nichts Verwertbares ableiten, einfach normal suchen.
-        if !applied {
-            searchText = q
-            store.runSearch(query: q)
+        // Chips anwenden (setzt filteredDocs auf die gefilterte Teilmenge, beendet alten Semantik-Modus).
+        applyFilters()
+
+        // 2) Den eigentlichen Suchbegriff semantisch über die (gefilterten) Dokumente ranken –
+        //    findet inhaltlich Passendes, auch ohne wörtliche Übereinstimmung.
+        let term = parsed?.text?.trimmingCharacters(in: .whitespaces)
+        let semanticTerm = (term?.isEmpty == false ? term! : (structured ? "" : q))
+        if !semanticTerm.isEmpty {
+            store.runSemanticSearch(semanticTerm)
         }
+
         isAISearching = false
         showAISearch = false
     }
 
     private func applyFilters() {
+        store.semanticActive = false
         store.currentFilterTag = filterTag
         store.currentFilterCorr = filterCorr
         store.currentFilterType = filterType

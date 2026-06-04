@@ -2365,6 +2365,9 @@
         }
       }
     },
+    "Nebeneinander vergleichen" : {
+
+    },
     "Netzwerkscanner" : {
 
     },
@@ -2578,6 +2581,9 @@
           }
         }
       }
+    },
+    "Öffnen" : {
+
     },
     "Öffnet den Scanner, um ein neues Dokument aufzunehmen." : {
 
@@ -3454,6 +3460,9 @@
       }
     },
     "v%@" : {
+
+    },
+    "Vergleich" : {
 
     },
     "Verknüpfen" : {
