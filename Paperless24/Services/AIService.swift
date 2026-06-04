@@ -114,10 +114,10 @@ final class AIService {
 
     func parseQuery(_ query: String, tags: [String], correspondents: [String], types: [String]) async -> ParsedQuery? {
         let instructions = """
-        Du übersetzt natürlichsprachliche Suchanfragen in Filter. Antworte AUSSCHLIESSLICH mit JSON ohne Markdown:
-        {"tag": String, "correspondent": String, "type": String, "dateFrom": "YYYY-MM-DD", "dateTo": "YYYY-MM-DD", "text": String}
-        Wähle tag/correspondent/type nur aus den bekannten Werten. Unbenutzte Felder leer lassen ("").
-        Heute: \(ISO8601DateFormatter().string(from: Date()).prefix(10)).
+        Du übersetzt natürlichsprachliche Suchanfragen in Dokumentfilter. \
+        Wähle tag/correspondent/type möglichst aus den bekannten Werten (exakt geschrieben). \
+        Felder, die nicht zutreffen, lässt du leer. Datumsangaben als YYYY-MM-DD. \
+        Was kein Filter ist, kommt in 'text'. Heute: \(ISO8601DateFormatter().string(from: Date()).prefix(10)).
         """
         let prompt = """
         Bekannte Tags: \(tags.joined(separator: ", "))
@@ -126,7 +126,22 @@ final class AIService {
 
         Anfrage: \(query)
         """
-        guard let raw = await respond(instructions: instructions, prompt: prompt) else { return nil }
+
+        #if canImport(FoundationModels)
+        if #available(iOS 26, *), modelAvailable {
+            do {
+                let session = LanguageModelSession(instructions: instructions)
+                let result = try await session.respond(to: prompt, generating: QueryFilterGen.self)
+                return ParsedQuery(gen: result.content)
+            } catch {
+                lastErrorDescription = Self.friendlyError(error)
+                return nil
+            }
+        }
+        #endif
+
+        // Fallback (kein on-device-Modell): freies JSON.
+        guard let raw = await respond(instructions: instructions + "\nAntworte als JSON {\"tag\",\"correspondent\",\"type\",\"dateFrom\",\"dateTo\",\"text\"}.", prompt: prompt) else { return nil }
         return ParsedQuery(json: raw)
     }
 
@@ -264,6 +279,8 @@ struct ParsedQuery {
     var dateTo: Date?
     var text: String?
 
+    init() {}
+
     init?(json raw: String) {
         guard let start = raw.firstIndex(of: "{"), let end = raw.lastIndex(of: "}"),
               let data = String(raw[start...end]).data(using: .utf8),
@@ -278,3 +295,43 @@ struct ParsedQuery {
         if let t = str("dateTo") { dateTo = fmt.date(from: String(t.prefix(10))) }
     }
 }
+
+#if canImport(FoundationModels)
+import FoundationModels
+
+/// Strukturierte Zielform für die KI-Suche (Guided Generation).
+@available(iOS 26, *)
+@Generable
+struct QueryFilterGen {
+    @Guide(description: "Name eines passenden Tags aus der bekannten Liste, sonst leerer String")
+    var tag: String
+    @Guide(description: "Name eines passenden Senders aus der bekannten Liste, sonst leerer String")
+    var correspondent: String
+    @Guide(description: "Name eines passenden Dokumenttyps aus der bekannten Liste, sonst leerer String")
+    var type: String
+    @Guide(description: "Frühestes Datum als YYYY-MM-DD, sonst leerer String")
+    var dateFrom: String
+    @Guide(description: "Spätestes Datum als YYYY-MM-DD, sonst leerer String")
+    var dateTo: String
+    @Guide(description: "Verbleibender Freitext-Suchbegriff, sonst leerer String")
+    var text: String
+}
+
+@available(iOS 26, *)
+extension ParsedQuery {
+    init(gen: QueryFilterGen) {
+        self.init()
+        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
+        func nz(_ s: String) -> String? {
+            let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+            return t.isEmpty ? nil : t
+        }
+        tag = nz(gen.tag)
+        correspondent = nz(gen.correspondent)
+        type = nz(gen.type)
+        text = nz(gen.text)
+        if let f = nz(gen.dateFrom) { dateFrom = fmt.date(from: String(f.prefix(10))) }
+        if let t = nz(gen.dateTo) { dateTo = fmt.date(from: String(t.prefix(10))) }
+    }
+}
+#endif
