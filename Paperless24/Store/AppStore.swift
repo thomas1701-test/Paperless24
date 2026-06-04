@@ -288,6 +288,13 @@ class AppStore: ObservableObject {
                 isSyncing = false
                 return
             } catch {
+                // Abgebrochene Requests (z. B. bei Pull-to-Refresh, wenn SwiftUI den Task
+                // abbricht) sind kein echter Fehler – nicht in den Offline-Modus wechseln.
+                let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
+                if isCancelled {
+                    isSyncing = false
+                    return
+                }
                 if attempt < 2 {
                     try? await Task.sleep(nanoseconds: 2_000_000_000)
                 } else {
@@ -310,7 +317,8 @@ class AppStore: ObservableObject {
             currentPage = nextPage
             updateFilteredDocs()
         } catch {
-            lastSyncError = error.localizedDescription
+            let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
+            if !isCancelled { lastSyncError = error.localizedDescription }
         }
         isLoadingMore = false
     }

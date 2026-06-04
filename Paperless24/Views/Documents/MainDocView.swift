@@ -858,13 +858,19 @@ struct MainDocView: View {
             correspondents: store.allCorrespondents.map { $0.safeName },
             types: store.allDocTypes.map { $0.safeName }
         )
+        var applied = false
         if let p = parsed {
-            if let name = p.tag, let t = store.allTags.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterTag = t.id }
-            if let name = p.correspondent, let c = store.allCorrespondents.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterCorr = c.id }
-            if let name = p.type, let ty = store.allDocTypes.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterType = ty.id }
-            if let from = p.dateFrom { filterDate = .custom; customStartDate = from; customEndDate = p.dateTo ?? Date() }
-            applyFilters()
-            if let text = p.text { searchText = text; store.runSearch(query: text) }
+            if let name = p.tag, let t = store.allTags.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterTag = t.id; applied = true }
+            if let name = p.correspondent, let c = store.allCorrespondents.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterCorr = c.id; applied = true }
+            if let name = p.type, let ty = store.allDocTypes.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterType = ty.id; applied = true }
+            if let from = p.dateFrom { filterDate = .custom; customStartDate = from; customEndDate = p.dateTo ?? Date(); applied = true }
+            if applied { applyFilters() }
+            if let text = p.text, !text.isEmpty { searchText = text; store.runSearch(query: text); applied = true }
+        }
+        // Fallback: Konnte die KI nichts Verwertbares ableiten, einfach normal suchen.
+        if !applied {
+            searchText = q
+            store.runSearch(query: q)
         }
         isAISearching = false
         showAISearch = false
