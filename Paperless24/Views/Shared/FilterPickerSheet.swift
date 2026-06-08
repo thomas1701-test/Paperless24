@@ -8,6 +8,7 @@ struct FilterPickerItem: Identifiable {
 struct FilterPickerSheet: View {
     let title: String
     let items: [FilterPickerItem]
+    var noneLabel: String = "Alle"
     @Binding var selectedId: Int?
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
@@ -25,7 +26,7 @@ struct FilterPickerSheet: View {
                     dismiss()
                 } label: {
                     HStack {
-                        Text("Alle")
+                        Text(noneLabel)
                         Spacer()
                         if selectedId == nil {
                             Image(systemName: "checkmark").foregroundColor(.accentColor)

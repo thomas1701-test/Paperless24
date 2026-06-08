@@ -16,16 +16,47 @@ struct MetadataFormSection: View {
     @State private var newName = ""
     @State private var isAnalyzing = false
     @State private var analysisResult = ""
+    @State private var activePicker: ActivePicker?
 
     var pdfData: Data?
+
+    /// Welches durchsuchbare Auswahl-Sheet gerade offen ist.
+    private enum ActivePicker: Int, Identifiable {
+        case sender, docType, tags
+        var id: Int { rawValue }
+    }
+
+    private var correspondentName: String {
+        store.allCorrespondents.first { $0.id == correspondent }?.safeName ?? String(localized: "Kein Sender", locale: locale)
+    }
+    private var documentTypeName: String {
+        store.allDocTypes.first { $0.id == documentType }?.safeName ?? String(localized: "Kein Typ", locale: locale)
+    }
+    private var correspondentItems: [FilterPickerItem] {
+        store.allCorrespondents.map { FilterPickerItem(id: $0.id, name: $0.safeName) }
+    }
+    private var docTypeItems: [FilterPickerItem] {
+        store.allDocTypes.map { FilterPickerItem(id: $0.id, name: $0.safeName) }
+    }
+    private var tagItems: [FilterPickerItem] {
+        store.allTags.map { FilterPickerItem(id: $0.id, name: $0.safeName) }
+    }
+    private var tagColors: [Int: String] {
+        Dictionary(uniqueKeysWithValues: store.allTags.map { ($0.id, $0.safeColor) })
+    }
 
     var body: some View {
         Section("Details") {
             HStack {
-                Picker("Sender", selection: $correspondent) {
-                    Text("-").tag(Int?.none)
-                    ForEach(store.allCorrespondents) { c in Text(c.safeName).tag(c.id as Int?) }
+                Button { activePicker = .sender } label: {
+                    HStack {
+                        Text("Sender")
+                        Spacer()
+                        Text(correspondentName)
+                            .foregroundColor(correspondent == nil ? .secondary : .blue)
+                    }
                 }
+                .buttonStyle(.plain)
                 Button {
                     newName = ""; sheetType = .correspondent; showSheet = true
                 } label: {
@@ -35,10 +66,15 @@ struct MetadataFormSection: View {
             }
 
             HStack {
-                Picker("Typ", selection: $documentType) {
-                    Text("-").tag(Int?.none)
-                    ForEach(store.allDocTypes) { t in Text(t.safeName).tag(t.id as Int?) }
+                Button { activePicker = .docType } label: {
+                    HStack {
+                        Text("Typ")
+                        Spacer()
+                        Text(documentTypeName)
+                            .foregroundColor(documentType == nil ? .secondary : .blue)
+                    }
                 }
+                .buttonStyle(.plain)
                 Button {
                     newName = ""; sheetType = .docType; showSheet = true
                 } label: {
@@ -47,23 +83,31 @@ struct MetadataFormSection: View {
                 .buttonStyle(.borderless)
             }
         }
+        .sheet(item: $activePicker) { picker in
+            switch picker {
+            case .sender:
+                FilterPickerSheet(title: String(localized: "Sender", locale: locale), items: correspondentItems, noneLabel: String(localized: "Kein Sender", locale: locale), selectedId: $correspondent)
+                    .presentationDetents([.medium, .large])
+            case .docType:
+                FilterPickerSheet(title: String(localized: "Typ", locale: locale), items: docTypeItems, noneLabel: String(localized: "Kein Typ", locale: locale), selectedId: $documentType)
+                    .presentationDetents([.medium, .large])
+            case .tags:
+                MultiSelectPickerSheet(title: String(localized: "Tags", locale: locale), items: tagItems, colors: tagColors, selected: $tags)
+                    .presentationDetents([.medium, .large])
+            }
+        }
 
         Section("Tags") {
             HStack {
-                Text("Tags:")
-                Spacer()
-                Menu {
-                    ForEach(store.allTags) { t in
-                        Button {
-                            if tags.contains(t.id) { tags.remove(t.id) } else { tags.insert(t.id) }
-                        } label: {
-                            Label(t.safeName, systemImage: tags.contains(t.id) ? "checkmark" : "")
-                        }
+                Button { activePicker = .tags } label: {
+                    HStack {
+                        Text("Tags:")
+                        Spacer()
+                        if tags.isEmpty { Text("Keine").foregroundColor(.secondary) }
+                        else { Text("\(tags.count) \(String(localized: "gewählt", locale: locale))").foregroundColor(.blue) }
                     }
-                } label: {
-                    if tags.isEmpty { Text("Keine").foregroundColor(.secondary) }
-                    else { Text("\(tags.count) \(String(localized: "gewählt", locale: locale))").foregroundColor(.blue) }
                 }
+                .buttonStyle(.plain)
                 Button {
                     newName = ""; sheetType = .tag; showSheet = true
                 } label: {
