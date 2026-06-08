@@ -11,19 +11,28 @@ struct MetadataFormSection: View {
     @Binding var tags: Set<Int>
     @Binding var date: Date
 
-    @State private var showSheet = false
-    @State private var sheetType: MetadataType = .tag
     @State private var newName = ""
     @State private var isAnalyzing = false
     @State private var analysisResult = ""
-    @State private var activePicker: ActivePicker?
+    @State private var activeSheet: ActiveSheet?
 
     var pdfData: Data?
 
-    /// Welches durchsuchbare Auswahl-Sheet gerade offen ist.
-    private enum ActivePicker: Int, Identifiable {
+    /// Das einzige Sheet dieser Section – entweder ein durchsuchbarer Auswahl-Picker
+    /// oder das Neu-Anlegen-Formular. Bewusst EIN gemeinsamer `.sheet`-Modifier:
+    /// mehrere `.sheet` an Geschwister-Sections im selben Form kollidieren in SwiftUI
+    /// und reißen die ganze Präsentation (inkl. Eltern-Sheet) ab.
+    private enum ActiveSheet: Identifiable {
         case sender, docType, tags
-        var id: Int { rawValue }
+        case newEntry(MetadataType)
+        var id: String {
+            switch self {
+            case .sender: return "sender"
+            case .docType: return "docType"
+            case .tags: return "tags"
+            case .newEntry(let t): return "new-\(t)"
+            }
+        }
     }
 
     private var correspondentName: String {
@@ -48,7 +57,7 @@ struct MetadataFormSection: View {
     var body: some View {
         Section("Details") {
             HStack {
-                Button { activePicker = .sender } label: {
+                Button { activeSheet = .sender } label: {
                     HStack {
                         Text("Sender")
                         Spacer()
@@ -58,7 +67,7 @@ struct MetadataFormSection: View {
                 }
                 .buttonStyle(.plain)
                 Button {
-                    newName = ""; sheetType = .correspondent; showSheet = true
+                    newName = ""; activeSheet = .newEntry(.correspondent)
                 } label: {
                     Image(systemName: "plus.circle.fill").foregroundColor(.green)
                 }
@@ -66,7 +75,7 @@ struct MetadataFormSection: View {
             }
 
             HStack {
-                Button { activePicker = .docType } label: {
+                Button { activeSheet = .docType } label: {
                     HStack {
                         Text("Typ")
                         Spacer()
@@ -76,30 +85,17 @@ struct MetadataFormSection: View {
                 }
                 .buttonStyle(.plain)
                 Button {
-                    newName = ""; sheetType = .docType; showSheet = true
+                    newName = ""; activeSheet = .newEntry(.docType)
                 } label: {
                     Image(systemName: "plus.circle.fill").foregroundColor(.green)
                 }
                 .buttonStyle(.borderless)
             }
         }
-        .sheet(item: $activePicker) { picker in
-            switch picker {
-            case .sender:
-                FilterPickerSheet(title: String(localized: "Sender", locale: locale), items: correspondentItems, noneLabel: String(localized: "Kein Sender", locale: locale), selectedId: $correspondent)
-                    .presentationDetents([.medium, .large])
-            case .docType:
-                FilterPickerSheet(title: String(localized: "Typ", locale: locale), items: docTypeItems, noneLabel: String(localized: "Kein Typ", locale: locale), selectedId: $documentType)
-                    .presentationDetents([.medium, .large])
-            case .tags:
-                MultiSelectPickerSheet(title: String(localized: "Tags", locale: locale), items: tagItems, colors: tagColors, selected: $tags)
-                    .presentationDetents([.medium, .large])
-            }
-        }
 
         Section("Tags") {
             HStack {
-                Button { activePicker = .tags } label: {
+                Button { activeSheet = .tags } label: {
                     HStack {
                         Text("Tags:")
                         Spacer()
@@ -109,7 +105,7 @@ struct MetadataFormSection: View {
                 }
                 .buttonStyle(.plain)
                 Button {
-                    newName = ""; sheetType = .tag; showSheet = true
+                    newName = ""; activeSheet = .newEntry(.tag)
                 } label: {
                     Image(systemName: "plus.circle.fill").foregroundColor(.green)
                 }
@@ -127,25 +123,37 @@ struct MetadataFormSection: View {
                 }
             }
         }
-        .sheet(isPresented: $showSheet) {
-            SimpleInputSheet(
-                title: sheetType == .tag ? "Neuer Tag" : (sheetType == .correspondent ? "Neuer Sender" : "Neuer Typ"),
-                text: $newName,
-                onSave: {
-                    Task {
-                        switch sheetType {
-                        case .tag:
-                            if let id = await store.createTag(name: newName) { tags.insert(id) }
-                        case .correspondent:
-                            correspondent = await store.createCorrespondent(name: newName)
-                        case .docType:
-                            documentType = await store.createDocumentType(name: newName)
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .sender:
+                FilterPickerSheet(title: String(localized: "Sender", locale: locale), items: correspondentItems, noneLabel: String(localized: "Kein Sender", locale: locale), selectedId: $correspondent)
+                    .presentationDetents([.medium, .large])
+            case .docType:
+                FilterPickerSheet(title: String(localized: "Typ", locale: locale), items: docTypeItems, noneLabel: String(localized: "Kein Typ", locale: locale), selectedId: $documentType)
+                    .presentationDetents([.medium, .large])
+            case .tags:
+                MultiSelectPickerSheet(title: String(localized: "Tags", locale: locale), items: tagItems, colors: tagColors, selected: $tags)
+                    .presentationDetents([.medium, .large])
+            case .newEntry(let type):
+                SimpleInputSheet(
+                    title: type == .tag ? "Neuer Tag" : (type == .correspondent ? "Neuer Sender" : "Neuer Typ"),
+                    text: $newName,
+                    onSave: {
+                        Task {
+                            switch type {
+                            case .tag:
+                                if let id = await store.createTag(name: newName) { tags.insert(id) }
+                            case .correspondent:
+                                correspondent = await store.createCorrespondent(name: newName)
+                            case .docType:
+                                documentType = await store.createDocumentType(name: newName)
+                            }
                         }
-                    }
-                    showSheet = false
-                },
-                onCancel: { showSheet = false }
-            )
+                        activeSheet = nil
+                    },
+                    onCancel: { activeSheet = nil }
+                )
+            }
         }
     }
 
