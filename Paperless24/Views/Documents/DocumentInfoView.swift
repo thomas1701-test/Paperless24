@@ -20,6 +20,7 @@ struct DocumentInfoView: View {
                                 isSummarizing = true
                                 if let result = await AIService.shared.summarize(content) {
                                     summary = result
+                                    store.registerReviewEvent()
                                 } else {
                                     summary = "Keine Zusammenfassung möglich.\n\nGrund: \(AIService.shared.lastErrorDescription ?? "unbekannt")"
                                 }

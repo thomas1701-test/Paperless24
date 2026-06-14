@@ -99,6 +99,9 @@ struct DocumentDetailView: View {
             ShareLinkSheet(documentId: doc.id)
         }
         .translationPresentation(isPresented: $showTranslation, text: displayDoc.content ?? "")
+        .onChange(of: showTranslation) { wasShown, isShown in
+            if wasShown && !isShown { store.registerReviewEvent() }
+        }
         .sheet(isPresented: $showEdit) {
             EditDocumentView(document: doc, onSave: onSave, onDelete: onDelete)
         }

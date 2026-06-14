@@ -40,7 +40,10 @@ struct AskArchiveView: View {
                         if !sources.isEmpty {
                             Text("Gefundene Dokumente").font(.subheadline).foregroundColor(.secondary)
                             ForEach(sources) { doc in
-                                Button { openDoc = doc } label: {
+                                Button {
+                                    openDoc = doc
+                                    store.registerReviewEvent()
+                                } label: {
                                     HStack {
                                         Image(systemName: "doc.text").foregroundColor(.blue)
                                         Text(doc.title).foregroundColor(.primary).lineLimit(1)
