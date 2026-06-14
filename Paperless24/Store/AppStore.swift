@@ -52,6 +52,7 @@ class AppStore: ObservableObject {
     @Published var requestInbox = false
     @Published var pendingSearch: String? = nil
     @Published var requestAskArchive = false
+    @Published var shouldRequestReview = false
 
     var inboxCount: Int { documents.filter { $0.correspondent == nil }.count }
 
@@ -551,6 +552,7 @@ class AppStore: ObservableObject {
                 try await api.uploadDocument(item)
                 processed.append(item.id)
                 showSuccessToast("Fertig: \(item.title)")
+                registerReviewEvent()
             } catch { isOffline = true; break }
         }
         pendingUploads.removeAll { processed.contains($0.id) }
@@ -559,6 +561,14 @@ class AppStore: ObservableObject {
     }
 
     func removePendingUpload(at offsets: IndexSet) { pendingUploads.remove(atOffsets: offsets); saveToDisk() }
+
+    /// Von positiven Momenten aufgerufen. Prüft die Gating-Regeln und setzt bei
+    /// Eignung das Flag, das RootTabView in den requestReview-Aufruf übersetzt.
+    func registerReviewEvent() {
+        guard ReviewRequestService.shared.shouldRequestReview() else { return }
+        ReviewRequestService.shared.recordPrompt()
+        shouldRequestReview = true
+    }
 
     // MARK: - Delete Document
 
