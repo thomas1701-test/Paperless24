@@ -1,7 +1,9 @@
 import SwiftUI
+import StoreKit
 
 struct RootTabView: View {
     @EnvironmentObject var store: AppStore
+    @Environment(\.requestReview) private var requestReview
     let onLogout: () -> Void
 
     @State private var selectedTab = 0
@@ -49,6 +51,12 @@ struct RootTabView: View {
         }
         .onChange(of: store.requestAskArchive) { req in
             if req { store.requestAskArchive = false; showAskArchive = true }
+        }
+        .onChange(of: store.shouldRequestReview) { req in
+            if req {
+                store.shouldRequestReview = false
+                requestReview()
+            }
         }
         .sheet(isPresented: $showScanner) {
             ScannerView(isPresented: $showScanner) { data in
