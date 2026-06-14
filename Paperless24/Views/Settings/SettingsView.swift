@@ -11,11 +11,8 @@ struct SettingsView: View {
     @AppStorage("gridItemSize") private var gridItemSize: Double = 130
     @AppStorage("aiEnabled") private var aiEnabled = true
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
-    @AppStorage("fristenRadarEnabled") private var fristenRadarEnabled = true
     @AppStorage("batchScanEnabled") private var batchScanEnabled = true
     @AppStorage("translationEnabled") private var translationEnabled = true
-    @AppStorage("senderName") private var senderName = ""
-    @AppStorage("senderAddress") private var senderAddress = ""
     @State private var showAskArchive = false
     @State private var stats: PaperlessStatistics? = nil
     @State private var widgetEnabled: Bool = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
@@ -62,8 +59,6 @@ struct SettingsView: View {
                     NavigationLink(destination: CorrespondentListView()) { Label("Sender verwalten", systemImage: "person.2") }
                     NavigationLink(destination: DocTypeListView()) { Label("Typen verwalten", systemImage: "doc") }
                     NavigationLink(destination: TrashView()) { Label("Papierkorb", systemImage: "trash") }
-                    NavigationLink(destination: FristenView()) { Label("Fristen-Radar", systemImage: "calendar.badge.clock") }
-                    NavigationLink(destination: DuplicatesView()) { Label("Dubletten finden", systemImage: "doc.on.doc") }
                     Button("Spotlight Index neu erstellen") {
                         store.clearSpotlightIndex()
                         store.indexDocumentsForSpotlight()
@@ -124,8 +119,6 @@ struct SettingsView: View {
                         Label("Archiv fragen", systemImage: "sparkles")
                     }
                     .disabled(!aiEnabled)
-                    Toggle("Fristen-Radar", isOn: $fristenRadarEnabled)
-                        .disabled(!aiEnabled)
                     Toggle("Stapel-Trennung beim Scannen", isOn: $batchScanEnabled)
                     Toggle("Übersetzen-Aktion in Dokumenten", isOn: $translationEnabled)
                 } header: {
@@ -134,15 +127,6 @@ struct SettingsView: View {
                     Text(AIService.shared.modelAvailable
                          ? "Zusammenfassungen, Auto-Tagging und Archiv-Fragen laufen on-device."
                          : "Apple Intelligence ist auf diesem Gerät nicht verfügbar. Auto-Tagging nutzt weiterhin die Texterkennung.")
-                }
-
-                Section {
-                    TextField("Name", text: $senderName)
-                    TextField("Adresse", text: $senderAddress, axis: .vertical).lineLimit(1...4)
-                } header: {
-                    Text("Absenderprofil")
-                } footer: {
-                    Text("Wird für KI-Kündigungsschreiben im Fristen-Radar verwendet.")
                 }
 
                 Section("Benachrichtigungen") {

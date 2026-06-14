@@ -4,9 +4,6 @@
     "" : {
 
     },
-    "-" : {
-
-    },
     "—" : {
 
     },
@@ -35,12 +32,6 @@
           }
         }
       }
-    },
-    "%lld %%" : {
-
-    },
-    "%lld ähnliche Dokumente" : {
-
     },
     "%lld Dokument(e) können nicht wiederhergestellt werden." : {
 
@@ -231,9 +222,6 @@
         }
       }
     },
-    "Absenderprofil" : {
-
-    },
     "account_already_exists" : {
       "localizations" : {
         "de" : {
@@ -268,10 +256,8 @@
         }
       }
     },
-    "Adresse" : {
-
-    },
     "Alle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -359,9 +345,6 @@
 
     },
     "Alles" : {
-
-    },
-    "Analysiere …" : {
 
     },
     "Analysiere Seiten …" : {
@@ -584,9 +567,6 @@
     "Benachrichtigungen" : {
 
     },
-    "Benötigt aktivierte KI-Funktionen." : {
-
-    },
     "Benutzer" : {
       "localizations" : {
         "en" : {
@@ -643,9 +623,6 @@
           }
         }
       }
-    },
-    "Beschreibe in eigenen Worten, was du suchst – die KI setzt passende Filter." : {
-
     },
     "Bestehende Links" : {
 
@@ -954,9 +931,6 @@
     "Details" : {
 
     },
-    "Dieses Dokument scheint noch nicht im Archiv zu sein." : {
-
-    },
     "Dieses Jahr" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1116,12 +1090,6 @@
         }
       }
     },
-    "Dubletten" : {
-
-    },
-    "Dubletten finden" : {
-
-    },
     "Dunkel" : {
       "localizations" : {
         "en" : {
@@ -1246,13 +1214,7 @@
     "Endgültig löschen?" : {
 
     },
-    "Entfernen" : {
-
-    },
     "Enthält Text (optional)" : {
-
-    },
-    "Erinnerung" : {
 
     },
     "Erstellen" : {
@@ -1420,9 +1382,6 @@
     "Freigabe-Links" : {
 
     },
-    "Fristen-Radar" : {
-
-    },
     "Gefundene Dokumente" : {
 
     },
@@ -1518,9 +1477,6 @@
           }
         }
       }
-    },
-    "Gleiche mit deinem Archiv ab …" : {
-
     },
     "Hell" : {
       "localizations" : {
@@ -1683,6 +1639,9 @@
         }
       }
     },
+    "Kein Typ" : {
+
+    },
     "Keine" : {
       "localizations" : {
         "en" : {
@@ -1767,9 +1726,6 @@
         }
       }
     },
-    "Keine Dubletten gefunden" : {
-
-    },
     "Keine Links vorhanden" : {
 
     },
@@ -1805,9 +1761,6 @@
       }
     },
     "KI-Funktionen (Apple Intelligence)" : {
-
-    },
-    "KI-Suche" : {
 
     },
     "Konten" : {
@@ -1926,12 +1879,6 @@
 
     },
     "Kopiert" : {
-
-    },
-    "Kündigung entwerfen" : {
-
-    },
-    "Kündigungsentwurf" : {
 
     },
     "Lade Dokument..." : {
@@ -2302,9 +2249,6 @@
         }
       }
     },
-    "Mögliche Treffer gefunden" : {
-
-    },
     "Name" : {
       "localizations" : {
         "en" : {
@@ -2364,9 +2308,6 @@
           }
         }
       }
-    },
-    "Nebeneinander vergleichen" : {
-
     },
     "Netzwerkscanner" : {
 
@@ -2492,12 +2433,6 @@
         }
       }
     },
-    "Nicht gefunden" : {
-
-    },
-    "Noch keine Fristen erkannt" : {
-
-    },
     "Notizen" : {
       "localizations" : {
         "en" : {
@@ -2581,9 +2516,6 @@
           }
         }
       }
-    },
-    "Öffnen" : {
-
     },
     "Öffnet den Scanner, um ein neues Dokument aufzunehmen." : {
 
@@ -2776,9 +2708,6 @@
           }
         }
       }
-    },
-    "Schon vorhanden?" : {
-
     },
     "Seite %lld" : {
 
@@ -3462,16 +3391,10 @@
     "v%@" : {
 
     },
-    "Vergleich" : {
-
-    },
     "Verknüpfen" : {
 
     },
     "Version" : {
-
-    },
-    "Verstehe deine Anfrage …" : {
 
     },
     "Verwaltung" : {
@@ -3573,9 +3496,6 @@
     "Wiederherstellen" : {
 
     },
-    "Wird für KI-Kündigungsschreiben im Fristen-Radar verwendet." : {
-
-    },
     "wrong_otp_code" : {
       "localizations" : {
         "de" : {
@@ -3609,9 +3529,6 @@
           }
         }
       }
-    },
-    "z. B. Amazon-Rechnungen aus 2025" : {
-
     },
     "z. B. Wert" : {
 

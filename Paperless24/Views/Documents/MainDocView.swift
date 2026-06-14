@@ -22,7 +22,6 @@ struct MainDocView: View {
     @State private var showScanner = false
     @State private var showAirScan = false
     @State private var showBatchScan = false
-    @State private var showDuplicateCheck = false
     @State private var showFilePicker = false
     @State private var showPhotoPicker = false
     @State private var uploadQueueItem: UploadContainer? = nil
@@ -45,9 +44,6 @@ struct MainDocView: View {
     @State private var saveFilterName = ""
     @State private var quickLookDoc: Document? = nil
     @State private var splitDoc: Document? = nil
-    @State private var showAISearch = false
-    @State private var aiQuery = ""
-    @State private var isAISearching = false
 
     private var layoutStyle: LayoutStyle { LayoutStyle(rawValue: layoutStyleRaw) ?? .grid }
     private var sortOrder: SortOrder { SortOrder(rawValue: sortOrderRaw) ?? .dateDesc }
@@ -306,32 +302,6 @@ struct MainDocView: View {
             CustomFieldFilterSheet(selectedField: $filterCustomField, text: $filterCustomText)
                 .presentationDetents([.medium])
         }
-        .sheet(isPresented: $showAISearch) {
-            NavigationView {
-                Form {
-                    Section {
-                        TextField("z. B. Amazon-Rechnungen aus 2025", text: $aiQuery, axis: .vertical)
-                            .lineLimit(1...3)
-                            .onSubmit { Task { await runAISearch() } }
-                    } footer: {
-                        Text("Beschreibe in eigenen Worten, was du suchst – die KI setzt passende Filter.")
-                    }
-                    if isAISearching {
-                        HStack { ProgressView(); Text("Verstehe deine Anfrage …").foregroundColor(.secondary) }
-                    }
-                }
-                .navigationTitle("KI-Suche")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("Abbrechen") { showAISearch = false } }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Suchen") { Task { await runAISearch() } }
-                            .disabled(aiQuery.trimmingCharacters(in: .whitespaces).isEmpty || isAISearching)
-                    }
-                }
-            }
-            .presentationDetents([.height(260)])
-        }
         .sheet(isPresented: $showBulkShare) {
             ShareSheet(items: bulkShareURLs)
         }
@@ -384,9 +354,6 @@ struct MainDocView: View {
         }
         .sheet(isPresented: $showBatchScan) {
             BatchScanView()
-        }
-        .sheet(isPresented: $showDuplicateCheck) {
-            DuplicateCheckView()
         }
         .sheet(isPresented: $showPhotoPicker) {
             PhotoPicker(isPresented: $showPhotoPicker) { data in
@@ -458,28 +425,6 @@ struct MainDocView: View {
         VStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    if store.semanticActive {
-                        Button {
-                            store.semanticActive = false
-                            searchText = ""
-                            applyFilters()
-                            store.haptic(.light)
-                        } label: {
-                            Label("KI-Suche aktiv", systemImage: "xmark.circle.fill")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 12).padding(.vertical, 7)
-                                .background(Color.purple).cornerRadius(8)
-                        }
-                    } else if AIService.shared.isAvailable {
-                        Button { aiQuery = ""; showAISearch = true } label: {
-                            Label("KI-Suche", systemImage: "sparkles")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.purple)
-                                .padding(.horizontal, 12).padding(.vertical, 7)
-                                .background(Color.purple.opacity(0.12)).cornerRadius(8)
-                        }
-                    }
                     Menu {
                         ForEach(DateFilter.allCases) { f in
                             Button {
@@ -814,7 +759,6 @@ struct MainDocView: View {
                 if batchScanEnabled {
                     Button { showBatchScan = true } label: { Label("Stapel scannen", systemImage: "doc.on.doc") }
                 }
-                Button { showDuplicateCheck = true } label: { Label("Schon vorhanden?", systemImage: "doc.text.magnifyingglass") }
             } label: { Image(systemName: "plus") }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -861,41 +805,7 @@ struct MainDocView: View {
         return NSItemProvider(object: doc.title as NSString)
     }
 
-    private func runAISearch() async {
-        let q = aiQuery.trimmingCharacters(in: .whitespaces)
-        guard !q.isEmpty else { return }
-        isAISearching = true
-        let parsed = await AIService.shared.parseQuery(
-            q,
-            tags: store.allTags.map { $0.safeName },
-            correspondents: store.allCorrespondents.map { $0.safeName },
-            types: store.allDocTypes.map { $0.safeName }
-        )
-        // 1) Strukturierte Filter (Tag/Sender/Typ/Datum) setzen, wenn die KI welche erkennt.
-        var structured = false
-        if let p = parsed {
-            if let name = p.tag, let t = store.allTags.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterTag = t.id; structured = true }
-            if let name = p.correspondent, let c = store.allCorrespondents.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterCorr = c.id; structured = true }
-            if let name = p.type, let ty = store.allDocTypes.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) { filterType = ty.id; structured = true }
-            if let from = p.dateFrom { filterDate = .custom; customStartDate = from; customEndDate = p.dateTo ?? Date(); structured = true }
-        }
-        // Chips anwenden (setzt filteredDocs auf die gefilterte Teilmenge, beendet alten Semantik-Modus).
-        applyFilters()
-
-        // 2) Den eigentlichen Suchbegriff semantisch über die (gefilterten) Dokumente ranken –
-        //    findet inhaltlich Passendes, auch ohne wörtliche Übereinstimmung.
-        let term = parsed?.text?.trimmingCharacters(in: .whitespaces)
-        let semanticTerm = (term?.isEmpty == false ? term! : (structured ? "" : q))
-        if !semanticTerm.isEmpty {
-            store.runSemanticSearch(semanticTerm)
-        }
-
-        isAISearching = false
-        showAISearch = false
-    }
-
     private func applyFilters() {
-        store.semanticActive = false
         store.currentFilterTag = filterTag
         store.currentFilterCorr = filterCorr
         store.currentFilterType = filterType

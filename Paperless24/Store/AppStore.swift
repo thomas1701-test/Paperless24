@@ -20,10 +20,6 @@ class AppStore: ObservableObject {
     @Published var allCustomFields: [CustomField] = []
     @Published var trashedDocs: [TrashDocument] = []
     @Published var serverViews: [SavedView] = []
-    @Published var deadlines: [Deadline] = []
-    @Published var isScanningDeadlines = false
-    @Published var deadlineScanStatus = ""
-    private var scannedDeadlineDocIds: Set<Int> = []
     @Published var pendingUploads: [PendingUpload] = []
     @Published var pendingEdits: [PendingEdit] = []
 
@@ -46,7 +42,6 @@ class AppStore: ObservableObject {
     @Published var hasNextPage = false
     @Published var isLoadingMore = false
     /// Aktiv, solange eine semantische KI-Suche die Ergebnisliste bestimmt.
-    @Published var semanticActive = false
     @Published var needsReLogin = false
     @Published var savedFilters: [SavedFilter] = []
     @Published var widgetOpenDocId: Int? = nil
@@ -187,7 +182,7 @@ class AppStore: ObservableObject {
         guard accounts.contains(where: { $0.id == id }) else { return }
         activeAccountId = id
         AccountService.setActiveId(id)
-        documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []; deadlines = []; scannedDeadlineDocIds = []
+        documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
         pendingUploads = []; pendingEdits = []; savedFilters = []
         currentSearchText = ""; currentPage = 1; currentSearchPage = 1
         autoSyncTask?.cancel()
@@ -211,7 +206,7 @@ class AppStore: ObservableObject {
             } else {
                 activeAccountId = nil
                 AccountService.setActiveId(nil)
-                documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []; deadlines = []; scannedDeadlineDocIds = []
+                documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
                 pendingUploads = []; pendingEdits = []; savedFilters = []
                 autoSyncTask?.cancel()
             }
@@ -274,12 +269,10 @@ class AppStore: ObservableObject {
                 currentPage = 1
                 isOffline = false
                 lastSyncError = nil
-                semanticActive = false
                 reApplyPendingEdits()
                 saveToDisk()
                 updateFilteredDocs()
                 indexDocumentsForSpotlight()
-                autoScanNewDeadlines()
                 isSyncing = false
                 return
             } catch APIError.unauthorized {
@@ -344,7 +337,6 @@ class AppStore: ObservableObject {
     @Published var recentSearches: [String] = []
 
     func runSearch(query: String) {
-        semanticActive = false
         currentSearchText = query
         searchTask?.cancel()
         if query.isEmpty {
@@ -426,16 +418,7 @@ class AppStore: ObservableObject {
 
     // MARK: - Filter & Sort
 
-    /// Semantische KI-Suche: rangiert die aktuell gefilterten Dokumente nach inhaltlicher Nähe.
-    func runSemanticSearch(_ query: String) {
-        semanticActive = true
-        let base = filteredDocs.isEmpty ? documents : filteredDocs
-        filteredDocs = SemanticRanker.rank(query, in: base)
-    }
-
     func updateFilteredDocs() {
-        // Während eine semantische Suche aktiv ist, die Ergebnisliste nicht überschreiben.
-        guard !semanticActive else { return }
         let calendar = Calendar.current
         let now = Date()
 
@@ -784,8 +767,6 @@ class AppStore: ObservableObject {
         PersistenceService.save(pendingUploads,    toURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))
         PersistenceService.save(pendingEdits,      toURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))
         PersistenceService.save(savedFilters,      toURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json"))
-        PersistenceService.save(deadlines,         toURL: PersistenceService.accountDataURL(for: id, filename: "deadlines.json"))
-        PersistenceService.save(Array(scannedDeadlineDocIds), toURL: PersistenceService.accountDataURL(for: id, filename: "deadlinescanned.json"))
     }
 
     func loadFromDisk(for id: UUID) {
@@ -797,8 +778,6 @@ class AppStore: ObservableObject {
         pendingUploads    = PersistenceService.load([PendingUpload].self,  fromURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))      ?? []
         pendingEdits      = PersistenceService.load([PendingEdit].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))        ?? []
         savedFilters      = PersistenceService.load([SavedFilter].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json")) ?? []
-        deadlines         = PersistenceService.load([Deadline].self,       fromURL: PersistenceService.accountDataURL(for: id, filename: "deadlines.json"))      ?? []
-        scannedDeadlineDocIds = Set(PersistenceService.load([Int].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "deadlinescanned.json")) ?? [])
         updateFilteredDocs()
     }
 
@@ -1023,55 +1002,6 @@ class AppStore: ObservableObject {
         try? await api.deleteShareLink(id: id)
     }
 
-    // MARK: - Fristen-Radar
-
-    var fristenRadarEnabled: Bool { UserDefaults.standard.object(forKey: "fristenRadarEnabled") as? Bool ?? true }
-
-    /// Neue, noch nicht gescannte Dokumente automatisch prüfen (gedeckelt, im Hintergrund).
-    func autoScanNewDeadlines() {
-        guard fristenRadarEnabled, AIService.shared.isAvailable, !isDemoMode, !isScanningDeadlines else { return }
-        let pending = documents.filter { $0.content?.isEmpty == false && !scannedDeadlineDocIds.contains($0.id) }
-        guard !pending.isEmpty else { return }
-        Task { await scanDeadlines(Array(pending.prefix(10))) }
-    }
-
-    /// Manueller Komplett-Scan aller noch nicht gescannten Dokumente.
-    func scanAllForDeadlines() {
-        guard AIService.shared.isAvailable, !isScanningDeadlines else { return }
-        let pending = documents.filter { $0.content?.isEmpty == false && !scannedDeadlineDocIds.contains($0.id) }
-        Task { await scanDeadlines(pending) }
-    }
-
-    private func scanDeadlines(_ docs: [Document]) async {
-        guard !docs.isEmpty else { return }
-        isScanningDeadlines = true
-        for (index, doc) in docs.enumerated() {
-            deadlineScanStatus = "Prüfe \(index + 1) von \(docs.count) …"
-            let extracted = await AIService.shared.extractDeadlines(text: doc.content ?? "")
-            for e in extracted {
-                deadlines.append(Deadline(docId: doc.id, docTitle: doc.title, typeRaw: e.type.rawValue, date: e.date, detail: e.detail))
-            }
-            scannedDeadlineDocIds.insert(doc.id)
-        }
-        deadlines.sort { $0.date < $1.date }
-        saveToDisk()
-        isScanningDeadlines = false
-        deadlineScanStatus = ""
-    }
-
-    func removeDeadline(_ id: UUID) {
-        deadlines.removeAll { $0.id == id }
-        saveToDisk()
-    }
-
-    func draftCancellation(for deadline: Deadline) async -> String? {
-        guard let doc = documents.first(where: { $0.id == deadline.docId }) else { return nil }
-        let name = UserDefaults.standard.string(forKey: "senderName") ?? ""
-        let address = UserDefaults.standard.string(forKey: "senderAddress") ?? ""
-        return await AIService.shared.draftCancellation(documentText: doc.content ?? doc.title,
-                                                         senderName: name, senderAddress: address)
-    }
-
     func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
         UIImpactFeedbackGenerator(style: style).impactOccurred()
     }
@@ -1099,7 +1029,7 @@ class AppStore: ObservableObject {
         AccountService.save([])
         AccountService.setActiveId(nil)
         isDemoMode = false
-        documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []; deadlines = []; scannedDeadlineDocIds = []
+        documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
         pendingUploads = []; pendingEdits = []; cachedCount = 0; storageSize = "0 MB"; lastSyncError = nil
         PersistenceService.clearAll()
         ImageCache.shared.clearCache()
