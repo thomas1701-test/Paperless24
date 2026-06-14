@@ -3,6 +3,9 @@ import Foundation
 /// Entscheidet, OB nach einer App-Store-Bewertung gefragt wird.
 /// Reine, ohne StoreKit testbare Gating-Logik; State liegt lokal in UserDefaults.
 /// Der eigentliche `requestReview`-Aufruf passiert in der View-Schicht (RootTabView).
+/// `@MainActor`-isoliert wie `AppStore` — alle Aufrufe erfolgen aus dem UI-Fluss;
+/// schützt das `didAttemptThisSession`-Flag vor Datenrennen.
+@MainActor
 final class ReviewRequestService {
     static let shared = ReviewRequestService()
 
@@ -30,6 +33,9 @@ final class ReviewRequestService {
         var days = defaults.stringArray(forKey: Key.launchDays) ?? []
         guard !days.contains(key) else { return }
         days.append(key)
+        // Nur die jüngsten `minLaunchDays` behalten — für das Gating zählt nur,
+        // ob die Schwelle erreicht ist; verhindert unbegrenztes Wachstum.
+        if days.count > minLaunchDays { days = Array(days.suffix(minLaunchDays)) }
         defaults.set(days, forKey: Key.launchDays)
     }
 
@@ -63,11 +69,15 @@ final class ReviewRequestService {
         URL(string: "https://apps.apple.com/app/id\(AppConstants.appStoreId)?action=write-review")!
     }
 
-    private static func dayString(_ date: Date) -> String {
+    private static let dayFormatter: DateFormatter = {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
         f.locale = Locale(identifier: "en_US_POSIX")
         f.timeZone = .current
-        return f.string(from: date)
+        return f
+    }()
+
+    private static func dayString(_ date: Date) -> String {
+        dayFormatter.string(from: date)
     }
 }

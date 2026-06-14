@@ -2,6 +2,7 @@ import Testing
 import Foundation
 @testable import Paperless24
 
+@MainActor
 struct ReviewRequestServiceTests {
 
     /// Frische UserDefaults-Suite je Test, damit nichts überspringt.
@@ -76,6 +77,33 @@ struct ReviewRequestServiceTests {
         // Nach dem Prompt: nicht mehr (Session-Flag + Versions-Sperre).
         svc.recordPrompt(now: base, version: "1.8.1")
         #expect(svc.shouldRequestReview(now: base, version: "1.8.1") == false)
+    }
+
+    @Test func cooldownGrenzwert() {
+        let cal = Calendar.current
+        let base = Date()
+
+        // Klar jenseits des Cooldowns (121 Tage) -> erlaubt.
+        // (-121 statt exakt -120, damit DST-bedingte Sekunden-Differenzen den
+        // Test nicht am Knife-Edge der Float-Division flaky machen.)
+        let (svc1, defaults1) = makeService()
+        svc1.registerLaunch(today: base)
+        svc1.registerLaunch(today: cal.date(byAdding: .day, value: -1, to: base)!)
+        svc1.registerLaunch(today: cal.date(byAdding: .day, value: -2, to: base)!)
+        defaults1.set(cal.date(byAdding: .day, value: -121, to: base)!,
+                      forKey: ReviewRequestService.Key.lastPromptDate)
+        defaults1.set("1.0.0", forKey: ReviewRequestService.Key.lastPromptVersion)
+        #expect(svc1.shouldRequestReview(now: base, version: "1.8.1") == true)
+
+        // 119 Tage her -> blockiert.
+        let (svc2, defaults2) = makeService()
+        svc2.registerLaunch(today: base)
+        svc2.registerLaunch(today: cal.date(byAdding: .day, value: -1, to: base)!)
+        svc2.registerLaunch(today: cal.date(byAdding: .day, value: -2, to: base)!)
+        defaults2.set(cal.date(byAdding: .day, value: -119, to: base)!,
+                      forKey: ReviewRequestService.Key.lastPromptDate)
+        defaults2.set("1.0.0", forKey: ReviewRequestService.Key.lastPromptVersion)
+        #expect(svc2.shouldRequestReview(now: base, version: "1.8.1") == false)
     }
 
     @Test func schreibBewertungsURLKorrekt() {
