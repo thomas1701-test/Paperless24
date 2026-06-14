@@ -55,6 +55,7 @@ struct RootTabView: View {
         .onChange(of: store.shouldRequestReview) { req in
             if req {
                 store.shouldRequestReview = false
+                ReviewRequestService.shared.recordPrompt()
                 requestReview()
             }
         }

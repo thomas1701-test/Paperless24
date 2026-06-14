@@ -564,9 +564,10 @@ class AppStore: ObservableObject {
 
     /// Von positiven Momenten aufgerufen. Prüft die Gating-Regeln und setzt bei
     /// Eignung das Flag, das RootTabView in den requestReview-Aufruf übersetzt.
+    /// `recordPrompt()` passiert bewusst erst dort, direkt vor `requestReview()` –
+    /// so verbrennen wir keinen Versuch, falls das Flag nie konsumiert wird.
     func registerReviewEvent() {
         guard ReviewRequestService.shared.shouldRequestReview() else { return }
-        ReviewRequestService.shared.recordPrompt()
         shouldRequestReview = true
     }
 
