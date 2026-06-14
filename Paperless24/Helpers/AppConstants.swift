@@ -4,6 +4,7 @@ enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
     static let appVersion = "1.8.0"
     static let urlScheme = "paperless24"
+    static let appStoreId = "6770317210"
 
     static let appChangelog: [ChangelogEntry] = [
         ChangelogEntry(version: "1.8.0", date: "08.06.2026", changes: [
