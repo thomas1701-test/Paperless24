@@ -136,7 +136,7 @@ struct ReviewRequestServiceTests {
 
 - [ ] **Step 2: Tests laufen lassen — müssen fehlschlagen (Typ existiert nicht)**
 
-Run: `xcodebuild test -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -30`
+Run: `xcodebuild test -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -30`
 Expected: FAIL — Compile-Fehler „cannot find 'ReviewRequestService' in scope".
 (Falls „iPhone 16" nicht existiert: `xcrun simctl list devices available` und einen vorhandenen Namen einsetzen.)
 
@@ -222,7 +222,7 @@ final class ReviewRequestService {
 
 - [ ] **Step 4: Tests laufen lassen — müssen bestehen**
 
-Run: `xcodebuild test -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -30`
+Run: `xcodebuild test -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -30`
 Expected: PASS — alle 7 Tests grün („Test Suite … passed").
 
 - [ ] **Step 5: Commit**
@@ -275,7 +275,7 @@ In `processUploadQueue` (Z. 553) nach dem erfolgreichen Upload ergänzen:
 
 - [ ] **Step 4: Build prüfen**
 
-Run: `xcodebuild build -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -5`
+Run: `xcodebuild build -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -5`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
@@ -309,7 +309,7 @@ Den bestehenden `.onAppear`-Block (Z. 42) um die erste Zeile ergänzen:
 
 - [ ] **Step 2: Build prüfen**
 
-Run: `xcodebuild build -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -5`
+Run: `xcodebuild build -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -5`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 3: Commit**
@@ -351,7 +351,7 @@ Direkt nach dem `.onChange(of: store.requestAskArchive)`-Block (Z. 50-52) einfü
 
 - [ ] **Step 3: Build prüfen**
 
-Run: `xcodebuild build -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -5`
+Run: `xcodebuild build -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -5`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 4: Commit**
@@ -406,7 +406,7 @@ In `DocumentDetailView` ein `.onChange` direkt nach dem bestehenden
 
 - [ ] **Step 4: Build prüfen**
 
-Run: `xcodebuild build -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -5`
+Run: `xcodebuild build -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -5`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
@@ -451,7 +451,7 @@ In der letzten `Section` (Z. 166) vor dem Changelog-NavigationLink einfügen:
 
 - [ ] **Step 3: Build prüfen**
 
-Run: `xcodebuild build -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -5`
+Run: `xcodebuild build -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -5`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 4: Commit**
@@ -497,7 +497,7 @@ Expected: `3`
 
 - [ ] **Step 4: Build prüfen**
 
-Run: `xcodebuild build -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -5`
+Run: `xcodebuild build -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -5`
 Expected: `** BUILD SUCCEEDED **`
 
 - [ ] **Step 5: Commit**
@@ -515,7 +515,7 @@ git commit -m "chore: Version 1.8.1 + Changelog"
 
 - [ ] **Step 1: Tests laufen lassen**
 
-Run: `xcodebuild test -scheme Paperless24 -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -20`
+Run: `xcodebuild test -scheme Paperless24 -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -20`
 Expected: `** TEST SUCCEEDED **`, alle ReviewRequestService-Tests grün.
 
 - [ ] **Step 2: Alle drei Schemes bauen**
@@ -524,7 +524,7 @@ Run:
 ```bash
 for s in Paperless24 PaperlessShare PaperlessWidgetExtension; do
   echo "=== $s ==="
-  xcodebuild build -scheme "$s" -destination 'platform=iOS Simulator,name=iPhone 16' 2>&1 | tail -3
+  xcodebuild build -scheme "$s" -destination 'id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' 2>&1 | tail -3
 done
 ```
 Expected: jeweils `** BUILD SUCCEEDED **`.
