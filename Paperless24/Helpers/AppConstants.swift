@@ -2,11 +2,14 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "1.8.0"
+    static let appVersion = "1.8.1"
     static let urlScheme = "paperless24"
     static let appStoreId = "6770317210"
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "1.8.1", date: "14.06.2026", changes: [
+            "Du kannst die App jetzt direkt aus den Einstellungen heraus bewerten.",
+        ]),
         ChangelogEntry(version: "1.8.0", date: "08.06.2026", changes: [
             "Sender, Typ und Tags lassen sich bei Import und Bearbeiten jetzt durchsuchen – Suchfeld statt langer Liste",
         ]),
