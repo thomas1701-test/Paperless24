@@ -40,6 +40,7 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            ReviewRequestService.shared.registerLaunch()
             if store.serverUrl.isEmpty {
                 appState = .welcome
             } else {
