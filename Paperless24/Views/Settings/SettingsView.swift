@@ -17,6 +17,7 @@ struct SettingsView: View {
     @State private var stats: PaperlessStatistics? = nil
     @State private var widgetEnabled: Bool = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
     @State private var widgetMode: String = UserDefaults(suiteName: "group.com.Thomas.paperless")?.string(forKey: "widget_mode") ?? "documents"
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         NavigationView {
@@ -164,6 +165,11 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Button {
+                        openURL(ReviewRequestService.shared.appStoreWriteReviewURL())
+                    } label: {
+                        Label("App bewerten", systemImage: "star")
+                    }
                     NavigationLink(destination: ChangelogView()) {
                         Label("Changelog", systemImage: "list.bullet.rectangle")
                     }
