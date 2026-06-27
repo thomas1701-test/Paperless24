@@ -173,6 +173,9 @@ struct SettingsView: View {
                     NavigationLink(destination: ChangelogView()) {
                         Label("Changelog", systemImage: "list.bullet.rectangle")
                     }
+                    NavigationLink(destination: SupportView()) {
+                        Label("Unterstützung", systemImage: "heart")
+                    }
                     Button("Abmelden", role: .destructive) {
                         store.clearLocalData()
                         onLogout()
@@ -199,5 +202,47 @@ struct SettingsView: View {
         let f = NumberFormatter()
         f.numberStyle = .decimal
         return f.string(from: NSNumber(value: n)) ?? "\(n)"
+    }
+}
+
+/// „Unterstützung": Hinweis, dass die App kostenlos ist, plus PayPal-Trinkgeld.
+struct SupportView: View {
+    /// PayPal.Me-Link des Entwicklers.
+    static let payPalURL = URL(string: "https://paypal.me/tdillmann87")!
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.system(size: 52))
+                    .foregroundColor(.accentColor)
+                    .padding(.top, 32)
+
+                Text("Paperless 24 ist kostenlos")
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+
+                Text("Ich entwickle Paperless 24 in meiner Freizeit und stelle die App kostenlos zur Verfügung. Wenn sie dir hilft, freue ich mich über ein kleines Trinkgeld – ganz freiwillig und in beliebiger Höhe.")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Link(destination: Self.payPalURL) {
+                    Label("Mit PayPal ein Trinkgeld geben", systemImage: "heart.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                Text("Du wirst dafür zu PayPal weitergeleitet. Vielen Dank für deine Unterstützung! 🙏")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding()
+        }
+        .navigationTitle("Unterstützung")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
