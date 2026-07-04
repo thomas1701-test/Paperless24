@@ -7,8 +7,10 @@ import de.tedi.paperless.network.model.PagedResponse
 import de.tedi.paperless.network.model.Tag
 import okhttp3.MultipartBody
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
@@ -55,4 +57,25 @@ interface PaperlessService {
     @Multipart
     @POST("api/documents/post_document/")
     suspend fun uploadDocument(@Part file: MultipartBody.Part): retrofit2.Response<Unit>
+
+    @POST("api/tags/")
+    suspend fun createTag(@Body body: Map<String, String>): Tag
+
+    @PATCH("api/tags/{id}/")
+    suspend fun updateTag(@Path("id") id: Int, @Body body: Map<String, String>): Tag
+
+    @DELETE("api/tags/{id}/")
+    suspend fun deleteTag(@Path("id") id: Int): retrofit2.Response<Unit>
+
+    @POST("api/correspondents/")
+    suspend fun createCorrespondent(@Body body: Map<String, String>): Correspondent
+
+    @DELETE("api/correspondents/{id}/")
+    suspend fun deleteCorrespondent(@Path("id") id: Int): retrofit2.Response<Unit>
+
+    @POST("api/document_types/")
+    suspend fun createDocumentType(@Body body: Map<String, String>): DocumentType
+
+    @DELETE("api/document_types/{id}/")
+    suspend fun deleteDocumentType(@Path("id") id: Int): retrofit2.Response<Unit>
 }
