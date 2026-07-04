@@ -129,7 +129,7 @@ dependencies {
 
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.biometric:biometric:1.1.0")
-    implementation("com.google.mlkit:document-scanner:16.0.0-beta1")
+    implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("app.cash.turbine:turbine:1.1.0")
@@ -149,12 +149,12 @@ dependencies {
         android:name=".PaperlessApp"
         android:allowBackup="false"
         android:label="Paperless TeDi"
-        android:theme="@style/Theme.Material3.DayNight.NoActionBar"
+        android:theme="@style/Theme.PaperlessTeDi"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.Material3.DayNight.NoActionBar">
+            android:theme="@style/Theme.PaperlessTeDi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
