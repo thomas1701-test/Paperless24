@@ -21,4 +21,9 @@ class DocumentRepository @Inject constructor(
         val service = serviceProvider.current() ?: throw IllegalStateException("No active account")
         return service.getDocument(id)
     }
+
+    suspend fun downloadDocument(id: Int): okhttp3.ResponseBody {
+        val service = serviceProvider.current() ?: throw IllegalStateException("No active account")
+        return service.downloadDocument(id).body() ?: throw IllegalStateException("Empty PDF body")
+    }
 }

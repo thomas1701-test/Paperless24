@@ -13,6 +13,7 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Streaming
 
 data class TokenRequest(val username: String, val password: String, val code: String? = null)
 data class TokenResponse(val token: String)
@@ -37,6 +38,10 @@ interface PaperlessService {
 
     @GET("api/documents/{id}/")
     suspend fun getDocument(@Path("id") id: Int): Document
+
+    @GET("api/documents/{id}/download/")
+    @Streaming
+    suspend fun downloadDocument(@Path("id") id: Int): retrofit2.Response<okhttp3.ResponseBody>
 
     @GET("api/tags/")
     suspend fun getTags(@Query("page_size") pageSize: Int = 100): PagedResponse<Tag>
