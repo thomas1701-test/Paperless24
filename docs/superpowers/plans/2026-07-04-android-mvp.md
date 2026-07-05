@@ -25,7 +25,7 @@ Package name: `de.tedi.paperless`. Module: single `app` module (no multi-module 
 - Create: `android/app/src/main/java/de/tedi/paperless/MainActivity.kt`
 - Create: `android/gradle.properties`
 
-- [ ] **Step 1: Install JDK, Android SDK command-line tools, Gradle via Homebrew**
+- [x] **Step 1: Install JDK, Android SDK command-line tools, Gradle via Homebrew**
 
 Run:
 ```bash
@@ -45,7 +45,7 @@ avdmanager create avd -n Pixel_API_34 -k "system-images;android-34;google_apis;a
 ```
 Expected: `adb --version` and `java -version` (17.x) both succeed.
 
-- [ ] **Step 2: Scaffold Gradle project files**
+- [x] **Step 2: Scaffold Gradle project files**
 
 `android/settings.gradle.kts`:
 ```kotlin
@@ -200,17 +200,17 @@ android.useAndroidX=true
 kotlin.code.style=official
 ```
 
-- [ ] **Step 3: Build the empty scaffold**
+- [x] **Step 3: Build the empty scaffold**
 
 Run: `cd android && gradle wrapper --gradle-version 8.7 && ./gradlew assembleDebug`
 Expected: `BUILD SUCCESSFUL`
 
-- [ ] **Step 4: Launch emulator and install**
+- [x] **Step 4: Launch emulator and install**
 
 Run: `emulator -avd Pixel_API_34 -no-snapshot &` then `./gradlew installDebug`
 Expected: app installs, launching it shows "Paperless TeDi" text screen.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 cd "/Users/thomas/Developer/Paperless TeDi"
@@ -232,7 +232,7 @@ git commit -m "feat(android): scaffold Gradle project with Compose + Hilt"
 - Create: `android/app/src/main/java/de/tedi/paperless/network/RetrofitFactory.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/network/PaperlessServiceTest.kt`
 
-- [ ] **Step 1: Define data models**
+- [x] **Step 1: Define data models**
 
 `Document.kt`:
 ```kotlin
@@ -300,7 +300,7 @@ data class PagedResponse<T>(
 )
 ```
 
-- [ ] **Step 2: Define Retrofit service interface**
+- [x] **Step 2: Define Retrofit service interface**
 
 `PaperlessService.kt`:
 ```kotlin
@@ -349,7 +349,7 @@ interface PaperlessService {
 }
 ```
 
-- [ ] **Step 3: Retrofit factory that builds a per-account client**
+- [x] **Step 3: Retrofit factory that builds a per-account client**
 
 `RetrofitFactory.kt`:
 ```kotlin
@@ -399,7 +399,7 @@ object RetrofitFactory {
 }
 ```
 
-- [ ] **Step 4: Write failing test against MockWebServer**
+- [x] **Step 4: Write failing test against MockWebServer**
 
 `PaperlessServiceTest.kt`:
 ```kotlin
@@ -450,12 +450,12 @@ class PaperlessServiceTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.network.PaperlessServiceTest"`
 Expected: FAIL (classes not resolvable / test not yet compiling if models missing — verify it fails for the right reason, i.e. before this task it wouldn't exist).
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.network.PaperlessServiceTest"`
 Expected: `BUILD SUCCESSFUL`, 1 test passed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/network android/app/src/test
@@ -473,7 +473,7 @@ git commit -m "feat(android): add Retrofit network layer for Paperless-ngx API"
 - Create: `android/app/src/main/java/de/tedi/paperless/data/local/SecureTokenStore.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/data/local/AccountDaoTest.kt`
 
-- [ ] **Step 1: Account entity + DAO**
+- [x] **Step 1: Account entity + DAO**
 
 `AccountEntity.kt`:
 ```kotlin
@@ -533,7 +533,7 @@ abstract class AppDatabase : RoomDatabase() {
 }
 ```
 
-- [ ] **Step 2: Secure token store keyed by account id**
+- [x] **Step 2: Secure token store keyed by account id**
 
 `SecureTokenStore.kt`:
 ```kotlin
@@ -568,7 +568,7 @@ class SecureTokenStore(context: Context) {
 }
 ```
 
-- [ ] **Step 3: Write failing Room test (in-memory DB)**
+- [x] **Step 3: Write failing Room test (in-memory DB)**
 
 Add test dependency to `app/build.gradle.kts` dependencies block:
 ```kotlin
@@ -630,7 +630,7 @@ class AccountDaoTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.data.local.AccountDaoTest"`
 Expected: FAIL (AppDatabase/AccountDao not compiled into test task yet — first run after adding files should compile and pass; if it fails, verify Robolectric config in step 4 first).
 
-- [ ] **Step 4: Add Robolectric config and rerun**
+- [x] **Step 4: Add Robolectric config and rerun**
 
 In `app/build.gradle.kts`, inside `android {}` block add:
 ```kotlin
@@ -642,7 +642,7 @@ testOptions {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.data.local.AccountDaoTest"`
 Expected: `BUILD SUCCESSFUL`, 2 tests passed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/data android/app/src/test android/app/build.gradle.kts
@@ -659,7 +659,7 @@ git commit -m "feat(android): add Room account storage + encrypted token store"
 - Create: `android/app/src/main/java/de/tedi/paperless/repository/ServiceProvider.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/repository/AuthRepositoryTest.kt`
 
-- [ ] **Step 1: ServiceProvider — builds a PaperlessService for the active account**
+- [x] **Step 1: ServiceProvider — builds a PaperlessService for the active account**
 
 ```kotlin
 package de.tedi.paperless.repository
@@ -682,7 +682,7 @@ class ServiceProvider @Inject constructor(
 }
 ```
 
-- [ ] **Step 2: AuthRepository — login/logout/account switching**
+- [x] **Step 2: AuthRepository — login/logout/account switching**
 
 ```kotlin
 package de.tedi.paperless.repository
@@ -739,7 +739,7 @@ class AuthRepository @Inject constructor(
 }
 ```
 
-- [ ] **Step 3: DocumentRepository — paged fetch + search**
+- [x] **Step 3: DocumentRepository — paged fetch + search**
 
 ```kotlin
 package de.tedi.paperless.repository
@@ -768,7 +768,7 @@ class DocumentRepository @Inject constructor(
 }
 ```
 
-- [ ] **Step 4: Write failing test for OTP-required detection**
+- [x] **Step 4: Write failing test for OTP-required detection**
 
 ```kotlin
 package de.tedi.paperless.repository
@@ -817,12 +817,12 @@ Add to `app/build.gradle.kts` test deps: `testImplementation("org.mockito.kotlin
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.repository.AuthRepositoryTest"`
 Expected: FAIL until files above exist, then PASS.
 
-- [ ] **Step 5: Run full test suite to confirm no regressions**
+- [x] **Step 5: Run full test suite to confirm no regressions**
 
 Run: `./gradlew testDebugUnitTest`
 Expected: `BUILD SUCCESSFUL`, all tests passed.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/repository android/app/src/test android/app/build.gradle.kts
@@ -836,7 +836,7 @@ git commit -m "feat(android): add auth and document repositories"
 **Files:**
 - Create: `android/app/src/main/java/de/tedi/paperless/di/AppModule.kt`
 
-- [ ] **Step 1: Provide Room DB, DAO, SecureTokenStore as singletons**
+- [x] **Step 1: Provide Room DB, DAO, SecureTokenStore as singletons**
 
 ```kotlin
 package de.tedi.paperless.di
@@ -871,12 +871,12 @@ object AppModule {
 }
 ```
 
-- [ ] **Step 2: Build to confirm Hilt graph resolves**
+- [x] **Step 2: Build to confirm Hilt graph resolves**
 
 Run: `./gradlew assembleDebug`
 Expected: `BUILD SUCCESSFUL` (Hilt annotation processing succeeds, no missing binding errors).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/di
@@ -892,7 +892,7 @@ git commit -m "feat(android): add Hilt DI module for database and secure storage
 - Create: `android/app/src/main/java/de/tedi/paperless/ui/login/LoginScreen.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/viewmodel/LoginViewModelTest.kt`
 
-- [ ] **Step 1: Write failing ViewModel test**
+- [x] **Step 1: Write failing ViewModel test**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -940,7 +940,7 @@ class LoginViewModelTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.LoginViewModelTest"`
 Expected: FAIL (LoginViewModel/LoginUiState don't exist).
 
-- [ ] **Step 2: Implement LoginViewModel**
+- [x] **Step 2: Implement LoginViewModel**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -983,12 +983,12 @@ class LoginViewModel @Inject constructor(
 }
 ```
 
-- [ ] **Step 3: Run test to verify it passes**
+- [x] **Step 3: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.LoginViewModelTest"`
 Expected: `BUILD SUCCESSFUL`, 2 tests passed.
 
-- [ ] **Step 4: Compose LoginScreen**
+- [x] **Step 4: Compose LoginScreen**
 
 ```kotlin
 package de.tedi.paperless.ui.login
@@ -1045,7 +1045,7 @@ fun LoginScreen(
 }
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/viewmodel/LoginViewModel.kt android/app/src/main/java/de/tedi/paperless/ui/login android/app/src/test
@@ -1061,7 +1061,7 @@ git commit -m "feat(android): add login screen with 2FA support"
 - Create: `android/app/src/main/java/de/tedi/paperless/ui/documents/DocumentListScreen.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/viewmodel/DocumentListViewModelTest.kt`
 
-- [ ] **Step 1: Write failing ViewModel test**
+- [x] **Step 1: Write failing ViewModel test**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1096,7 +1096,7 @@ class DocumentListViewModelTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.DocumentListViewModelTest"`
 Expected: FAIL (class doesn't exist).
 
-- [ ] **Step 2: Implement DocumentListViewModel**
+- [x] **Step 2: Implement DocumentListViewModel**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1179,12 +1179,12 @@ class DocumentListViewModel @Inject constructor(
 }
 ```
 
-- [ ] **Step 3: Run test to verify it passes**
+- [x] **Step 3: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.DocumentListViewModelTest"`
 Expected: `BUILD SUCCESSFUL`, 1 test passed.
 
-- [ ] **Step 4: Compose DocumentListScreen**
+- [x] **Step 4: Compose DocumentListScreen**
 
 ```kotlin
 package de.tedi.paperless.ui.documents
@@ -1251,7 +1251,7 @@ fun DocumentListScreen(
 
 Note: add `import androidx.compose.foundation.clickable` and `androidx.compose.ui.Alignment` to imports above.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/viewmodel/DocumentListViewModel.kt android/app/src/main/java/de/tedi/paperless/ui/documents android/app/src/test
@@ -1268,7 +1268,7 @@ git commit -m "feat(android): add paginated document list screen with search"
 - Create: `android/app/src/main/java/de/tedi/paperless/ui/documents/PdfViewer.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/viewmodel/DocumentDetailViewModelTest.kt`
 
-- [ ] **Step 1: Write failing ViewModel test**
+- [x] **Step 1: Write failing ViewModel test**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1302,7 +1302,7 @@ class DocumentDetailViewModelTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.DocumentDetailViewModelTest"`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement DocumentDetailViewModel**
+- [x] **Step 2: Implement DocumentDetailViewModel**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1345,12 +1345,12 @@ class DocumentDetailViewModel @Inject constructor(
 }
 ```
 
-- [ ] **Step 3: Run test to verify it passes**
+- [x] **Step 3: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.DocumentDetailViewModelTest"`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 4: PDF viewer using AndroidX PdfRenderer**
+- [x] **Step 4: PDF viewer using AndroidX PdfRenderer**
 
 ```kotlin
 package de.tedi.paperless.ui.documents
@@ -1394,7 +1394,7 @@ fun PdfViewer(pdfFile: File) {
 }
 ```
 
-- [ ] **Step 5: DocumentDetailScreen wiring metadata + PDF download**
+- [x] **Step 5: DocumentDetailScreen wiring metadata + PDF download**
 
 ```kotlin
 package de.tedi.paperless.ui.documents
@@ -1477,12 +1477,12 @@ Update `DocumentDetailScreen.kt` to render the viewer:
         state.pdfFile?.let { file -> PdfViewer(file) }
 ```
 
-- [ ] **Step 6: Rebuild and run full test suite**
+- [x] **Step 6: Rebuild and run full test suite**
 
 Run: `./gradlew testDebugUnitTest assembleDebug`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless
@@ -1500,7 +1500,7 @@ git commit -m "feat(android): add document detail screen with PDF rendering"
 - Modify: `android/app/src/main/java/de/tedi/paperless/network/PaperlessService.kt` — add create/update/delete endpoints
 - Test: `android/app/src/test/java/de/tedi/paperless/viewmodel/MetadataViewModelTest.kt`
 
-- [ ] **Step 1: Extend PaperlessService with CRUD endpoints**
+- [x] **Step 1: Extend PaperlessService with CRUD endpoints**
 
 Add to `PaperlessService.kt`:
 ```kotlin
@@ -1526,7 +1526,7 @@ Add to `PaperlessService.kt`:
     suspend fun deleteDocumentType(@Path("id") id: Int): retrofit2.Response<Unit>
 ```
 
-- [ ] **Step 2: MetadataRepository**
+- [x] **Step 2: MetadataRepository**
 
 ```kotlin
 package de.tedi.paperless.repository
@@ -1571,7 +1571,7 @@ class MetadataRepository @Inject constructor(
 }
 ```
 
-- [ ] **Step 3: Write failing test for tag creation**
+- [x] **Step 3: Write failing test for tag creation**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1607,7 +1607,7 @@ class MetadataViewModelTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.MetadataViewModelTest"`
 Expected: FAIL.
 
-- [ ] **Step 4: Implement MetadataViewModel**
+- [x] **Step 4: Implement MetadataViewModel**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1654,12 +1654,12 @@ class MetadataViewModel @Inject constructor(
 }
 ```
 
-- [ ] **Step 5: Run test to verify it passes**
+- [x] **Step 5: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.MetadataViewModelTest"`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 6: MetadataScreen (tags list + add dialog)**
+- [x] **Step 6: MetadataScreen (tags list + add dialog)**
 
 ```kotlin
 package de.tedi.paperless.ui.metadata
@@ -1722,7 +1722,7 @@ fun MetadataScreen(viewModel: MetadataViewModel = hiltViewModel()) {
 }
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless
@@ -1740,7 +1740,7 @@ git commit -m "feat(android): add tag/correspondent/document-type management"
 - Create: `android/app/src/main/java/de/tedi/paperless/ui/upload/ScannerLauncher.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/viewmodel/UploadViewModelTest.kt`
 
-- [ ] **Step 1: Add uploadFile to DocumentRepository**
+- [x] **Step 1: Add uploadFile to DocumentRepository**
 
 ```kotlin
     suspend fun uploadFile(fileBytes: ByteArray, filename: String): Boolean {
@@ -1752,7 +1752,7 @@ git commit -m "feat(android): add tag/correspondent/document-type management"
 ```
 Add imports: `okhttp3.RequestBody.Companion.toRequestBody`, `okhttp3.MediaType.Companion.toMediaTypeOrNull`.
 
-- [ ] **Step 2: Write failing UploadViewModel test**
+- [x] **Step 2: Write failing UploadViewModel test**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1786,7 +1786,7 @@ class UploadViewModelTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.UploadViewModelTest"`
 Expected: FAIL.
 
-- [ ] **Step 3: Implement UploadViewModel**
+- [x] **Step 3: Implement UploadViewModel**
 
 ```kotlin
 package de.tedi.paperless.viewmodel
@@ -1828,12 +1828,12 @@ class UploadViewModel @Inject constructor(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.viewmodel.UploadViewModelTest"`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 5: ML Kit scanner launcher composable**
+- [x] **Step 5: ML Kit scanner launcher composable**
 
 ```kotlin
 package de.tedi.paperless.ui.upload
@@ -1874,7 +1874,7 @@ fun rememberScannerLauncher(onScanned: (GmsDocumentScanningResult) -> Unit): () 
 }
 ```
 
-- [ ] **Step 6: UploadScreen wiring scanner + file picker**
+- [x] **Step 6: UploadScreen wiring scanner + file picker**
 
 ```kotlin
 package de.tedi.paperless.ui.upload
@@ -1927,12 +1927,12 @@ fun UploadScreen(viewModel: UploadViewModel = hiltViewModel()) {
 }
 ```
 
-- [ ] **Step 7: Add ML Kit document scanner activity dependency check and build**
+- [x] **Step 7: Add ML Kit document scanner activity dependency check and build**
 
 Run: `./gradlew assembleDebug`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless
@@ -1947,7 +1947,7 @@ git commit -m "feat(android): add file upload and ML Kit document scanner"
 - Create: `android/app/src/main/java/de/tedi/paperless/ui/auth/BiometricGate.kt`
 - Modify: `android/app/src/main/java/de/tedi/paperless/MainActivity.kt` — wrap content in `BiometricGate`
 
-- [ ] **Step 1: BiometricGate composable**
+- [x] **Step 1: BiometricGate composable**
 
 ```kotlin
 package de.tedi.paperless.ui.auth
@@ -1994,7 +1994,7 @@ fun BiometricGate(enabled: Boolean, content: @Composable () -> Unit) {
 }
 ```
 
-- [ ] **Step 2: Wire into MainActivity, switch base activity to FragmentActivity**
+- [x] **Step 2: Wire into MainActivity, switch base activity to FragmentActivity**
 
 Modify `MainActivity.kt`:
 ```kotlin
@@ -2023,12 +2023,12 @@ Note: `enabled = false` placeholder wired to a settings flag is a Phase-2 refine
 
 Add dependency to `app/build.gradle.kts`: `implementation("androidx.fragment:fragment-ktx:1.8.2")`
 
-- [ ] **Step 3: Build**
+- [x] **Step 3: Build**
 
 Run: `./gradlew assembleDebug`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/ui/auth android/app/src/main/java/de/tedi/paperless/MainActivity.kt android/app/build.gradle.kts
@@ -2042,7 +2042,7 @@ git commit -m "feat(android): add biometric lock gate"
 **Files:**
 - Create: `android/app/src/main/java/de/tedi/paperless/ui/PaperlessNavHost.kt`
 
-- [ ] **Step 1: NavHost with login → list → detail → upload → metadata routes**
+- [x] **Step 1: NavHost with login → list → detail → upload → metadata routes**
 
 ```kotlin
 package de.tedi.paperless.ui
@@ -2082,16 +2082,16 @@ fun PaperlessNavHost() {
 }
 ```
 
-- [ ] **Step 2: Build and install on emulator**
+- [x] **Step 2: Build and install on emulator**
 
 Run: `./gradlew installDebug`
 Expected: `BUILD SUCCESSFUL`, app installs.
 
-- [ ] **Step 3: Manual smoke test in emulator**
+- [x] **Step 3: Manual smoke test in emulator**
 
 Launch app, verify login screen renders. This is the point where the app becomes "testable in the emulator" per the user's request — do not proceed to Task 12 without confirming this launches without crashing (`adb logcat *:E` clean of fatal exceptions from `de.tedi.paperless`).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/ui/PaperlessNavHost.kt
@@ -2109,7 +2109,7 @@ git commit -m "feat(android): wire navigation host connecting all MVP screens"
 - Create: `android/app/src/main/java/de/tedi/paperless/ai/AiSummaryRepository.kt`
 - Test: `android/app/src/test/java/de/tedi/paperless/ai/AiSummaryRepositoryTest.kt`
 
-- [ ] **Step 1: Define provider interface**
+- [x] **Step 1: Define provider interface**
 
 ```kotlin
 package de.tedi.paperless.ai
@@ -2121,7 +2121,7 @@ interface AiSummaryProvider {
 }
 ```
 
-- [ ] **Step 2: Write failing test for fallback behavior**
+- [x] **Step 2: Write failing test for fallback behavior**
 
 ```kotlin
 package de.tedi.paperless.ai
@@ -2163,7 +2163,7 @@ class AiSummaryRepositoryTest {
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.ai.AiSummaryRepositoryTest"`
 Expected: FAIL (classes don't exist).
 
-- [ ] **Step 3: Implement AiSummaryRepository with fallback logic**
+- [x] **Step 3: Implement AiSummaryRepository with fallback logic**
 
 ```kotlin
 package de.tedi.paperless.ai
@@ -2185,12 +2185,12 @@ class AiSummaryRepository @Inject constructor(
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 Run: `./gradlew testDebugUnitTest --tests "de.tedi.paperless.ai.AiSummaryRepositoryTest"`
 Expected: `BUILD SUCCESSFUL`, 2 tests passed.
 
-- [ ] **Step 5: GeminiNanoSummaryProvider (AICore GenerativeModel API)**
+- [x] **Step 5: GeminiNanoSummaryProvider (AICore GenerativeModel API)**
 
 Add dependency to `app/build.gradle.kts`: `implementation("com.google.ai.edge.aicore:aicore:0.0.1-exp01")`
 
@@ -2231,7 +2231,7 @@ class GeminiNanoSummaryProvider @Inject constructor(
 }
 ```
 
-- [ ] **Step 6: CloudSummaryProvider (user-supplied API key, Anthropic Messages API)**
+- [x] **Step 6: CloudSummaryProvider (user-supplied API key, Anthropic Messages API)**
 
 ```kotlin
 package de.tedi.paperless.ai
@@ -2294,7 +2294,7 @@ Add to `SecureTokenStore.kt`:
     fun getCloudAiApiKey(): String? = prefs.getString("cloud_ai_api_key", null)
 ```
 
-- [ ] **Step 7: Hilt bindings for the two named providers**
+- [x] **Step 7: Hilt bindings for the two named providers**
 
 Add to `di/AppModule.kt` (new `@Module` object, since these need `@Binds` in an interface-implementing module):
 
@@ -2332,12 +2332,12 @@ object AiModule {
 
 Save as `android/app/src/main/java/de/tedi/paperless/di/AiModule.kt`.
 
-- [ ] **Step 8: Build full project**
+- [x] **Step 8: Build full project**
 
 Run: `./gradlew testDebugUnitTest assembleDebug`
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add android/app/src/main/java/de/tedi/paperless/ai android/app/src/main/java/de/tedi/paperless/di/AiModule.kt android/app/src/main/java/de/tedi/paperless/data/local/SecureTokenStore.kt android/app/build.gradle.kts android/app/src/test
@@ -2350,12 +2350,12 @@ git commit -m "feat(android): add on-device/cloud AI summarization adapter with 
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Full clean build**
+- [x] **Step 1: Full clean build**
 
 Run: `./gradlew clean testDebugUnitTest assembleDebug`
 Expected: `BUILD SUCCESSFUL`, all unit tests pass.
 
-- [ ] **Step 2: Install and launch on emulator**
+- [x] **Step 2: Install and launch on emulator**
 
 Run:
 ```bash
@@ -2364,11 +2364,11 @@ adb shell am start -n de.tedi.paperless/.MainActivity
 ```
 Expected: app launches to login screen without crash.
 
-- [ ] **Step 3: Check logcat for fatal errors**
+- [x] **Step 3: Check logcat for fatal errors**
 
 Run: `adb logcat -d *:E | grep de.tedi.paperless`
 Expected: no `FATAL EXCEPTION` entries.
 
-- [ ] **Step 4: Report back to user**
+- [x] **Step 4: Report back to user**
 
 Summarize: what screens exist, how to log in against a real Paperless-ngx server in the emulator, known limitations (no offline cache yet, AI cloud key must be entered manually, PDF viewer is basic), and how to take it further (Phase 2 features from the spec).
