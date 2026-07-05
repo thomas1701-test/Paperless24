@@ -26,4 +26,7 @@ class SecureTokenStore(context: Context) {
     fun removeToken(accountId: Long) {
         prefs.edit().remove("token_$accountId").apply()
     }
+
+    fun saveCloudAiApiKey(key: String) { prefs.edit().putString("cloud_ai_api_key", key).apply() }
+    fun getCloudAiApiKey(): String? = prefs.getString("cloud_ai_api_key", null)
 }

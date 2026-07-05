@@ -62,6 +62,11 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+    // NOTE: com.google.ai.edge.aicore:aicore:0.0.1-exp01 (on-device Gemini Nano) was evaluated but
+    // dropped: it declares minSdk 31, while this app targets minSdk 26. Adding it (or overriding via
+    // tools:overrideLibrary) would either force a minSdk bump out of scope for this task or risk
+    // runtime failures on API 26-30 devices. GeminiNanoSummaryProvider is therefore a stub
+    // (isAvailable() == false) until the SDK supports our minSdk or the app raises its floor.
 
     testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("test"))
