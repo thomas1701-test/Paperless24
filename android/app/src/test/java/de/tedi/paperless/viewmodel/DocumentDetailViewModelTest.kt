@@ -4,6 +4,7 @@ import androidx.test.core.app.ApplicationProvider
 import app.cash.turbine.test
 import de.tedi.paperless.network.model.Document
 import de.tedi.paperless.repository.DocumentRepository
+import de.tedi.paperless.translation.TranslationRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -38,7 +39,7 @@ class DocumentDetailViewModelTest {
         whenever(repo.getDocument(42)).thenReturn(doc)
         whenever(repo.downloadDocument(42)).thenReturn(ByteArray(0).toResponseBody(null))
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        val vm = DocumentDetailViewModel(repo, context)
+        val vm = DocumentDetailViewModel(repo, context, TranslationRepository())
 
         vm.state.test {
             assertEquals(null, awaitItem().document)

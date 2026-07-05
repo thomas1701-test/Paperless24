@@ -67,6 +67,9 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("androidx.glance:glance-material3:1.1.1")
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
+    implementation("com.google.mlkit:translate:17.0.3")
+    implementation("com.google.android.gms:play-services-tasks:18.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
     // NOTE: com.google.ai.edge.aicore:aicore:0.0.1-exp01 (on-device Gemini Nano) was evaluated but
     // dropped: it declares minSdk 31, while this app targets minSdk 26. Adding it (or overriding via
     // tools:overrideLibrary) would either force a minSdk bump out of scope for this task or risk

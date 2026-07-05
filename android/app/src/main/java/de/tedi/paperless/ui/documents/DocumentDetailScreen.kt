@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -37,6 +38,25 @@ fun DocumentDetailScreen(
             Text("Erstellt: ${doc.created}")
             Spacer(Modifier.height(8.dp))
             Text("Tags: ${doc.tags.joinToString(", ")}")
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = { viewModel.translate() },
+                enabled = !doc.content.isNullOrBlank() && !state.isTranslating
+            ) {
+                Text("Übersetzen")
+            }
+            if (state.isTranslating) {
+                Spacer(Modifier.height(8.dp))
+                CircularProgressIndicator()
+            }
+            state.translatedText?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it)
+            }
+            state.translationError?.let {
+                Spacer(Modifier.height(8.dp))
+                Text(it, color = MaterialTheme.colorScheme.error)
+            }
         }
         state.pdfFile?.let { file -> PdfViewer(file) }
     }
