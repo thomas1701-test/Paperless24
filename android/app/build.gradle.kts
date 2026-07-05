@@ -61,6 +61,8 @@ dependencies {
 
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-material3:1.1.1")
     implementation("com.google.android.gms:play-services-mlkit-document-scanner:16.0.0-beta1")
     // NOTE: com.google.ai.edge.aicore:aicore:0.0.1-exp01 (on-device Gemini Nano) was evaluated but
     // dropped: it declares minSdk 31, while this app targets minSdk 26. Adding it (or overriding via
