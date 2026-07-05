@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +19,7 @@ import de.tedi.paperless.viewmodel.DocumentListViewModel
 @Composable
 fun DocumentListScreen(
     onDocumentClick: (Int) -> Unit,
+    onAskArchiveClick: () -> Unit = {},
     viewModel: DocumentListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -37,6 +39,15 @@ fun DocumentListScreen(
             },
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         )
+        OutlinedButton(
+            onClick = onAskArchiveClick,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        ) {
+            Icon(Icons.Default.QuestionAnswer, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Archiv fragen")
+        }
+        Spacer(Modifier.height(8.dp))
         if (state.error != null) {
             Text(state.error!!, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
         }

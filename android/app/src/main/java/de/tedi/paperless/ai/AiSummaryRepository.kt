@@ -14,4 +14,7 @@ class AiSummaryRepository @Inject constructor(
 
     suspend fun suggestTags(text: String, existingTags: List<String>): List<String> =
         activeProvider().suggestTags(text, existingTags)
+
+    suspend fun answer(question: String, context: List<String>): String =
+        activeProvider().answer(question, context)
 }

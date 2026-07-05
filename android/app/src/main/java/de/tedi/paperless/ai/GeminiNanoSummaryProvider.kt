@@ -22,4 +22,8 @@ class GeminiNanoSummaryProvider @Inject constructor(
     override suspend fun suggestTags(text: String, existingTags: List<String>): List<String> {
         throw UnsupportedOperationException("Gemini Nano ist auf diesem Gerät nicht verfügbar")
     }
+
+    override suspend fun answer(question: String, context: List<String>): String {
+        throw UnsupportedOperationException("Gemini Nano ist auf diesem Gerät nicht verfügbar")
+    }
 }

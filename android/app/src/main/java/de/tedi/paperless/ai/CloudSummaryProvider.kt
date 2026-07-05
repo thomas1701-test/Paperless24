@@ -49,4 +49,10 @@ class CloudSummaryProvider @Inject constructor(
         val result = callClaude("Schlage passende Tags aus dieser Liste vor: ${existingTags.joinToString(", ")}\nText: $text\nAntworte nur mit einer kommagetrennten Liste.")
         return result.split(",").map { it.trim() }.filter { it.isNotBlank() }
     }
+
+    override suspend fun answer(question: String, context: List<String>): String {
+        val prompt = "Beantworte die folgende Frage anhand der gegebenen Dokumente. " +
+            "Frage: $question\n\nDokumente:\n${context.joinToString("\n---\n")}"
+        return callClaude(prompt)
+    }
 }

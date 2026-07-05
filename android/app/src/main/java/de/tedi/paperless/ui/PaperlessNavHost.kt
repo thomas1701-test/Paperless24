@@ -10,6 +10,7 @@ import de.tedi.paperless.ui.documents.DocumentDetailScreen
 import de.tedi.paperless.ui.documents.DocumentListScreen
 import de.tedi.paperless.ui.login.LoginScreen
 import de.tedi.paperless.ui.metadata.MetadataScreen
+import de.tedi.paperless.ui.search.AskArchiveScreen
 import de.tedi.paperless.ui.upload.UploadScreen
 
 @Composable
@@ -20,8 +21,12 @@ fun PaperlessNavHost() {
             LoginScreen(onLoggedIn = { navController.navigate("documents") { popUpTo("login") { inclusive = true } } })
         }
         composable("documents") {
-            DocumentListScreen(onDocumentClick = { id -> navController.navigate("documents/$id") })
+            DocumentListScreen(
+                onDocumentClick = { id -> navController.navigate("documents/$id") },
+                onAskArchiveClick = { navController.navigate("ask") }
+            )
         }
+        composable("ask") { AskArchiveScreen() }
         composable(
             "documents/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })
