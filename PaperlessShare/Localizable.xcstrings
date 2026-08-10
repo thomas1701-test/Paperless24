@@ -28,6 +28,15 @@
         "it" : { "stringUnit" : { "state" : "translated", "value" : "Errore: %@" } }
       }
     },
+    "share_saved_open_app" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dokument übernommen. Öffne Paperless24, um es zu importieren." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Document received. Open Paperless24 to import it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Documento recibido. Abre Paperless24 para importarlo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Document reçu. Ouvrez Paperless24 pour l'importer." } },
+        "it" : { "stringUnit" : { "state" : "translated", "value" : "Documento ricevuto. Apri Paperless24 per importarlo." } }
+      }
+    },
     "share_save_error_fmt" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Speicherfehler: %@" } },

@@ -60,8 +60,9 @@ class ShareViewController: UIViewController {
         let saveURL = sharedURL.appendingPathComponent("shared_import.data")
         
         do {
-            // 2. Datei speichern (überschreibt alte)
-            try data.write(to: saveURL)
+            // 2. Datei speichern (überschreibt alte). Atomar und verschlüsselt — die Datei
+            //    liegt bis zum nächsten Start der App im gemeinsamen Container.
+            try data.write(to: saveURL, options: [.atomic, .completeFileProtectionUnlessOpen])
             
             // 3. Metadaten in UserDefaults speichern (als Signal)
             if let sharedDefaults = UserDefaults(suiteName: appGroupId) {
@@ -80,25 +81,29 @@ class ShareViewController: UIViewController {
     
     private func openMainApp() {
         DispatchQueue.main.async {
-            // Wir rufen einfach nur "check" auf, die App weiß dann, wo sie suchen muss
-            let url = URL(string: "paperless24://check_shared")!
-            
+            // Wir rufen einfach nur "check" auf, die App weiß dann, wo sie suchen muss.
+            guard let url = URL(string: "\(SharedConstants.urlScheme)://check_shared") else {
+                self.finish()
+                return
+            }
+
+            // `extensionContext.open` klingt nach dem offiziellen Weg, ist unter iOS aber
+            // ausdrücklich nur für Today-Erweiterungen vorgesehen: aus einem Share-Sheet
+            // heraus liefert es immer `false` und öffnet nichts. Deshalb der Umweg über die
+            // Responder-Kette — wir suchen die `UIApplication` und rufen die aktuelle,
+            // nicht veraltete `open(_:options:completionHandler:)` auf.
             var responder: UIResponder? = self
-            var success = false
-            while responder != nil {
-                if let app = responder as? UIApplication {
-                    app.open(url)
-                    success = true
-                    break
+            while let current = responder {
+                if let app = current as? UIApplication {
+                    app.open(url, options: [:]) { _ in self.finish() }
+                    return
                 }
-                responder = responder?.next
+                responder = current.next
             }
-            
-            if success {
-                self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
-            } else {
-                self.showErrorAndStay("Konnte App nicht öffnen. URL Scheme korrekt?")
-            }
+
+            // Kein `UIApplication` in der Kette: Datei liegt bereits in der App Group, die
+            // App holt sie sich beim nächsten Start. Nur Bescheid geben, nicht als Fehler.
+            self.showNoticeAndFinish(String(localized: "share_saved_open_app"))
         }
     }
     
@@ -112,10 +117,14 @@ class ShareViewController: UIViewController {
         }
     }
     
-    private func showErrorAndStay(_ msg: String) {
+    private func finish() {
+        self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
+    }
+
+    private func showNoticeAndFinish(_ msg: String) {
         DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Diagnose", message: msg, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            let alert = UIAlertController(title: "Paperless24", message: msg, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in self.finish() })
             self.present(alert, animated: true)
         }
     }
