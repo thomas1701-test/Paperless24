@@ -538,6 +538,15 @@ struct PaperlessAPI {
         "\(serverBase)/api/documents/\(docId)/thumb/"
     }
 
+    /// Lädt die Miniaturansicht als Rohdaten. Die Ansichten laden über `AuthImage`; der
+    /// Spotlight-Index braucht die Bytes ohne den Umweg über eine View.
+    func fetchThumbnail(for docId: Int) async throws -> Data {
+        guard let url = URL(string: thumbnailURL(for: docId)) else { throw APIError.invalidURL }
+        let (data, response) = try await send(makeRequest(url))
+        try validateResponse(response)
+        return data
+    }
+
     // MARK: - Private
 
     private func validateResponse(_ response: URLResponse) throws {

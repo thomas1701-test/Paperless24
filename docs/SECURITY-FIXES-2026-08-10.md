@@ -1,7 +1,6 @@
 # Bugfix- & Sicherheits-Runde (10.08.2026)
 
-Nur iOS-Ziele (`Paperless24`, `PaperlessWidget`, `PaperlessShare`). Der Android-Port unter
-`android/` bleibt bewusst unangetastet.
+Nur iOS-Ziele (`Paperless24`, `PaperlessWidget`, `PaperlessShare`).
 
 **Backup vor Beginn:** `/Users/thomas/Developer/Paperless-TeDi-BACKUP-20260810-135022.tar.gz`
 (kompletter Projektordner inkl. `.git`, Stand vor der ersten Änderung).
@@ -109,9 +108,8 @@ selbst und wäre ein eigener Schritt.
 - `NSAllowsArbitraryLoads` bleibt in `Paperless24-Info.plist`. Selbst gehostete Server ohne
   gültiges Zertifikat sind ein reales Nutzungsszenario; mit dem HTTPS-Standard aus Punkt 6
   ist der gefährliche Teil (unbeabsichtigtes Klartext-HTTP) abgestellt.
-- Der Android-Port (`android/`) ist unverändert. Die dort gefundenen Punkte — Klartext-HTTP,
-  `usesCleartextTraffic="true"` und der stille Rückfall auf die Cloud-KI in
-  `AiSummaryRepository` — stehen weiterhin offen.
+- Der frühere Android-Port wurde am 10.08.2026 aus dem Projekt entfernt; die dort offenen
+  Punkte sind damit gegenstandslos.
 
 ## Berührte Dateien
 

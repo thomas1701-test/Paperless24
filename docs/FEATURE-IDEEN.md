@@ -29,10 +29,6 @@ Stand: 28.07.2026 · Basis: [FEATURES.md](FEATURES.md)
 
 Deckt Suchen, Ansehen, Bearbeiten, Verwalten, Hochladen und Scannen vollständig ab, sehr enge Anlehnung an das ngx-Datenmodell (inkl. Berechtigungen und Speicherpfaden). Stärke: Vollständigkeit gegenüber dem Server. Schwäche: kaum eigene Intelligenz, keine Fristen-/Workflow-Hilfen.
 
-### Paperless Mobile (Android)
-
-Vom ursprünglichen Entwickler eingestellt, bricht mit neueren ngx-Versionen. Android ist damit faktisch **unbesetzt** — das ist die größte offene Marktlücke.
-
 ### paperless-ngx 3.0 selbst
 
 Der Server bringt seit 3.0 mit: Tantivy-Suche, Dateiversionen, Sharelink-Bundles, Parser-Plugins, Remote-OCR (Azure), Server-KI (Dokument-Chat, Vorschläge, Ollama-Embeddings, ähnliche Dokumente). Nichts davon nutzt die App bisher.
@@ -129,11 +125,7 @@ Bisher nur lesen und befüllen. Anlegen/Ändern/Löschen fehlt, obwohl die API e
 Wer ein älteres iPhone hat, bekommt heute keine KI-Funktion. Wenn der Server KI aktiviert hat, ließen sich Chat, Vorschläge und ähnliche Dokumente von dort beziehen — mit klarer Anzeige, wohin die Daten gehen.
 *Nutzen: mittel · Aufwand: mittel*
 
-**C7 · Android auf iOS-Stand bringen**
-Der einzige aktive Android-Client ist tot. Die Lücken sind bekannt (siehe FEATURES.md, Abschnitt 10). Wer dort zuerst liefert, nimmt einen unbesetzten Markt.
-*Nutzen: strategisch hoch · Aufwand: groß*
-
-**C8 · Statistik-Dashboard**
+**C7 · Statistik-Dashboard**
 Dokumente pro Monat, häufigste Sender, Speicherentwicklung, Posteingangs-Rückstand über die Zeit. Nettes Beiwerk, kein Kernnutzen.
 *Nutzen: niedrig bis mittel · Aufwand: klein*
 

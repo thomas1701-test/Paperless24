@@ -901,6 +901,13 @@ class AppStore: ObservableObject {
     /// Seitengröße beim Blättern für den Index — unabhängig von der Listenansicht.
     private static let spotlightFetchPageSize = 250
 
+    /// Wie viele fehlende Vorschaubilder ein voller Indexlauf höchstens nachlädt.
+    private static let spotlightThumbnailDownloads = 400
+
+    /// Gleichzeitige Vorschaubild-Anfragen. Sechs lasten eine typische ngx-Instanz aus,
+    /// ohne sie zu überfahren.
+    private static let spotlightThumbnailConcurrency = 6
+
     /// Ob für dieses Konto schon einmal das ganze Archiv indiziert wurde.
     private var fullSpotlightIndexBuilt: Bool {
         get {
@@ -971,65 +978,111 @@ class AppStore: ObservableObject {
         let corrs = allCorrespondents
         let types = allDocTypes
 
-        return await Task.detached(priority: .background) { () -> SpotlightIndexResult in
-            var items: [CSSearchableItem] = []
+        // Reste aus der Zeit ohne Kontotrennung räumen.
+        CSSearchableIndex.default()
+            .deleteSearchableItems(withDomainIdentifiers: [Self.legacySpotlightDomain]) { _ in }
 
-            for doc in docs {
-                let attrs = CSSearchableItemAttributeSet(contentType: .pdf)
-                attrs.title = doc.title
-                attrs.contentDescription = "Erstellt: \(doc.created)"
-                if let content = doc.content { attrs.textContent = String(content.prefix(15000)) }
+        // Vorschaubilder nur beim vollen Lauf nachladen — und nur bis zu dieser Grenze,
+        // sonst zieht ein Neuaufbau das halbe Archiv über die Leitung.
+        var downloadBudget = fullArchive ? Self.spotlightThumbnailDownloads : 0
+        var missingThumbnails = 0
 
-                var keywords: [String] = [doc.title]
-                if let cid = doc.correspondent, let corr = corrs.first(where: { $0.id == cid }) {
-                    attrs.authorNames = [corr.safeName]; keywords.append(corr.safeName)
-                }
-                doc.tags.forEach { tid in if let tag = tags.first(where: { $0.id == tid }) { keywords.append(tag.safeName) } }
-                if let tid = doc.documentType, let type = types.first(where: { $0.id == tid }) { keywords.append(type.safeName) }
-                attrs.keywords = keywords
-
-                let thumbURL = ImageCache.shared.getFilePath(for: doc.id)
-                if FileManager.default.fileExists(atPath: thumbURL.path) {
-                    // Miniaturansichten, die noch mit strengerem Dateischutz auf der Platte
-                    // liegen, hier einmalig lockern — sonst kommt der Indexdienst bei
-                    // gesperrtem Bildschirm nicht an sie heran.
-                    try? FileManager.default.setAttributes(
-                        [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
-                        ofItemAtPath: thumbURL.path)
-                    attrs.thumbnailURL = thumbURL
-                }
-
-                let item = CSSearchableItem(
-                    uniqueIdentifier: Self.spotlightIdentifier(account: accountId, docId: doc.id),
-                    domainIdentifier: domain,
-                    attributeSet: attrs)
-                item.expirationDate = .distantFuture
-                items.append(item)
-            }
-
-            // Reste aus der Zeit ohne Kontotrennung räumen.
-            CSSearchableIndex.default()
-                .deleteSearchableItems(withDomainIdentifiers: [Self.legacySpotlightDomain]) { _ in }
-
-            // In Häppchen statt in einem Rutsch: `indexSearchableItems` ist pro Aufruf
-            // alles-oder-nichts. Ein einziges Dokument, das dem Index nicht schmeckt,
-            // riss bisher den kompletten Stapel mit — und Spotlight blieb leer.
-            var result = SpotlightIndexResult()
-            for chunk in items.chunked(into: 100) {
-                let error: Error? = await withCheckedContinuation { continuation in
-                    CSSearchableIndex.default().indexSearchableItems(chunk) { continuation.resume(returning: $0) }
-                }
-                if let error {
-                    Self.logger.error("Spotlight-Index fehlgeschlagen: \(error.localizedDescription, privacy: .public)")
-                    result.rejected += chunk.count
-                    // Erste Fehlermeldung behalten: die weiteren sind erfahrungsgemäß dieselbe.
-                    if result.errorMessage == nil { result.errorMessage = error.localizedDescription }
+        // Blockweise bauen statt alles auf einmal: die Vorschaubilder hängen als Daten an
+        // den Einträgen, und 10.000 davon gleichzeitig im Speicher will niemand.
+        var result = SpotlightIndexResult()
+        for chunk in docs.chunked(into: 100) {
+            var thumbnails: [Int: Data] = [:]
+            var pending: [Int] = []
+            for doc in chunk {
+                if let data = ImageCache.shared.thumbnailData(for: doc.id) {
+                    thumbnails[doc.id] = data
                 } else {
-                    result.indexed += chunk.count
+                    pending.append(doc.id)
                 }
             }
-            return result
-        }.value
+
+            if downloadBudget > 0, let api = api, !pending.isEmpty {
+                let batch = Array(pending.prefix(downloadBudget))
+                downloadBudget -= batch.count
+                missingThumbnails += pending.count - batch.count
+
+                // Nacheinander dauerte ein Neuaufbau eine halbe Stunde — die Zeit steckt
+                // fast vollständig im Warten auf den Server, nicht in Rechenarbeit.
+                let fetched = await withTaskGroup(of: (Int, Data?).self) { group -> [Int: Data] in
+                    var remaining = batch.makeIterator()
+                    for _ in 0..<Self.spotlightThumbnailConcurrency {
+                        guard let id = remaining.next() else { break }
+                        group.addTask { (id, try? await api.fetchThumbnail(for: id)) }
+                    }
+                    var loaded: [Int: Data] = [:]
+                    while let (id, data) = await group.next() {
+                        if let data { loaded[id] = data }
+                        if let next = remaining.next() {
+                            group.addTask { (next, try? await api.fetchThumbnail(for: next)) }
+                        }
+                    }
+                    return loaded
+                }
+
+                for (id, data) in fetched {
+                    // Gleich in den Cache legen: die Liste zeigt sie ohnehin als Nächstes.
+                    if let image = UIImage(data: data) { ImageCache.shared.saveImage(image, for: id) }
+                    thumbnails[id] = data
+                }
+                missingThumbnails += batch.count - fetched.count
+            } else {
+                missingThumbnails += pending.count
+            }
+
+            let items = await Task.detached(priority: .background) { () -> [CSSearchableItem] in
+                chunk.map { doc in
+                    let attrs = CSSearchableItemAttributeSet(contentType: .pdf)
+                    attrs.title = doc.title
+                    attrs.contentDescription = "Erstellt: \(doc.created)"
+                    if let content = doc.content { attrs.textContent = String(content.prefix(15000)) }
+
+                    var keywords: [String] = [doc.title]
+                    if let cid = doc.correspondent, let corr = corrs.first(where: { $0.id == cid }) {
+                        attrs.authorNames = [corr.safeName]; keywords.append(corr.safeName)
+                    }
+                    doc.tags.forEach { tid in if let tag = tags.first(where: { $0.id == tid }) { keywords.append(tag.safeName) } }
+                    if let tid = doc.documentType, let type = types.first(where: { $0.id == tid }) { keywords.append(type.safeName) }
+                    attrs.keywords = keywords
+
+                    // Die Bytes direkt statt eines Dateipfads: einen Pfad müsste der
+                    // Indexdienst selbst öffnen, was je nach Dateischutz und Zeitpunkt
+                    // scheitert. Ohne Bild zeigt Spotlight nur das App-Symbol.
+                    attrs.thumbnailData = thumbnails[doc.id]
+
+                    let item = CSSearchableItem(
+                        uniqueIdentifier: Self.spotlightIdentifier(account: accountId, docId: doc.id),
+                        domainIdentifier: domain,
+                        attributeSet: attrs)
+                    item.expirationDate = .distantFuture
+                    return item
+                }
+            }.value
+
+            // Blockweise indizieren: `indexSearchableItems` ist pro Aufruf alles-oder-nichts.
+            // Ein einziges Dokument, das dem Index nicht schmeckt, riss bisher den kompletten
+            // Stapel mit — und Spotlight blieb leer.
+            let error: Error? = await withCheckedContinuation { continuation in
+                CSSearchableIndex.default().indexSearchableItems(items) { continuation.resume(returning: $0) }
+            }
+            if let error {
+                Self.logger.error("Spotlight-Index fehlgeschlagen: \(error.localizedDescription, privacy: .public)")
+                result.rejected += items.count
+                // Erste Fehlermeldung behalten: die weiteren sind erfahrungsgemäß dieselbe.
+                if result.errorMessage == nil { result.errorMessage = error.localizedDescription }
+            } else {
+                result.indexed += items.count
+            }
+        }
+
+        if missingThumbnails > 0 {
+            Self.logger.info("Spotlight: \(missingThumbnails, privacy: .public) Einträge ohne Vorschaubild")
+        }
+        return result
     }
 
     func clearSpotlightIndex() { CSSearchableIndex.default().deleteAllSearchableItems { _ in } }

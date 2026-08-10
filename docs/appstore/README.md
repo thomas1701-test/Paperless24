@@ -1,6 +1,6 @@
 # App-Store-Eintrag
 
-Texte und Bild-Pipeline für App Store Connect. Stand: 10.08.2026, App-Version 2.0.0.
+Texte und Bild-Pipeline für App Store Connect. Stand: 10.08.2026, App-Version 2.1.3.
 
 ## Texte
 

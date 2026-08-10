@@ -51,9 +51,17 @@ class ImageCache {
         return nil
     }
 
-    /// Ablageort der Miniaturansicht — vom Spotlight-Index als `thumbnailURL` genutzt.
     func getFilePath(for id: Int) -> URL {
         (currentDirectory ?? rootDirectory).appendingPathComponent("\(id).jpg")
+    }
+
+    /// Die abgelegte Miniaturansicht als Rohdaten.
+    ///
+    /// Der Spotlight-Index bekommt die Bytes direkt statt eines Dateipfads: einen Pfad müsste
+    /// der Indexdienst selbst öffnen, und das scheitert je nach Dateischutz und Zeitpunkt.
+    func thumbnailData(for id: Int) -> Data? {
+        guard let dir = currentDirectory else { return nil }
+        return try? Data(contentsOf: dir.appendingPathComponent("\(id).jpg"))
     }
 
     func saveImage(_ image: UIImage, for id: Int) {

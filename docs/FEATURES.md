@@ -1,8 +1,8 @@
 # Paperless 24 — Funktionsübersicht
 
-Stand: 28.07.2026 · App-Version 2.0.0 (iOS) · Branch `feature/android-port`
+Stand: 10.08.2026 · App-Version 2.1.3 (iOS)
 
-Quelle: Code-Inventur über `Paperless24/`, `PaperlessShare/`, `PaperlessWidget/`, `android/`.
+Quelle: Code-Inventur über `Paperless24/`, `PaperlessShare/`, `PaperlessWidget/`.
 Nur Funktionen, die tatsächlich im Code existieren.
 
 ---
@@ -86,7 +86,7 @@ Verständliche Fehlermeldungen, wenn das Modell fehlt, der Text zu lang ist, der
 
 - **Widget** (`PaperlessWidget/`): zwei Modi — letzte Dokumente oder Übersicht (Posteingang, Gesamtzahl, letzte Synchronisation); an-/abschaltbar; Tippen öffnet das Dokument per URL-Schema
 - **Siri & Kurzbefehle** (`Intents/AppShortcuts.swift`): Dokument scannen, Posteingang öffnen, Dokumente suchen, Archiv fragen
-- **Spotlight**: bis zu 1000 Dokumente inkl. 15.000 Zeichen OCR-Text, Sender als Autor, Tags/Typ als Schlagworte, Miniaturbild; Treffer öffnet das Dokument in der App
+- **Spotlight**: bis zu 10.000 Dokumente inkl. 15.000 Zeichen OCR-Text, Sender als Autor, Tags/Typ als Schlagworte, Vorschaubild (bis zu 400 werden je vollem Lauf nachgeladen); der erste Lauf je Konto blättert durch das ganze Archiv, eigener Indexbereich je Konto; Treffer öffnet das Dokument in der App
 - **Benachrichtigungen**: `BGAppRefreshTask` prüft stündlich die Posteingangszahl und meldet Zuwachs lokal
 - **iCloud-Einstellungssync**: `NSUbiquitousKeyValueStore` für Darstellung, Sprache, Seitengröße, KI-Schalter usw.
 - **iPad/Mac**: Dreispalten-Layout (Filter-Seitenleiste · Liste · Detail), nur auf echten Tablets/Macs aktiv
@@ -129,14 +129,6 @@ Verständliche Fehlermeldungen, wenn das Modell fehlt, der Text zu lang ist, der
 - API-Versionsaushandlung pro Server: bevorzugt `version=9`, wertet `X-Api-Version` aus, fällt bei 406 dauerhaft auf den Server-Standard zurück (`APIVersionNegotiator`)
 - Unterstützt paperless-ngx 2.x bis 3.0.x
 - Genutzte Endpunkte: `token`, `documents` (Liste, Detail, Suche, Download, Upload, PATCH, DELETE), `tags`, `correspondents`, `document_types`, `custom_fields`, `saved_views`, `share_links`, `trash`, `notes`, `statistics`, `thumb`
-
-## 10. Android (Branch `feature/android-port`, MVP + Phase 2)
-
-Vorhanden: Login mit Biometrie-Gate, Dokumentliste, Detailansicht mit PDF-Viewer, Upload inkl. Scanner, Metadaten-Screen, Archiv fragen (semantisches Ranking + LLM-Antwort), Homescreen-Widget, Hintergrund-Sync mit WorkManager und Benachrichtigungen, Übersetzung über ML Kit, KI-Zusammenfassung über Gemini Nano mit Cloud-Fallback, Room-Datenbank für Konten, verschlüsselter Token-Speicher.
-
-Fehlt gegenüber iOS: Multi-Account-Umschaltung, Papierkorb, Freigabe-Links, eigene Felder, gespeicherte Ansichten, Stapel-Scan, AirScan, Offline-Download, Share-Intent-Import, Sammelaktionen, Spotlight-Äquivalent (App Search), Sortier- und Filterleiste.
-
----
 
 ## Was die App bewusst *nicht* kann (Stand heute)
 
