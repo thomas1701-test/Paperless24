@@ -1,7 +1,9 @@
 import SwiftUI
 
 struct DashboardItem: View {
-    let title: String
+    /// `LocalizedStringKey` statt `String` — als `String` landete der deutsche Literal
+    /// ungeprüft auf dem Bildschirm, die Kacheln blieben in jeder Sprache deutsch.
+    let title: LocalizedStringKey
     let value: String
     let icon: String
     let color: Color

@@ -6,12 +6,19 @@ struct QuickLookDocSheet: View {
     let doc: Document
 
     @State private var pdfData: Data? = nil
+    @AppStorage("pdfDarkMode") private var pdfDarkMode = false
+    @AppStorage("appearanceMode") private var appearanceMode = 0
+    @Environment(\.colorScheme) private var systemScheme
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 if let data = pdfData {
-                    PDFKitView(data: data, searchQuery: "")
+                    PDFKitView(
+                        data: data,
+                        searchQuery: "",
+                        darkened: pdfDarkMode && isDarkAppearance(mode: appearanceMode, system: systemScheme)
+                    )
                 } else {
                     VStack(spacing: 16) {
                         ProgressView().scaleEffect(1.3)

@@ -1,6 +1,35 @@
 import SwiftUI
 import WidgetKit
 
+// MARK: - Themenfarbe
+
+extension Color {
+    /// Kleine eigene Hex-Umsetzung: `Color+Hex` liegt im App-Target und ist hier nicht sichtbar.
+    init(widgetHex hex: String) {
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        self.init(
+            .sRGB,
+            red: Double((int >> 16) & 0xFF) / 255,
+            green: Double((int >> 8) & 0xFF) / 255,
+            blue: Double(int & 0xFF) / 255,
+            opacity: 1
+        )
+    }
+}
+
+/// Die App legt die Akzentfarbe für beide Erscheinungsbilder in der App-Group ab —
+/// das Widget kennt die Themen-Tabelle nicht und wählt hier nur aus.
+protocol WidgetAccentReading {
+    var scheme: ColorScheme { get }
+}
+
+extension WidgetAccentReading {
+    var accent: Color {
+        Color(widgetHex: WidgetDataService.readAccentHex(isDark: scheme == .dark))
+    }
+}
+
 // MARK: - Hilfs-View: eine Dokumentenzeile
 
 struct DocRow: View {
@@ -37,11 +66,12 @@ struct DocRow: View {
 
 // MARK: - Deaktiviert-View (gemeinsam für alle Größen)
 
-struct WidgetDisabledView: View {
+struct WidgetDisabledView: View, WidgetAccentReading {
+    @Environment(\.colorScheme) var scheme
     var body: some View {
         VStack(spacing: 6) {
             Image(systemName: "doc.text.fill")
-                .font(.system(size: 28)).foregroundColor(.accentColor)
+                .font(.system(size: 28)).foregroundColor(accent)
             Text("Paperless24")
                 .font(.caption).foregroundColor(.secondary)
         }
@@ -51,7 +81,8 @@ struct WidgetDisabledView: View {
 
 // MARK: - Small
 
-struct SmallDocumentsView: View {
+struct SmallDocumentsView: View, WidgetAccentReading {
+    @Environment(\.colorScheme) var scheme
     let doc: WidgetDocument?
 
     var body: some View {
@@ -59,7 +90,7 @@ struct SmallDocumentsView: View {
             Link(destination: URL(string: "paperless24://document?id=\(doc.id)")!) {
                 VStack(alignment: .leading, spacing: 4) {
                     Image(systemName: "doc.text.fill")
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(accent)
                     Spacer()
                     Text(doc.title)
                         .font(.caption).fontWeight(.semibold).lineLimit(2)
@@ -76,13 +107,14 @@ struct SmallDocumentsView: View {
     }
 }
 
-struct SmallOverviewView: View {
+struct SmallOverviewView: View, WidgetAccentReading {
+    @Environment(\.colorScheme) var scheme
     let inbox: Int
     var body: some View {
         VStack(spacing: 4) {
             Text("\(inbox)")
                 .font(.system(size: 40, weight: .bold))
-                .foregroundColor(.accentColor)
+                .foregroundColor(accent)
             Text("Posteingang")
                 .font(.caption2).foregroundColor(.secondary)
         }
@@ -100,13 +132,14 @@ private func relativeSyncText(_ date: Date?) -> String {
 
 // MARK: - Medium
 
-struct MediumDocumentsView: View {
+struct MediumDocumentsView: View, WidgetAccentReading {
+    @Environment(\.colorScheme) var scheme
     let docs: [WidgetDocument]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Image(systemName: "doc.text.fill").foregroundColor(.accentColor).font(.caption)
+                Image(systemName: "doc.text.fill").foregroundColor(accent).font(.caption)
                 Text("Zuletzt hinzugefügt").font(.caption2).foregroundColor(.secondary)
                 Spacer()
             }
@@ -157,13 +190,14 @@ struct MediumOverviewView: View {
 
 // MARK: - Large
 
-struct LargeDocumentsView: View {
+struct LargeDocumentsView: View, WidgetAccentReading {
+    @Environment(\.colorScheme) var scheme
     let docs: [WidgetDocument]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Image(systemName: "doc.text.fill").foregroundColor(.accentColor).font(.caption)
+                Image(systemName: "doc.text.fill").foregroundColor(accent).font(.caption)
                 Text("Zuletzt hinzugefügt").font(.caption2).foregroundColor(.secondary)
                 Spacer()
             }

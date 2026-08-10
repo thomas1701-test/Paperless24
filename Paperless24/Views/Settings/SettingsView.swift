@@ -3,24 +3,24 @@ import WidgetKit
 
 struct SettingsView: View {
     @EnvironmentObject var store: AppStore
+    @Environment(\.palette) private var palette
     let onLogout: () -> Void
 
-    @AppStorage("appearanceMode") private var appearanceMode = 0
     @AppStorage("pageSize") private var pageSize = 25
     @AppStorage("appLanguage") private var appLanguage = ""
-    @AppStorage("gridItemSize") private var gridItemSize: Double = 130
     @AppStorage("aiEnabled") private var aiEnabled = true
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
     @AppStorage("batchScanEnabled") private var batchScanEnabled = true
     @AppStorage("translationEnabled") private var translationEnabled = true
     @State private var showAskArchive = false
     @State private var stats: PaperlessStatistics? = nil
+    @State private var spotlightRebuild: SpotlightRebuild = .idle
     @State private var widgetEnabled: Bool = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
     @State private var widgetMode: String = UserDefaults(suiteName: "group.com.Thomas.paperless")?.string(forKey: "widget_mode") ?? "documents"
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("Dashboard")) {
                     HStack {
@@ -60,11 +60,26 @@ struct SettingsView: View {
                     NavigationLink(destination: CorrespondentListView()) { Label("Sender verwalten", systemImage: "person.2") }
                     NavigationLink(destination: DocTypeListView()) { Label("Typen verwalten", systemImage: "doc") }
                     NavigationLink(destination: TrashView()) { Label("Papierkorb", systemImage: "trash") }
-                    Button("Spotlight Index neu erstellen") {
-                        store.clearSpotlightIndex()
-                        store.indexDocumentsForSpotlight()
+                    Button {
+                        Task {
+                            spotlightRebuild = .running
+                            spotlightRebuild = .done(await store.rebuildSpotlightIndex())
+                        }
+                    } label: {
+                        HStack {
+                            Text("Spotlight Index neu erstellen")
+                            Spacer()
+                            if spotlightRebuild == .running { ProgressView() }
+                        }
                     }
                     .foregroundColor(.blue)
+                    .disabled(spotlightRebuild == .running)
+
+                    if case .done(let result) = spotlightRebuild {
+                        Text(spotlightResultText(result))
+                            .font(.caption)
+                            .foregroundColor(result.errorMessage == nil ? .secondary : .red)
+                    }
                 }
 
                 Section("Status") {
@@ -143,10 +158,8 @@ struct SettingsView: View {
                 }
 
                 Section("Darstellung") {
-                    VStack(alignment: .leading) {
-                        Text("Kachelgröße").font(.subheadline)
-                        Slider(value: $gridItemSize, in: 90...260, step: 10)
-                        Text("\(Int(gridItemSize)) pt").font(.caption).foregroundColor(.secondary)
+                    NavigationLink(destination: AppearanceView()) {
+                        Label("Farbthema & Darstellung", systemImage: "paintpalette")
                     }
                     Picker("Sprache", selection: $appLanguage) {
                         Text("🌐 Systemsprache").tag("")
@@ -156,12 +169,6 @@ struct SettingsView: View {
                         Text("🇪🇸 Español").tag("es")
                         Text("🇮🇹 Italiano").tag("it")
                     }
-                    Picker("Design", selection: $appearanceMode) {
-                        Text("Auto").tag(0)
-                        Text("Hell").tag(1)
-                        Text("Dunkel").tag(2)
-                    }
-                    .pickerStyle(.segmented)
                 }
 
                 Section {
@@ -187,6 +194,7 @@ struct SettingsView: View {
                     }
                 }
             }
+            .themedSurface(palette)
             .navigationTitle("Einstellungen")
             .onAppear {
                 Task { stats = await store.fetchStatistics() }
@@ -203,10 +211,28 @@ struct SettingsView: View {
         f.numberStyle = .decimal
         return f.string(from: NSNumber(value: n)) ?? "\(n)"
     }
+
+    /// Stand des Spotlight-Neuaufbaus. Der Lauf kann bei großen Archiven ein paar Sekunden
+    /// dauern — ohne Rückmeldung sieht der Knopf aus, als täte er nichts.
+    private enum SpotlightRebuild: Equatable {
+        case idle
+        case running
+        case done(AppStore.SpotlightIndexResult)
+    }
+
+    private func spotlightResultText(_ result: AppStore.SpotlightIndexResult) -> String {
+        guard let message = result.errorMessage else {
+            return String(format: String(localized: "Fertig — %lld Dokumente im Index"), result.indexed)
+        }
+        return String(format: String(localized: "%1$lld indiziert, %2$lld abgelehnt: %3$@"),
+                      result.indexed, result.rejected, message)
+    }
 }
 
 /// „Unterstützung": Hinweis, dass die App kostenlos ist, plus PayPal-Trinkgeld.
 struct SupportView: View {
+    @Environment(\.palette) private var palette
+
     /// PayPal.Me-Link des Entwicklers.
     static let payPalURL = URL(string: "https://paypal.me/tdillmann87")!
 
@@ -215,7 +241,7 @@ struct SupportView: View {
             VStack(spacing: 24) {
                 Image(systemName: "cup.and.saucer.fill")
                     .font(.system(size: 52))
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(palette.accent)
                     .padding(.top, 32)
 
                 Text("Paperless 24 ist kostenlos")

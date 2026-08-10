@@ -3,9 +3,12 @@ import SwiftUI
 struct InboxView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.locale) private var locale
+    @Environment(\.palette) private var palette
 
     @AppStorage("layoutStyle") private var layoutStyleRaw = LayoutStyle.grid.rawValue
-    @State private var selectedDocId: Int? = nil
+    /// Push-Stack. `NavigationLink(tag:selection:)` löst in einer `NavigationStack`
+    /// nicht mehr aus — Tippen blieb wirkungslos.
+    @State private var navPath: [Document] = []
     @State private var documentToEdit: Document? = nil
 
     private var layoutStyle: LayoutStyle { LayoutStyle(rawValue: layoutStyleRaw) ?? .grid }
@@ -15,7 +18,7 @@ struct InboxView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navPath) {
             Group {
                 if store.isSyncing && store.documents.isEmpty {
                     ProgressView("Lade...").frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -31,10 +34,7 @@ struct InboxView: View {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 130), spacing: 10)], spacing: 10) {
                             ForEach(inboxDocs) { doc in
-                                NavigationLink(
-                                    destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }),
-                                    tag: doc.id, selection: $selectedDocId
-                                ) {
+                                NavigationLink(value: doc) {
                                     DocumentCard(
                                         doc: doc, serverBase: store.makeServerBase(), token: store.authToken(),
                                         allTags: store.allTags, allCorrespondents: store.allCorrespondents
@@ -53,10 +53,7 @@ struct InboxView: View {
                 } else {
                     List {
                         ForEach(inboxDocs) { doc in
-                            NavigationLink(
-                                destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }),
-                                tag: doc.id, selection: $selectedDocId
-                            ) {
+                            NavigationLink(value: doc) {
                                 DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
                             }
                             .swipeActions {
@@ -70,8 +67,12 @@ struct InboxView: View {
                         }
                     }
                     .listStyle(.plain)
+                    .themedSurface(palette)
                     .refreshable { await store.loadFirstPage() }
                 }
+            }
+            .navigationDestination(for: Document.self) { doc in
+                DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) })
             }
             .navigationTitle("Posteingang")
             .navigationBarTitleDisplayMode(.inline)

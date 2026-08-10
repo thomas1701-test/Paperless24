@@ -36,4 +36,10 @@ enum WidgetDataService {
     static func readMode() -> String {
         defaults?.string(forKey: "widget_mode") ?? "documents"
     }
+
+    /// Akzentfarbe als Hex, passend zum Erscheinungsbild des Widgets.
+    static func readAccentHex(isDark: Bool) -> String {
+        let key = isDark ? "widget_accent_dark" : "widget_accent_light"
+        return defaults?.string(forKey: key) ?? (isDark ? "5C6BC0" : "3F51B5")
+    }
 }

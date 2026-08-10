@@ -5,6 +5,7 @@ import NaturalLanguage
 struct AskArchiveView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.palette) private var palette
 
     @State private var question = ""
     @State private var answer: String?
@@ -14,7 +15,7 @@ struct AskArchiveView: View {
     @State private var openDoc: Document?
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
@@ -30,12 +31,12 @@ struct AskArchiveView: View {
                         }
                         if let answer {
                             VStack(alignment: .leading, spacing: 8) {
-                                Label("Antwort", systemImage: "sparkles").font(.headline).foregroundColor(.purple)
+                                Label("Antwort", systemImage: "sparkles").font(.headline).foregroundColor(palette.accent)
                                 Text(answer).font(.body)
                             }
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color.purple.opacity(0.08)).cornerRadius(12)
+                            .background(palette.accent.opacity(0.08)).cornerRadius(12)
                         }
                         if !sources.isEmpty {
                             Text("Gefundene Dokumente").font(.subheadline).foregroundColor(.secondary)
@@ -45,7 +46,7 @@ struct AskArchiveView: View {
                                     store.registerReviewEvent()
                                 } label: {
                                     HStack {
-                                        Image(systemName: "doc.text").foregroundColor(.blue)
+                                        Image(systemName: "doc.text").foregroundColor(palette.accent)
                                         Text(doc.title).foregroundColor(.primary).lineLimit(1)
                                         Spacer()
                                         Image(systemName: "chevron.right").font(.caption).foregroundColor(.secondary)
@@ -83,7 +84,7 @@ struct AskArchiveView: View {
                 ToolbarItem(placement: .cancellationAction) { Button("Fertig") { dismiss() } }
             }
             .sheet(item: $openDoc) { doc in
-                NavigationView {
+                NavigationStack {
                     DocumentDetailView(doc: doc,
                                        onSave: { _, _, _, _, _, _, _, _ in },
                                        onDelete: { _ in })
@@ -99,7 +100,7 @@ struct AskArchiveView: View {
         answer = nil
         sources = []
         statusText = "Durchsuche dein Archiv …"
-        let top = rankedDocuments(for: q, limit: 5)
+        let top = await rankedDocuments(for: q, limit: 5)
         sources = top
 
         if AIService.shared.isAvailable {
@@ -117,24 +118,50 @@ struct AskArchiveView: View {
         isThinking = false
     }
 
-    /// Rangordnung per Satz-Embedding (Fallback: Stichwortsuche).
-    private func rankedDocuments(for query: String, limit: Int) -> [Document] {
-        let docs = store.documents
-        let embedding = NLEmbedding.sentenceEmbedding(for: .german)
-            ?? NLEmbedding.sentenceEmbedding(for: .english)
+    /// Ein Dokument, reduziert auf das, was für die Rangordnung nötig ist. Nur Werttypen,
+    /// damit die Berechnung in einer eigenen Task laufen kann.
+    private struct RankInput: Sendable {
+        let id: Int
+        /// Gekürzt — das Embedding wertet ohnehin nur den Anfang sinnvoll aus.
+        let text: String
+        /// Vollständiger Titel + Inhalt in Kleinschreibung, für die Stichwort-Rückfallebene.
+        let haystack: String
+    }
 
-        guard let embedding else {
-            let q = query.lowercased()
-            return Array(docs.filter {
-                $0.title.lowercased().contains(q) || ($0.content?.lowercased().contains(q) ?? false)
-            }.prefix(limit))
+    /// Rangordnung per Satz-Embedding (Fallback: Stichwortsuche).
+    ///
+    /// Die Berechnung läuft abseits des Main Threads: `NLEmbedding.distance` wird für *jedes*
+    /// Dokument aufgerufen, bei einem größeren Archiv blockierte das die Oberfläche mehrere
+    /// Sekunden lang.
+    private func rankedDocuments(for query: String, limit: Int) async -> [Document] {
+        let docs = store.documents
+        let inputs = docs.map {
+            RankInput(
+                id: $0.id,
+                text: $0.title + " " + ($0.content?.prefix(500) ?? ""),
+                haystack: ($0.title + " " + ($0.content ?? "")).lowercased()
+            )
         }
 
-        let scored = docs.compactMap { doc -> (Document, Double)? in
-            let text = doc.title + " " + (doc.content?.prefix(500).description ?? "")
-            let dist = embedding.distance(between: query, and: text)
-            return dist.isFinite ? (doc, dist) : nil
-        }.sorted { $0.1 < $1.1 }
-        return scored.prefix(limit).map { $0.0 }
+        let rankedIds = await Task.detached(priority: .userInitiated) { () -> [Int] in
+            let embedding = NLEmbedding.sentenceEmbedding(for: .german)
+                ?? NLEmbedding.sentenceEmbedding(for: .english)
+
+            guard let embedding else {
+                let q = query.lowercased()
+                return inputs.filter { $0.haystack.contains(q) }.prefix(limit).map(\.id)
+            }
+
+            return inputs.compactMap { input -> (Int, Double)? in
+                let dist = embedding.distance(between: query, and: input.text)
+                return dist.isFinite ? (input.id, dist) : nil
+            }
+            .sorted { $0.1 < $1.1 }
+            .prefix(limit)
+            .map(\.0)
+        }.value
+
+        // Reihenfolge der Rangordnung beibehalten.
+        return rankedIds.compactMap { id in docs.first { $0.id == id } }
     }
 }

@@ -1,0 +1,64 @@
+Paperless 24 puts your document archive on your iPhone, iPad and Mac. The app talks straight to your own paperless-ngx server — no detour through someone else's cloud, no subscription, no account with us.
+
+SCAN AND FILE
+• Document scanner with edge detection, multi-page
+• Photos and PDFs from your library or the Files app
+• Drive a network scanner over Wi-Fi (AirScan/eSCL, 300 dpi)
+• Batch scan: feed a whole stack at once — the app splits it into separate documents, and one tap corrects a wrong split
+• Send anything into the archive from any other app via the share sheet
+
+NAMED FOR YOU
+• The magic wand reads the first page and suggests title, correspondent, type, tags and date
+• Missing correspondents, types and tags are created along the way
+• It all runs on device — the text never leaves your iPhone
+
+FIND
+• Full-text search across the recognised text of every document, with search history
+• Filter by tag, correspondent, type, date range and custom fields
+• Load, apply and create saved views from your server
+• Spotlight: your documents show up in iOS search
+• Ask your archive: put a question in your own words and get an answer with its sources
+
+READ AND EDIT
+• PDF view with search hits highlighted
+• Recognised text in reading mode: warm paper tone, serif type, adjustable size
+• Phone numbers, links and addresses are tappable
+• Summary at the press of a button
+• Translate with no connection needed
+• Change title, date, correspondent, type, ASN, tags and custom fields
+• Add and delete notes
+• Create, list and revoke share links
+
+STAY ON TOP OF IT
+• Inbox as its own tab, with a badge
+• Swipe to tag, edit or delete
+• Multi-select: set a tag or correspondent on many documents at once
+• Manage tags, correspondents and types — nested tags included
+• Trash with restore and permanent delete
+• Custom fields of every kind: text, number, date, select, yes/no, monetary, document link
+
+OFFLINE
+• Download everything and read it with no connection
+• Edits and uploads are queued and sent automatically once you are back
+• Storage use always visible, single files removable
+
+MULTIPLE ACCOUNTS
+• As many servers and users as you like, with separate data per account
+• Face ID or Touch ID lock
+• Two-factor sign-in (TOTP)
+• Credentials live in the iOS keychain
+
+ON EVERY DEVICE
+• Widget with your latest documents or an overview
+• Siri and Shortcuts: scan, search, open inbox, ask your archive
+• A notification when new post lands in the inbox
+• Three-column layout on iPad and Mac
+• Settings kept in sync across devices via iCloud
+• Six colour themes, a free accent colour, OLED black, five alternative app icons
+• German, English, French, Spanish, Italian
+
+WHAT YOU NEED
+Paperless 24 is a client app. You need your own paperless-ngx server (version 2.x through 3.0.x). Without one, try the demo mode with sample data at any time.
+
+PRIVACY
+The app only ever talks to your server. No tracking, no ads, no analytics, no relay servers. Summaries, suggestions and translations run on device.

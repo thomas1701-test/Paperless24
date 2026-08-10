@@ -1,0 +1,10 @@
+• Unterstützung für paperless-ngx 3.0: Die App handelt die API-Version pro Server aus und kommt mit Datumsangaben ohne Uhrzeit zurecht.
+• Stapel-Scan: mehrere Briefe am Stück einlesen, die Seiten werden automatisch zu einzelnen Dokumenten gruppiert.
+• Archiv fragen: eine Frage in eigenen Worten stellen und eine Antwort mit Quellenangabe bekommen.
+• Netzwerkscanner im WLAN direkt ansteuern (AirScan/eSCL).
+• Übersetzen und Zusammenfassen ohne Netzverbindung.
+• Sechs Farbthemen, freie Akzentfarbe, OLED-Schwarz und fünf alternative App-Symbole.
+• Widget für den Home-Bildschirm: letzte Dokumente oder Übersicht.
+• Dreispalten-Layout auf iPad und Mac.
+• Demo-Modus mit umfangreichen Beispieldaten — ohne Server ausprobieren.
+• Viele kleine Korrekturen bei Sortierung, Paginierung und Offline-Warteschlange.

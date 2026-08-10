@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 struct MainDocView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.locale) private var locale
+    @Environment(\.palette) private var palette
 
     @AppStorage("layoutStyle") private var layoutStyleRaw = LayoutStyle.grid.rawValue
     @AppStorage("sortOrder") private var sortOrderRaw = SortOrder.dateDesc.rawValue
@@ -32,8 +33,10 @@ struct MainDocView: View {
     @State private var showBulkShare = false
     @State private var documentToEdit: Document? = nil
     @State private var quickTagDoc: Document? = nil
-    @State private var selectedDocId: Int? = nil
-    @State private var deepLinkDoc: Document? = nil
+    /// Push-Stack der Kompakt-Ansicht (iPhone). Ersetzt die frühere
+    /// `NavigationLink(tag:selection:)`-Konstruktion, die in einer `NavigationStack`
+    /// nicht mehr auslöst — Tippen auf eine Zeile blieb wirkungslos.
+    @State private var navPath: [Document] = []
     @State private var customStartDate = Date()
     @State private var customEndDate = Date()
     @State private var showDatePickerSheet = false
@@ -49,53 +52,77 @@ struct MainDocView: View {
     private var sortOrder: SortOrder { SortOrder(rawValue: sortOrderRaw) ?? .dateDesc }
 
     @Environment(\.horizontalSizeClass) private var hSize
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+
+    /// Die Dreispalten-Ansicht ist eine iPad- und Mac-Ansicht. Die Größenklasse allein reicht
+    /// als Bedingung nicht: iPhone Plus und Pro Max melden im Querformat ebenfalls `.regular`.
+    /// Auf dem Telefon klappt der `NavigationSplitView` dann zu einer Spalte zusammen, und
+    /// `splitDoc` zu setzen bewirkt gar nichts — der Tipp läuft ins Leere.
+    private var usesSplitLayout: Bool {
+        hSize == .regular && UIDevice.current.userInterfaceIdiom != .phone
+    }
 
     var body: some View {
-        if hSize == .regular {
-            // iPad / Mac: zweispaltig — Liste als Sidebar, Detail rechts.
-            NavigationSplitView {
+        if usesSplitLayout {
+            // iPad / Mac: dreispaltig — Filter links, Dokumentbrowser Mitte, Detail rechts.
+            NavigationSplitView(columnVisibility: $columnVisibility) {
+                filterSidebar
+                    .navigationSplitViewColumnWidth(min: 240, ideal: 280, max: 340)
+            } content: {
                 content
+                    .navigationSplitViewColumnWidth(min: 420, ideal: 560)
             } detail: {
-                if let doc = splitDoc {
-                    NavigationStack {
-                        DocumentDetailView(
-                            doc: doc,
-                            onSave: updateDocument,
-                            onDelete: { store.deleteDocument(id: $0); splitDoc = nil },
-                            searchQuery: searchText
-                        )
-                        .id(doc.id)
-                    }
-                } else {
-                    VStack(spacing: 12) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 50)).foregroundColor(.secondary)
-                        Text("Dokument auswählen").foregroundColor(.secondary)
-                    }
-                }
+                detailColumn
             }
             .navigationSplitViewStyle(.balanced)
         } else {
-            NavigationStack { content }
+            NavigationStack(path: $navPath) {
+                content
+                    .navigationDestination(for: Document.self) { doc in
+                        DocumentDetailView(
+                            doc: doc,
+                            onSave: updateDocument,
+                            onDelete: { store.deleteDocument(id: $0) },
+                            searchQuery: searchText
+                        )
+                    }
+            }
+        }
+    }
+
+    @ViewBuilder var detailColumn: some View {
+        if let doc = splitDoc {
+            NavigationStack {
+                DocumentDetailView(
+                    doc: doc,
+                    onSave: updateDocument,
+                    onDelete: { store.deleteDocument(id: $0); splitDoc = nil },
+                    searchQuery: searchText
+                )
+                .id(doc.id)
+            }
+        } else {
+            VStack(spacing: 12) {
+                Image(systemName: "doc.text.magnifyingglass")
+                    .font(.system(size: 50)).foregroundColor(.secondary)
+                Text("Dokument auswählen").foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(palette.surface ?? Color(.systemGroupedBackground))
         }
     }
 
     var content: some View {
         ZStack(alignment: .top) {
-            LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.05), Color.purple.opacity(0.05)]),
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-
-            NavigationLink(
-                destination: Group {
-                    if let d = deepLinkDoc {
-                        DocumentDetailView(doc: d, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText)
-                    } else { ProgressView() }
-                },
-                tag: 999999, selection: $selectedDocId
-            ) { EmptyView() }
+            if let surface = palette.surface {
+                surface.ignoresSafeArea()
+            } else if !usesSplitLayout, palette.hasGradient {
+                LinearGradient(
+                    gradient: Gradient(colors: palette.gradient.map { $0.opacity(0.05) }),
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+            }
 
             VStack(spacing: 0) {
                 if let err = store.lastSyncError {
@@ -157,7 +184,7 @@ struct MainDocView: View {
                     }
                     Spacer()
                 } else {
-                    filterBar.zIndex(1)
+                    if !usesSplitLayout { filterBar.zIndex(1) }
                     if store.filteredDocs.isEmpty && !store.isSyncing {
                         Spacer()
                         VStack(spacing: 20) {
@@ -168,26 +195,8 @@ struct MainDocView: View {
                         Spacer()
                     } else if layoutStyle == .grid {
                         documentGrid
-                            .searchable(text: $searchText)
-                            .searchSuggestions {
-                                if searchText.isEmpty {
-                                    ForEach(store.recentSearches, id: \.self) { recent in
-                                        Label(recent, systemImage: "clock").searchCompletion(recent)
-                                    }
-                                }
-                            }
-                            .onChange(of: searchText) { store.runSearch(query: $0) }
                     } else {
                         documentList
-                            .searchable(text: $searchText)
-                            .searchSuggestions {
-                                if searchText.isEmpty {
-                                    ForEach(store.recentSearches, id: \.self) { recent in
-                                        Label(recent, systemImage: "clock").searchCompletion(recent)
-                                    }
-                                }
-                            }
-                            .onChange(of: searchText) { store.runSearch(query: $0) }
                     }
                 }
             }
@@ -265,8 +274,19 @@ struct MainDocView: View {
                 .zIndex(2)
             }
         }
-        .navigationTitle("")
+        .navigationTitle(usesSplitLayout
+                         ? Text("\(store.filteredDocs.count) \(String(localized: "Dokumente", locale: locale))")
+                         : Text(""))
         .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText)
+        .searchSuggestions {
+            if searchText.isEmpty {
+                ForEach(store.recentSearches, id: \.self) { recent in
+                    Label(recent, systemImage: "clock").searchCompletion(recent)
+                }
+            }
+        }
+        .onChange(of: searchText) { store.runSearch(query: $0) }
         .toolbar { toolbarContent }
         .sheet(item: $uploadQueueItem) { container in
             UploadDocumentView(container: container, onUpload: { d, f, t, date, co, ty, ta, comp in
@@ -330,7 +350,7 @@ struct MainDocView: View {
             .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showDatePickerSheet) {
-            NavigationView {
+            NavigationStack {
                 Form {
                     DatePicker("Startdatum", selection: $customStartDate, displayedComponents: .date)
                     DatePicker("Enddatum", selection: $customEndDate, displayedComponents: .date)
@@ -391,34 +411,154 @@ struct MainDocView: View {
             }
         }
         .onContinueUserActivity(CSSearchableItemActionType) { activity in
-            if let idStr = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String, let id = Int(idStr) {
-                if let existing = store.documents.first(where: { $0.id == id }) {
-                    openDeepLink(existing)
-                } else {
-                    Task { if let d = await store.fetchDocumentDetail(id: id) { openDeepLink(d) } }
-                }
+            guard let raw = activity.userInfo?[CSSearchableItemActivityIdentifier] as? String,
+                  let entry = AppStore.parseSpotlightIdentifier(raw),
+                  // Ein Eintrag aus einem anderen Konto darf hier nichts öffnen: die ID
+                  // gehört zu einem fremden Server und träfe im aktiven Archiv ein
+                  // völlig anderes Dokument.
+                  entry.account == store.activeAccountId else { return }
+            if let existing = store.documents.first(where: { $0.id == entry.docId }) {
+                openDeepLink(existing)
+            } else {
+                Task { if let d = await store.fetchDocumentDetail(id: entry.docId) { openDeepLink(d) } }
             }
         }
     }
 
     /// Öffnet ein Dokument aus Widget/Spotlight — im iPad-Modus in der Detailspalte, sonst per Push.
     private func openDeepLink(_ doc: Document) {
-        if hSize == .regular {
+        if usesSplitLayout {
             splitDoc = doc
         } else {
-            deepLinkDoc = doc
-            selectedDocId = 999999
+            navPath = [doc]
         }
+    }
+
+    // MARK: - Filter Sidebar (iPad / Mac)
+
+    private var hasActiveFilter: Bool {
+        filterTag != nil || filterCorr != nil || filterType != nil
+            || filterDate != .all || filterCustomField != nil
+    }
+
+    @ViewBuilder
+    private func sidebarPickerRow(_ title: LocalizedStringKey, systemImage: String, value: String?) -> some View {
+        HStack {
+            Label(title, systemImage: systemImage)
+            Spacer()
+            if let value {
+                Text(value).font(.caption).foregroundColor(.secondary).lineLimit(1)
+            }
+            Image(systemName: "chevron.right").font(.caption2).foregroundColor(.secondary)
+        }
+        .contentShape(Rectangle())
+    }
+
+    var filterSidebar: some View {
+        List {
+            Section("Zeitraum") {
+                ForEach(DateFilter.allCases) { f in
+                    Button {
+                        filterDate = f
+                        if f == .custom { showDatePickerSheet = true } else { applyFilters() }
+                    } label: {
+                        HStack {
+                            Text(LocalizedStringKey(f.rawValue))
+                            Spacer()
+                            if filterDate == f {
+                                Image(systemName: "checkmark").foregroundStyle(palette.accent)
+                            }
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            Section("Filter") {
+                Button { showTagPicker = true } label: {
+                    sidebarPickerRow("Tags", systemImage: "tag",
+                                     value: store.allTags.first { $0.id == filterTag }?.safeName)
+                }
+                .buttonStyle(.plain)
+
+                Button { showCorrPicker = true } label: {
+                    sidebarPickerRow("Sender", systemImage: "person",
+                                     value: store.allCorrespondents.first { $0.id == filterCorr }?.safeName)
+                }
+                .buttonStyle(.plain)
+
+                Button { showTypePicker = true } label: {
+                    sidebarPickerRow("Typ", systemImage: "doc",
+                                     value: store.allDocTypes.first { $0.id == filterType }?.safeName)
+                }
+                .buttonStyle(.plain)
+
+                if !store.allCustomFields.isEmpty {
+                    Button { showCustomFieldSheet = true } label: {
+                        sidebarPickerRow("Feld", systemImage: "character.textbox",
+                                         value: filterCustomField.flatMap { store.customField(id: $0)?.safeName })
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            if !store.serverViews.isEmpty {
+                Section("Gespeicherte Ansichten") {
+                    ForEach(store.serverViews) { view in
+                        Button {
+                            let p = store.parse(view)
+                            filterTag = p.tag
+                            filterCorr = p.corr
+                            filterType = p.type
+                            filterDate = p.dateFilter
+                            if let s = p.customStart { customStartDate = s }
+                            if let e = p.customEnd { customEndDate = e }
+                            sortOrderRaw = p.sort.rawValue
+                            applyFilters()
+                            store.haptic(.light)
+                        } label: {
+                            Label(view.safeName, systemImage: "bookmark.fill")
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            Button(role: .destructive) { store.deleteServerView(id: view.id) } label: {
+                                Label("Löschen", systemImage: "trash")
+                            }
+                        }
+                    }
+                }
+            }
+
+            if hasActiveFilter {
+                Section {
+                    Button { showSaveFilterSheet = true } label: {
+                        Label("Speichern", systemImage: "bookmark")
+                    }
+                    Button(role: .destructive) {
+                        filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
+                        filterCustomField = nil; filterCustomText = ""
+                        applyFilters(); store.haptic(.light)
+                    } label: {
+                        Label("Zurücksetzen", systemImage: "xmark.circle.fill")
+                    }
+                }
+            }
+        }
+        .listStyle(.sidebar)
+        .themedSurface(palette)
+        .navigationTitle("Filter")
     }
 
     // MARK: - Filter Bar
 
     private func chipBackground(active: Bool) -> Color {
-        active ? Color.accentColor : Color.accentColor.opacity(0.1)
+        palette.chipBackground(active: active)
     }
 
     private func chipForeground(active: Bool) -> Color {
-        active ? .white : .accentColor
+        palette.chipForeground(active: active)
     }
 
     var filterBar: some View {
@@ -515,9 +655,9 @@ struct MainDocView: View {
                         } label: {
                             Label("Speichern", systemImage: "bookmark")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.accentColor)
+                                .foregroundColor(palette.accent)
                                 .padding(.horizontal, 12).padding(.vertical, 7)
-                                .background(Color.accentColor.opacity(0.1)).cornerRadius(8)
+                                .background(palette.accent.opacity(0.1)).cornerRadius(8)
                         }
                         Button {
                             filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
@@ -554,7 +694,7 @@ struct MainDocView: View {
                                 Label(view.safeName, systemImage: "bookmark.fill")
                                     .font(.caption)
                                     .padding(.horizontal, 10).padding(.vertical, 5)
-                                    .background(Color.accentColor.opacity(0.12)).cornerRadius(15)
+                                    .background(palette.accent.opacity(0.12)).cornerRadius(15)
                             }
                             .contextMenu {
                                 Button(role: .destructive) { store.deleteServerView(id: view.id) } label: {
@@ -598,29 +738,36 @@ struct MainDocView: View {
                                         store.selectDocumentForPicker(doc: doc)
                                     } label: { docCard(doc) }
                                     .buttonStyle(PlainButtonStyle())
-                                } else if hSize == .regular {
-                                    Button {
-                                        splitDoc = doc; store.haptic(.light)
-                                    } label: { docCard(doc) }
-                                    .buttonStyle(PlainButtonStyle())
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .stroke(Color.accentColor, lineWidth: splitDoc?.id == doc.id ? 3 : 0)
-                                    )
-                                    .onDrag { dragProvider(for: doc) }
-                                    .contextMenu { docContextMenu(doc) }
+                                } else if usesSplitLayout {
+                                    // Kein Button: auf iPad startet .onDrag schon beim kurzen Druck
+                                    // und verschluckt den Button-Tap. TapGesture koexistiert mit Drag.
+                                    docCard(doc)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(palette.accent, lineWidth: splitDoc?.id == doc.id ? 3 : 0)
+                                        )
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            splitDoc = doc; store.haptic(.light)
+                                        }
+                                        .onDrag { dragProvider(for: doc) }
+                                        .contextMenu { docContextMenu(doc) }
                                 } else {
-                                    NavigationLink(
-                                        destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
-                                        tag: doc.id, selection: $selectedDocId
-                                    ) { docCard(doc) }
-                                    .buttonStyle(PlainButtonStyle())
-                                    .onDrag { dragProvider(for: doc) }
-                                    .onLongPressGesture {
-                                        store.haptic(.medium)
-                                        quickLookDoc = doc
-                                    }
-                                    .contextMenu { docContextMenu(doc) }
+                                    // Wie im iPad-Zweig: kein Button und kein .onDrag. Beide
+                                    // starten ihre Erkennung schon beim kurzen Druck und
+                                    // verschlucken den Tap. Zusätzlich konkurrierten hier drei
+                                    // Long-Press-Erkenner (.onDrag, .onLongPressGesture,
+                                    // .contextMenu) — dadurch ging das Kontextmenü an der
+                                    // falschen Kachel auf. Die Vorschau steckt im Kontextmenü.
+                                    // Drag entfällt auf dem iPhone bewusst: es gibt dort kein
+                                    // Ablegeziel, weder Detailspalte noch zweite App.
+                                    docCard(doc)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            store.haptic(.light)
+                                            navPath.append(doc)
+                                        }
+                                        .contextMenu { docContextMenu(doc) }
                                 }
                             }
                             .onAppear {
@@ -668,14 +815,13 @@ struct MainDocView: View {
                                 DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
                             }
                             .buttonStyle(PlainButtonStyle())
-                        } else if hSize == .regular {
-                            Button {
+                        } else if usesSplitLayout {
+                            // Siehe Grid: Button + .onDrag frisst den Tap auf iPad.
+                            DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                            .contentShape(Rectangle())
+                            .onTapGesture {
                                 splitDoc = doc; store.haptic(.light)
-                            } label: {
-                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
                             }
-                            .buttonStyle(.plain)
-                            .listRowBackground(splitDoc?.id == doc.id ? Color.accentColor.opacity(0.12) : nil)
                             .onDrag { dragProvider(for: doc) }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
@@ -691,13 +837,11 @@ struct MainDocView: View {
                             }
                             .contextMenu { docContextMenu(doc) }
                         } else {
-                            NavigationLink(
-                                destination: DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) }, searchQuery: searchText),
-                                tag: doc.id, selection: $selectedDocId
-                            ) {
+                            // Kein .onDrag: siehe Raster — es beansprucht den Druck für sich,
+                            // bevor die Zeile ihn als Tap auswerten kann.
+                            NavigationLink(value: doc) {
                                 DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
                             }
-                            .onDrag { dragProvider(for: doc) }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {
                                     store.haptic(.heavy)
@@ -735,9 +879,15 @@ struct MainDocView: View {
                             .padding(.trailing, 8)
                     }
                 }
+                .listRowBackground(
+                    usesSplitLayout && splitDoc?.id == doc.id
+                        ? palette.accent.opacity(0.12)
+                        : Color?.none
+                )
             }
         }
         .listStyle(.plain)
+        .themedSurface(palette)
         .refreshable { await store.loadFirstPage() }
     }
 
@@ -745,10 +895,12 @@ struct MainDocView: View {
 
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .principal) {
-            Text("\(store.filteredDocs.count) \(String(localized: "Dokumente", locale: locale))")
-                .font(.caption)
-                .foregroundColor(.secondary)
+        if !usesSplitLayout {
+            ToolbarItem(placement: .principal) {
+                Text("\(store.filteredDocs.count) \(String(localized: "Dokumente", locale: locale))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         ToolbarItem(placement: .navigationBarLeading) {
             Menu {
@@ -830,14 +982,13 @@ struct MainDocView: View {
 
     private func bulkShare() async {
         isBulkSharing = true
+        // Ablagen der vorherigen Freigabe wegräumen, bevor die neue entsteht.
+        ShareStaging.cleanUp()
         var urls: [URL] = []
         for id in selectedDocIDs {
             guard let data = await store.loadPDFData(for: id) else { continue }
             let title = store.documents.first { $0.id == id }?.title ?? "\(id)"
-            let safeName = title.replacingOccurrences(of: "/", with: "-")
-            let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("\(safeName).pdf")
-            try? data.write(to: tmp)
-            urls.append(tmp)
+            if let url = ShareStaging.stage(data, filename: "\(title).pdf") { urls.append(url) }
         }
         bulkShareURLs = urls
         isBulkSharing = false

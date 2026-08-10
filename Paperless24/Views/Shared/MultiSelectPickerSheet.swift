@@ -9,6 +9,7 @@ struct MultiSelectPickerSheet: View {
     var colors: [Int: String] = [:]
     @Binding var selected: Set<Int>
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.palette) private var palette
     @State private var searchText = ""
 
     private var filtered: [FilterPickerItem] {
@@ -17,7 +18,7 @@ struct MultiSelectPickerSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List(filtered) { item in
                 Button {
                     if selected.contains(item.id) { selected.remove(item.id) }
@@ -30,7 +31,7 @@ struct MultiSelectPickerSheet: View {
                         Text(item.name)
                         Spacer()
                         if selected.contains(item.id) {
-                            Image(systemName: "checkmark").foregroundColor(.accentColor)
+                            Image(systemName: "checkmark").foregroundColor(palette.accent)
                         }
                     }
                 }

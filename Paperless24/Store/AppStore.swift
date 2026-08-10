@@ -3,12 +3,15 @@ import CoreSpotlight
 import PDFKit
 import Vision
 import WidgetKit
+import os
 
 @MainActor
 class AppStore: ObservableObject {
 
     /// Schwache Referenz auf die aktive Instanz — von App Intents (Siri/Kurzbefehle) genutzt.
     static weak var shared: AppStore?
+
+    private static let logger = Logger(subsystem: "de.tedi.paperless", category: "spotlight")
 
     // MARK: - Published State
 
@@ -60,6 +63,9 @@ class AppStore: ObservableObject {
 
     @AppStorage("isDemoMode") var isDemoMode = false
 
+    /// Kennzahlen für den Demo-Modus — es gibt keinen Server, der sie liefern könnte.
+    private var demoStatistics: PaperlessStatistics? = nil
+
     @Published var accounts: [Account] = []
     @Published var activeAccountId: UUID? = nil
 
@@ -86,16 +92,41 @@ class AppStore: ObservableObject {
     // MARK: - Private
 
     private var api: PaperlessAPI? {
-        guard let account = activeAccount,
-              let token = KeychainService.loadToken(for: account.serverUrl, username: account.username),
-              !account.serverUrl.isEmpty else { return nil }
+        guard let account = activeAccount, !account.serverUrl.isEmpty,
+              let token = currentToken() else { return nil }
         return PaperlessAPI(serverUrl: account.serverUrl, token: token)
+    }
+
+    /// Zwischenspeicher für den Token des aktiven Kontos.
+    ///
+    /// Ein Keychain-Zugriff ist ein synchroner Systemaufruf. `authToken()` steht in den
+    /// Listen direkt im `ForEach`-Rumpf — ohne diesen Zwischenspeicher liefe er pro
+    /// gezeichneter Zelle erneut, beim Scrollen also hunderte Male auf dem Main Thread.
+    /// `tokenCacheLoaded` unterscheidet „noch nicht gelesen" von „gelesen, kein Token da".
+    private var tokenCache: String?
+    private var tokenCacheLoaded = false
+
+    private func currentToken() -> String? {
+        if tokenCacheLoaded { return tokenCache }
+        guard let account = activeAccount else { return nil }
+        tokenCache = KeychainService.loadToken(for: account.serverUrl, username: account.username)
+        tokenCacheLoaded = true
+        return tokenCache
+    }
+
+    /// Nach jedem Kontowechsel und jeder Änderung am Keychain aufzurufen.
+    func invalidateTokenCache() {
+        tokenCache = nil
+        tokenCacheLoaded = false
     }
 
     private var currentPage = 1
     private var searchTask: Task<Void, Never>? = nil
     private var autoSyncTask: Task<Void, Never>? = nil
     private var downloadTask: Task<Void, Never>? = nil
+    /// Sperren gegen mehrfach parallel laufende Warteschlangen — siehe `processUploadQueue()`.
+    private var isProcessingUploads = false
+    private var isProcessingEdits = false
 
     // MARK: - Init
 
@@ -135,11 +166,13 @@ class AppStore: ObservableObject {
 
         accounts = loadedAccounts
         activeAccountId = loadedActiveId
+        ImageCache.shared.setAccount(loadedActiveId)
 
-        if let id = loadedActiveId,
-           let account = loadedAccounts.first(where: { $0.id == id }),
-           KeychainService.loadToken(for: account.serverUrl, username: account.username) != nil {
-            loadFromDisk(for: id)
+        if let id = loadedActiveId, hasValidToken() {
+            // Bewusst nicht synchron: das Dekodieren von `documents.json` dauert bei großen
+            // Archiven leicht einige hundert Millisekunden und verzögerte bisher den ersten
+            // Frame. Die Ansicht startet leer und füllt sich, sobald die Daten da sind.
+            Task { await loadFromDiskAsync(for: id) }
             calculateStorage()
             startAutoSync()
         }
@@ -148,7 +181,10 @@ class AppStore: ObservableObject {
     // MARK: - API Access
 
     func makeServerBase() -> String {
-        api?.serverBase ?? ""
+        // Im Demo-Modus gibt es keine API-Instanz. Ansichten prüfen aber auf eine nicht-leere
+        // Basis, bevor sie eine Miniaturansicht zeigen — die stammt dort aus dem `ImageCache`.
+        if isDemoMode { return "https://demo.local" }
+        return api?.serverBase ?? ""
     }
 
     func thumbnailURL(for docId: Int) -> String {
@@ -156,18 +192,21 @@ class AppStore: ObservableObject {
     }
 
     func authToken() -> String {
-        guard let account = activeAccount else { return "" }
-        return KeychainService.loadToken(for: account.serverUrl, username: account.username) ?? ""
+        // Im Demo-Modus liegt kein Token im Keychain. Die Ansichten prüfen aber auf einen
+        // nicht-leeren Token, bevor sie überhaupt eine Miniaturansicht zeigen — und die
+        // kommt hier aus dem lokalen `ImageCache`, nicht vom Server.
+        if isDemoMode { return "demo" }
+        return currentToken() ?? ""
     }
 
     func hasValidToken() -> Bool {
-        guard let account = activeAccount else { return false }
-        return KeychainService.loadToken(for: account.serverUrl, username: account.username) != nil
+        currentToken() != nil
     }
 
     // MARK: - Account Management
 
     func addAccount(_ account: Account) {
+        invalidateTokenCache()
         if let existing = accounts.first(where: {
             $0.serverUrl == account.serverUrl && $0.username == account.username
         }) {
@@ -183,12 +222,19 @@ class AppStore: ObservableObject {
         guard accounts.contains(where: { $0.id == id }) else { return }
         activeAccountId = id
         AccountService.setActiveId(id)
+        // Token und Miniaturansichten gehören zum Konto — beides muss mitwechseln, sonst
+        // zeigt die Liste die Vorschauen des vorherigen Kontos.
+        invalidateTokenCache()
+        ImageCache.shared.setAccount(id)
+        // Die Systemsuche zeigt nur das aktive Konto. Sonst stünden die Dokumenttitel eines
+        // Archivs weiter in Spotlight, während ein anderes Konto geöffnet ist.
+        clearSpotlightIndex()
         documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
         pendingUploads = []; pendingEdits = []; savedFilters = []
         currentSearchText = ""; currentPage = 1; currentSearchPage = 1
         autoSyncTask?.cancel()
-        if KeychainService.loadToken(for: serverUrl, username: username) != nil {
-            loadFromDisk(for: id)
+        if hasValidToken() {
+            Task { await loadFromDiskAsync(for: id) }
             calculateStorage()
             startAutoSync()
         }
@@ -198,7 +244,10 @@ class AppStore: ObservableObject {
         guard accounts.count > 1 else { return }
         guard let account = accounts.first(where: { $0.id == id }) else { return }
         KeychainService.deleteToken(for: account.serverUrl, username: account.username)
+        invalidateTokenCache()
         PersistenceService.deleteAccountFiles(accountId: id)
+        ImageCache.shared.deleteAccount(id)
+        clearSpotlightIndex(for: id)
         accounts.removeAll { $0.id == id }
         AccountService.save(accounts)
         if activeAccountId == id {
@@ -207,6 +256,7 @@ class AppStore: ObservableObject {
             } else {
                 activeAccountId = nil
                 AccountService.setActiveId(nil)
+                ImageCache.shared.setAccount(nil)
                 documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
                 pendingUploads = []; pendingEdits = []; savedFilters = []
                 autoSyncTask?.cancel()
@@ -265,7 +315,7 @@ class AppStore: ObservableObject {
         for attempt in 1...2 {
             do {
                 let page = try await api.fetchDocuments(page: 1, ordering: orderingParam())
-                documents = page.documents
+                documents = page.documents.uniquedByID()
                 hasNextPage = page.hasNext
                 currentPage = 1
                 isOffline = false
@@ -280,6 +330,7 @@ class AppStore: ObservableObject {
                 if let account = activeAccount {
                     KeychainService.deleteToken(for: account.serverUrl, username: account.username)
                 }
+                invalidateTokenCache()
                 lastSyncError = "Sitzung abgelaufen, bitte neu einloggen"
                 needsReLogin = true
                 isSyncing = false
@@ -309,7 +360,7 @@ class AppStore: ObservableObject {
         let nextPage = currentPage + 1
         do {
             let page = try await api.fetchDocuments(page: nextPage, ordering: orderingParam())
-            documents.append(contentsOf: page.documents)
+            documents.appendUniqueByID(page.documents)
             hasNextPage = page.hasNext
             currentPage = nextPage
             updateFilteredDocs()
@@ -320,14 +371,21 @@ class AppStore: ObservableObject {
         isLoadingMore = false
     }
 
+    /// Sortierparameter für `/api/documents/`.
+    ///
+    /// `-id` als zweites Kriterium ist Pflicht: seit API-Version 9 ist `created` ein reines
+    /// Datum ohne Uhrzeit, sehr viele Dokumente teilen sich also denselben Sortierwert. Ohne
+    /// eindeutiges Zweitkriterium ordnet die Datenbank gleichrangige Zeilen bei jeder Abfrage
+    /// anders — Seite 2 liefert dann Dokumente erneut, die schon auf Seite 1 standen, und
+    /// andere fallen ganz aus der Liste.
     private func orderingParam() -> String {
         switch currentSortOrder {
-        case .dateDesc:  return "-created"
-        case .dateAsc:   return "created"
-        case .titleAZ:   return "title"
-        case .senderAZ:  return "correspondent__name"
-        case .addedDesc: return "-added"
-        case .addedAsc:  return "added"
+        case .dateDesc:  return "-created,-id"
+        case .dateAsc:   return "created,id"
+        case .titleAZ:   return "title,id"
+        case .senderAZ:  return "correspondent__name,id"
+        case .addedDesc: return "-added,-id"
+        case .addedAsc:  return "added,id"
         }
     }
 
@@ -349,12 +407,15 @@ class AppStore: ObservableObject {
             try? await Task.sleep(nanoseconds: 400_000_000)
             guard !Task.isCancelled else { return }
 
-            if isOffline {
+            // Ohne Server — offline oder im Demo-Modus — wird lokal über Titel und
+            // erkannten Text gesucht.
+            if isOffline || isDemoMode {
                 let low = query.lowercased()
                 filteredDocs = documents.filter {
                     $0.title.localizedCaseInsensitiveContains(low) ||
                     ($0.content?.localizedCaseInsensitiveContains(low) ?? false)
                 }
+                addRecentSearch(query)
                 isSearching = false
                 return
             }
@@ -362,7 +423,7 @@ class AppStore: ObservableObject {
             guard let api = api else { isSearching = false; return }
             do {
                 let page = try await api.searchDocuments(query: query, page: 1)
-                filteredDocs = page.documents
+                filteredDocs = page.documents.uniquedByID()
                 searchHasNextPage = page.hasNext
                 currentSearchPage = 1
                 addRecentSearch(query)
@@ -381,7 +442,7 @@ class AppStore: ObservableObject {
         let nextPage = currentSearchPage + 1
         do {
             let page = try await api.searchDocuments(query: currentSearchText, page: nextPage)
-            filteredDocs.append(contentsOf: page.documents)
+            filteredDocs.appendUniqueByID(page.documents)
             searchHasNextPage = page.hasNext
             currentSearchPage = nextPage
         } catch {
@@ -420,6 +481,15 @@ class AppStore: ObservableObject {
     // MARK: - Filter & Sort
 
     func updateFilteredDocs() {
+        // Bei aktiver Suche steht in `filteredDocs` die Antwort des Servers, nicht das
+        // Ergebnis der lokalen Filter. Ein Filterlauf würde sie durch die vollständige
+        // Liste ersetzen — genau das passierte beim Zurückspringen aus der Detailansicht,
+        // weil `MainDocView` in `onAppear` erneut `applyFilters()` und `sync()` aufruft.
+        // Der Suchbegriff stand danach noch im Feld, die Treffer waren aber weg und nur
+        // Löschen und erneutes Suchen half. Änderungen an einzelnen Dokumenten pflegen
+        // `removeDocumentLocally(id:)` und `addPendingEdit(...)` direkt in die Trefferliste ein.
+        guard currentSearchText.isEmpty else { return }
+
         let calendar = Calendar.current
         let now = Date()
 
@@ -462,33 +532,63 @@ class AppStore: ObservableObject {
             return matchesTag && matchesCorr && matchesType && matchesDate && matchesCustom
         }
 
+        // Seit API-Version 9 liefert paperless-ngx `created` nur noch als Datum ohne Uhrzeit.
+        // Damit haben sehr viele Dokumente denselben Sortierwert. `sorted(by:)` ist in Swift
+        // nicht stabil, gleichrangige Elemente landen also bei jedem Aufruf in anderer
+        // Reihenfolge — SwiftUI verliert dadurch die Zuordnung von Zelle zu Dokument.
+        // Die ID als letztes Kriterium macht die Reihenfolge eindeutig.
+        func byID(_ a: Document, _ b: Document) -> Bool { a.id > b.id }
+
         switch currentSortOrder {
-        case .dateDesc:  filteredDocs = filtered.sorted { $0.created > $1.created }
-        case .dateAsc:   filteredDocs = filtered.sorted { $0.created < $1.created }
-        case .titleAZ:   filteredDocs = filtered.sorted { $0.title.localizedCompare($1.title) == .orderedAscending }
+        case .dateDesc:
+            filteredDocs = filtered.sorted { $0.created == $1.created ? byID($0, $1) : $0.created > $1.created }
+        case .dateAsc:
+            filteredDocs = filtered.sorted { $0.created == $1.created ? byID($0, $1) : $0.created < $1.created }
+        case .titleAZ:
+            filteredDocs = filtered.sorted {
+                let order = $0.title.localizedCompare($1.title)
+                return order == .orderedSame ? byID($0, $1) : order == .orderedAscending
+            }
         case .senderAZ:
             filteredDocs = filtered.sorted { doc1, doc2 in
                 let n1 = allCorrespondents.first(where: { $0.id == doc1.correspondent })?.safeName ?? ""
                 let n2 = allCorrespondents.first(where: { $0.id == doc2.correspondent })?.safeName ?? ""
-                return n1.localizedCompare(n2) == .orderedAscending
+                let order = n1.localizedCompare(n2)
+                return order == .orderedSame ? byID(doc1, doc2) : order == .orderedAscending
             }
-        case .addedDesc: filteredDocs = filtered.sorted { ($0.added ?? "") > ($1.added ?? "") }
-        case .addedAsc:  filteredDocs = filtered.sorted { ($0.added ?? "") < ($1.added ?? "") }
+        case .addedDesc:
+            filteredDocs = filtered.sorted {
+                ($0.added ?? "") == ($1.added ?? "") ? byID($0, $1) : ($0.added ?? "") > ($1.added ?? "")
+            }
+        case .addedAsc:
+            filteredDocs = filtered.sorted {
+                ($0.added ?? "") == ($1.added ?? "") ? byID($0, $1) : ($0.added ?? "") < ($1.added ?? "")
+            }
         }
     }
 
     // MARK: - Pending Edit Queue
 
     func addPendingEdit(docId: Int, title: String, created: Date, corr: Int?, type: Int?, asn: Int?, tags: [Int], customFields: [CustomFieldEdit] = []) {
-        let iso = ISO8601DateFormatter().string(from: created)
+        // `yyyy-MM-dd` in lokaler Zeit statt UTC-Zeitstempel: `ISO8601DateFormatter` schob das
+        // Datum östlich von Greenwich um einen Tag zurück (10.08. 00:00 MESZ → 09.08. 22:00 UTC).
+        let iso = DateFormatting.apiDate(created)
+        func apply(to doc: inout Document) {
+            doc.title = title
+            doc.created = iso
+            doc.correspondent = corr
+            doc.documentType = type
+            doc.archiveSerialNumber = asn
+            doc.tags = tags
+            doc.customFields = customFields
+        }
         if let idx = documents.firstIndex(where: { $0.id == docId }) {
-            documents[idx].title = title
-            documents[idx].created = iso
-            documents[idx].correspondent = corr
-            documents[idx].documentType = type
-            documents[idx].archiveSerialNumber = asn
-            documents[idx].tags = tags
-            documents[idx].customFields = customFields
+            apply(to: &documents[idx])
+        }
+        // Während einer Suche baut `updateFilteredDocs()` die Liste nicht neu auf,
+        // die Änderung muss deshalb auch in den Treffern landen.
+        if let idx = filteredDocs.firstIndex(where: { $0.id == docId }) {
+            apply(to: &filteredDocs[idx])
         }
         let edit = PendingEdit(docId: docId, title: title, created: iso, correspondent: corr, documentType: type, archiveSerialNumber: asn, tags: tags, customFields: customFields)
         pendingEdits.append(edit)
@@ -497,16 +597,20 @@ class AppStore: ObservableObject {
         Task { await processEditQueue() }
     }
 
+    /// Läuft nie zweimal gleichzeitig — siehe `processUploadQueue()`.
     private func processEditQueue() async {
-        guard !isDemoMode else { return }
-        var remaining = pendingEdits
+        guard !isDemoMode, !isProcessingEdits else { return }
+        isProcessingEdits = true
+        defer { isProcessingEdits = false }
+
         var processed: [UUID] = []
-        for edit in remaining {
+        for edit in pendingEdits {
             guard let api = api else { break }
             do {
                 try await api.patchDocument(id: edit.docId, title: edit.title, created: edit.created, correspondent: edit.correspondent, documentType: edit.documentType, archiveSerialNumber: edit.archiveSerialNumber, tags: edit.tags, customFields: edit.customFields)
                 processed.append(edit.id)
                 showSuccessToast("Änderung gespeichert")
+                registerReviewEvent()
             } catch APIError.unauthorized {
                 isOffline = true; break
             } catch {
@@ -543,8 +647,16 @@ class AppStore: ObservableObject {
         Task { await processUploadQueue() }
     }
 
+    /// Arbeitet die Warteschlange ab — garantiert nur einmal gleichzeitig.
+    ///
+    /// Ohne die Sperre startete der Import zwei Läufe (`addToQueue` und direkt danach `sync()`).
+    /// Der erste hält bei `await uploadDocument` an, der zweite sieht dasselbe Element noch in
+    /// der Liste — entfernt wird ja erst nach der Schleife — und lädt es ein zweites Mal hoch.
     private func processUploadQueue() async {
-        guard !isDemoMode else { return }
+        guard !isDemoMode, !isProcessingUploads else { return }
+        isProcessingUploads = true
+        defer { isProcessingUploads = false }
+
         var processed: [UUID] = []
         for item in pendingUploads {
             guard let api = api else { break }
@@ -567,6 +679,7 @@ class AppStore: ObservableObject {
     /// `recordPrompt()` passiert bewusst erst dort, direkt vor `requestReview()` –
     /// so verbrennen wir keinen Versuch, falls das Flag nie konsumiert wird.
     func registerReviewEvent() {
+        ReviewRequestService.shared.registerPositiveEvent()
         guard ReviewRequestService.shared.shouldRequestReview() else { return }
         shouldRequestReview = true
     }
@@ -576,11 +689,27 @@ class AppStore: ObservableObject {
     func deleteDocument(id: Int) {
         Task {
             guard let api = api, let accountId = activeAccountId else { return }
-            try? await api.deleteDocument(id: id)
-            documents.removeAll { $0.id == id }
-            updateFilteredDocs()
+            do {
+                try await api.deleteDocument(id: id)
+            } catch {
+                // Ohne diese Prüfung verschwand das Dokument auch dann aus der Liste, wenn der
+                // Server es gar nicht gelöscht hat (offline, fehlende Rechte) — und tauchte
+                // beim nächsten Sync wieder auf.
+                lastSyncError = error.localizedDescription
+                return
+            }
+            removeDocumentLocally(id: id)
+            saveToDisk()
             PersistenceService.deleteDocFile(docId: id, accountId: accountId)
         }
+    }
+
+    /// Nimmt ein Dokument aus beiden Listen. `filteredDocs` muss ausdrücklich mit, weil
+    /// `updateFilteredDocs()` bei aktiver Suche nichts neu aufbaut.
+    func removeDocumentLocally(id: Int) {
+        documents.removeAll { $0.id == id }
+        filteredDocs.removeAll { $0.id == id }
+        updateFilteredDocs()
     }
 
     // MARK: - Notes
@@ -638,6 +767,7 @@ class AppStore: ObservableObject {
     }
 
     func fetchStatistics() async -> PaperlessStatistics? {
+        if isDemoMode { return demoStatistics ?? DemoDataService.makeContent().statistics }
         guard let api = api else { return nil }
         return try? await api.fetchStatistics()
     }
@@ -660,7 +790,7 @@ class AppStore: ObservableObject {
         if fileExists(docId: docId) { return try? Data(contentsOf: localFileURL(for: docId)) }
         guard let api = api else { return nil }
         if let data = try? await api.downloadDocument(id: docId) {
-            try? data.write(to: localFileURL(for: docId))
+            try? PersistenceService.writeFile(data, to: localFileURL(for: docId))
             return data
         }
         return nil
@@ -692,7 +822,7 @@ class AppStore: ObservableObject {
                 downloadStatusText = "Lade \(index + 1) von \(allDocs.count)..."
                 if !fileExists(docId: doc.id) {
                     if let data = try? await api.downloadDocument(id: doc.id) {
-                        try? data.write(to: localFileURL(for: doc.id))
+                        try? PersistenceService.writeFile(data, to: localFileURL(for: doc.id))
                     }
                 }
             }
@@ -731,13 +861,118 @@ class AppStore: ObservableObject {
 
     // MARK: - Spotlight
 
+    /// Spotlight-Bereich eines Kontos.
+    ///
+    /// Dokument-IDs sind nur innerhalb eines Servers eindeutig. Lagen alle Konten in einem
+    /// Bereich, überschrieb Dokument 42 von Server B den Eintrag von Dokument 42 aus Server A —
+    /// und nach einem Kontowechsel standen fremde Dokumenttitel in der Systemsuche.
+    nonisolated static func spotlightDomain(for accountId: UUID) -> String {
+        "com.paperless24.docs.\(accountId.uuidString)"
+    }
+
+    /// Alter, kontoloser Bereich. Einträge daraus stammen aus früheren Programmversionen
+    /// und werden beim ersten Indexlauf entsorgt.
+    private static let legacySpotlightDomain = "com.paperless24.docs"
+
+    nonisolated static func spotlightIdentifier(account: UUID, docId: Int) -> String {
+        "\(account.uuidString)/\(docId)"
+    }
+
+    /// Zerlegt einen Spotlight-Bezeichner wieder in Konto und Dokument.
+    nonisolated static func parseSpotlightIdentifier(_ raw: String) -> (account: UUID, docId: Int)? {
+        let parts = raw.split(separator: "/")
+        guard parts.count == 2,
+              let account = UUID(uuidString: String(parts[0])),
+              let docId = Int(parts[1]) else { return nil }
+        return (account, docId)
+    }
+
+    /// Ausgang eines Indexlaufs — die Einstellungen zeigen ihn an.
+    struct SpotlightIndexResult: Equatable {
+        var indexed = 0
+        var rejected = 0
+        var errorMessage: String?
+    }
+
+    /// Obergrenze für den Index. Ein Archiv kann größer sein; irgendwo muss Schluss sein,
+    /// sonst blättert die App minutenlang durch den Server.
+    private static let spotlightDocumentLimit = 10_000
+
+    /// Seitengröße beim Blättern für den Index — unabhängig von der Listenansicht.
+    private static let spotlightFetchPageSize = 250
+
+    /// Ob für dieses Konto schon einmal das ganze Archiv indiziert wurde.
+    private var fullSpotlightIndexBuilt: Bool {
+        get {
+            guard let id = activeAccountId else { return true }
+            return UserDefaults.standard.bool(forKey: "spotlight_full_\(id.uuidString)")
+        }
+        set {
+            guard let id = activeAccountId else { return }
+            UserDefaults.standard.set(newValue, forKey: "spotlight_full_\(id.uuidString)")
+        }
+    }
+
+    /// Baut den Index im Hintergrund auf. Ohne Rückmeldung, für den Sync.
+    ///
+    /// Beim ersten Lauf eines Kontos wird das ganze Archiv geholt, danach reicht, was
+    /// ohnehin geladen ist — sonst blätterte jeder Sync durch den kompletten Server.
+    /// Neue Dokumente stehen durch die Sortierung nach Datum immer auf der ersten Seite.
     func indexDocumentsForSpotlight() {
-        Task.detached(priority: .background) {
+        let full = !fullSpotlightIndexBuilt
+        Task {
+            let result = await performSpotlightIndexing(fullArchive: full)
+            if full && result.errorMessage == nil && result.indexed > 0 {
+                fullSpotlightIndexBuilt = true
+            }
+        }
+    }
+
+    /// Leert den Index und baut ihn aus dem ganzen Archiv neu auf. Meldet zurück, was
+    /// hängengeblieben ist.
+    ///
+    /// Das Löschen wird abgewartet: es läuft asynchron im Indexdienst und würde sonst
+    /// die frisch geschriebenen Einträge wieder mitnehmen.
+    func rebuildSpotlightIndex() async -> SpotlightIndexResult {
+        await withCheckedContinuation { continuation in
+            CSSearchableIndex.default().deleteAllSearchableItems { _ in continuation.resume() }
+        }
+        let result = await performSpotlightIndexing(fullArchive: true)
+        if result.errorMessage == nil && result.indexed > 0 { fullSpotlightIndexBuilt = true }
+        return result
+    }
+
+    /// Holt für den Index das ganze Archiv vom Server. Ohne Server (Demo-Modus, offline)
+    /// bleibt es bei dem, was geladen ist.
+    private func documentsForIndexing(fullArchive: Bool) async -> [Document] {
+        let loaded = Array(documents.prefix(Self.spotlightDocumentLimit))
+        guard fullArchive, let api = api else { return loaded }
+
+        var collected: [Document] = []
+        var page = 1
+        while collected.count < Self.spotlightDocumentLimit {
+            guard let result = try? await api.fetchDocuments(
+                page: page, pageSize: Self.spotlightFetchPageSize) else { break }
+            collected.append(contentsOf: result.documents)
+            guard result.hasNext else { break }
+            page += 1
+        }
+        // Bricht das Blättern früh ab, ist die Ausbeute schlechter als das, was ohnehin
+        // im Speicher liegt — dann lieber das nehmen.
+        guard collected.count > loaded.count else { return loaded }
+        return Array(collected.uniquedByID().prefix(Self.spotlightDocumentLimit))
+    }
+
+    private func performSpotlightIndexing(fullArchive: Bool) async -> SpotlightIndexResult {
+        guard let accountId = activeAccountId else { return SpotlightIndexResult() }
+        let domain = Self.spotlightDomain(for: accountId)
+        let docs = await documentsForIndexing(fullArchive: fullArchive)
+        let tags = allTags
+        let corrs = allCorrespondents
+        let types = allDocTypes
+
+        return await Task.detached(priority: .background) { () -> SpotlightIndexResult in
             var items: [CSSearchableItem] = []
-            let docs = await self.documents.prefix(1000)
-            let tags = await self.allTags
-            let corrs = await self.allCorrespondents
-            let types = await self.allDocTypes
 
             for doc in docs {
                 let attrs = CSSearchableItemAttributeSet(contentType: .pdf)
@@ -754,17 +989,56 @@ class AppStore: ObservableObject {
                 attrs.keywords = keywords
 
                 let thumbURL = ImageCache.shared.getFilePath(for: doc.id)
-                if FileManager.default.fileExists(atPath: thumbURL.path) { attrs.thumbnailURL = thumbURL }
+                if FileManager.default.fileExists(atPath: thumbURL.path) {
+                    // Miniaturansichten, die noch mit strengerem Dateischutz auf der Platte
+                    // liegen, hier einmalig lockern — sonst kommt der Indexdienst bei
+                    // gesperrtem Bildschirm nicht an sie heran.
+                    try? FileManager.default.setAttributes(
+                        [.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication],
+                        ofItemAtPath: thumbURL.path)
+                    attrs.thumbnailURL = thumbURL
+                }
 
-                let item = CSSearchableItem(uniqueIdentifier: "\(doc.id)", domainIdentifier: "com.paperless24.docs", attributeSet: attrs)
+                let item = CSSearchableItem(
+                    uniqueIdentifier: Self.spotlightIdentifier(account: accountId, docId: doc.id),
+                    domainIdentifier: domain,
+                    attributeSet: attrs)
                 item.expirationDate = .distantFuture
                 items.append(item)
             }
-            CSSearchableIndex.default().indexSearchableItems(items) { _ in }
-        }
+
+            // Reste aus der Zeit ohne Kontotrennung räumen.
+            CSSearchableIndex.default()
+                .deleteSearchableItems(withDomainIdentifiers: [Self.legacySpotlightDomain]) { _ in }
+
+            // In Häppchen statt in einem Rutsch: `indexSearchableItems` ist pro Aufruf
+            // alles-oder-nichts. Ein einziges Dokument, das dem Index nicht schmeckt,
+            // riss bisher den kompletten Stapel mit — und Spotlight blieb leer.
+            var result = SpotlightIndexResult()
+            for chunk in items.chunked(into: 100) {
+                let error: Error? = await withCheckedContinuation { continuation in
+                    CSSearchableIndex.default().indexSearchableItems(chunk) { continuation.resume(returning: $0) }
+                }
+                if let error {
+                    Self.logger.error("Spotlight-Index fehlgeschlagen: \(error.localizedDescription, privacy: .public)")
+                    result.rejected += chunk.count
+                    // Erste Fehlermeldung behalten: die weiteren sind erfahrungsgemäß dieselbe.
+                    if result.errorMessage == nil { result.errorMessage = error.localizedDescription }
+                } else {
+                    result.indexed += chunk.count
+                }
+            }
+            return result
+        }.value
     }
 
     func clearSpotlightIndex() { CSSearchableIndex.default().deleteAllSearchableItems { _ in } }
+
+    /// Entfernt die Einträge eines einzelnen Kontos aus Spotlight.
+    func clearSpotlightIndex(for accountId: UUID) {
+        CSSearchableIndex.default()
+            .deleteSearchableItems(withDomainIdentifiers: [Self.spotlightDomain(for: accountId)]) { _ in }
+    }
 
     // MARK: - Persistence
 
@@ -781,14 +1055,29 @@ class AppStore: ObservableObject {
     }
 
     func loadFromDisk(for id: UUID) {
-        documents         = PersistenceService.load([Document].self,      fromURL: PersistenceService.accountDataURL(for: id, filename: "documents.json"))    ?? []
-        allTags           = PersistenceService.load([Tag].self,            fromURL: PersistenceService.accountDataURL(for: id, filename: "tags.json"))         ?? []
-        allCorrespondents = PersistenceService.load([Correspondent].self,  fromURL: PersistenceService.accountDataURL(for: id, filename: "corrs.json"))        ?? []
-        allDocTypes       = PersistenceService.load([DocumentType].self,   fromURL: PersistenceService.accountDataURL(for: id, filename: "types.json"))        ?? []
-        allCustomFields   = PersistenceService.load([CustomField].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "customfields.json")) ?? []
-        pendingUploads    = PersistenceService.load([PendingUpload].self,  fromURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))      ?? []
-        pendingEdits      = PersistenceService.load([PendingEdit].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))        ?? []
-        savedFilters      = PersistenceService.load([SavedFilter].self,    fromURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json")) ?? []
+        apply(AccountDiskSnapshot(accountId: id))
+    }
+
+    /// Wie `loadFromDisk`, aber das Dekodieren läuft abseits des Main Threads. Beim Start und
+    /// beim Kontowechsel hängen sonst mehrere hundert Millisekunden JSON-Arbeit am ersten Frame.
+    private func loadFromDiskAsync(for id: UUID) async {
+        let snapshot = await Task.detached(priority: .userInitiated) {
+            AccountDiskSnapshot(accountId: id)
+        }.value
+        // Zwischenzeitlicher Kontowechsel: der Stand gehört nicht mehr zum aktiven Konto.
+        guard activeAccountId == id else { return }
+        apply(snapshot)
+    }
+
+    private func apply(_ snapshot: AccountDiskSnapshot) {
+        documents         = snapshot.documents
+        allTags           = snapshot.tags
+        allCorrespondents = snapshot.correspondents
+        allDocTypes       = snapshot.docTypes
+        allCustomFields   = snapshot.customFields
+        pendingUploads    = snapshot.pendingUploads
+        pendingEdits      = snapshot.pendingEdits
+        savedFilters      = snapshot.savedFilters
         updateFilteredDocs()
     }
 
@@ -865,6 +1154,7 @@ class AppStore: ObservableObject {
             await loadTrash()
             await loadFirstPage()
             showSuccessToast("Wiederhergestellt")
+            registerReviewEvent()
         }
     }
 
@@ -967,6 +1257,7 @@ class AppStore: ObservableObject {
             if let view = try? await api.createSavedView(name: name, sortField: s.field, sortReverse: s.reverse, rules: rules) {
                 serverViews.append(view)
                 showSuccessToast("Ansicht gespeichert")
+                registerReviewEvent()
             }
         }
     }
@@ -1005,7 +1296,9 @@ class AppStore: ObservableObject {
 
     func createShareLink(documentId: Int, expiration: Date?, fileVersion: String) async -> DocShareLink? {
         guard let api = api else { return nil }
-        return try? await api.createShareLink(documentId: documentId, expiration: expiration, fileVersion: fileVersion)
+        guard let link = try? await api.createShareLink(documentId: documentId, expiration: expiration, fileVersion: fileVersion) else { return nil }
+        registerReviewEvent()
+        return link
     }
 
     func deleteShareLink(id: Int) async {
@@ -1024,6 +1317,10 @@ class AppStore: ObservableObject {
         autoSyncTask = Task {
             while !Task.isCancelled {
                 try? await Task.sleep(nanoseconds: 30_000_000_000)
+                guard !Task.isCancelled else { return }
+                // Im Hintergrund nichts anstoßen: iOS friert die Anfragen ohnehin ein, und
+                // die Warteschlange wird beim nächsten Vordergrund-Sync abgearbeitet.
+                guard UIApplication.shared.applicationState == .active else { continue }
                 if !pendingUploads.isEmpty || !pendingEdits.isEmpty { sync(silent: true) }
             }
         }
@@ -1035,15 +1332,17 @@ class AppStore: ObservableObject {
         for account in accounts {
             KeychainService.deleteToken(for: account.serverUrl, username: account.username)
         }
+        invalidateTokenCache()
         accounts = []
         activeAccountId = nil
+        ImageCache.shared.setAccount(nil)
         AccountService.save([])
         AccountService.setActiveId(nil)
         isDemoMode = false
         documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
         pendingUploads = []; pendingEdits = []; cachedCount = 0; storageSize = "0 MB"; lastSyncError = nil
         PersistenceService.clearAll()
-        ImageCache.shared.clearCache()
+        ImageCache.shared.clearAll()
         clearSpotlightIndex()
         autoSyncTask?.cancel()
     }
@@ -1079,14 +1378,30 @@ class AppStore: ObservableObject {
         activeAccountId = demoAccount.id
         AccountService.save(accounts)
         AccountService.setActiveId(demoAccount.id)
-        allTags = [Tag(id: 1, name: "Rechnung", color: "#ff0000", parent: nil)]
-        allCorrespondents = [Correspondent(id: 1, name: "Amazon")]
-        allDocTypes = [DocumentType(id: 1, name: "Rechnung")]
-        documents = [Document(id: 1, title: "Demo", content: "Text", created: "2026-01-26",
-                              added: nil, correspondent: 1, documentType: 1,
-                              archiveSerialNumber: 100, tags: [1])]
+        invalidateTokenCache()
+        // Muss vor `materialize` stehen: die Demo-Miniaturansichten landen sonst im Ablageort
+        // des vorherigen Kontos.
+        ImageCache.shared.setAccount(demoAccount.id)
+
+        let content = DemoDataService.makeContent()
+        allTags = content.tags
+        allCorrespondents = content.correspondents
+        allDocTypes = content.docTypes
+        allCustomFields = content.customFields
+        documents = content.documents
+        demoStatistics = content.statistics
+
+        // PDFs und Miniaturen liegen lokal, damit Liste und Detailansicht ohne Server
+        // echte Seiten zeigen. Läuft im Hintergrund, die Liste steht sofort.
+        let accountId = demoAccount.id
+        Task.detached(priority: .userInitiated) {
+            DemoDataService.materialize(accountId: accountId)
+            await MainActor.run { self.calculateStorage() }
+        }
+
         updateFilteredDocs()
         saveToDisk()
+        updateWidget(stats: content.statistics)
     }
 
     // MARK: - Widget
@@ -1111,6 +1426,17 @@ class AppStore: ObservableObject {
             lastSync: Date(),
             enabled: enabled
         )
+
+        let theme = ThemeSettings(
+            theme: AppTheme(rawValue: UserDefaults.standard.string(forKey: "themeId") ?? "") ?? .indigo,
+            customAccentHex: UserDefaults.standard.string(forKey: "customAccentHex") ?? "3F51B5",
+            amoled: UserDefaults.standard.bool(forKey: "amoledEnabled")
+        )
+        WidgetDataService.writeTheme(
+            accentLightHex: theme.accentHex(isDark: false),
+            accentDarkHex: theme.accentHex(isDark: true)
+        )
+
         WidgetCenter.shared.reloadAllTimelines()
     }
 

@@ -1,0 +1,1 @@
+paperless,ngx,documents,document,archive,scanner,scan,ocr,pdf,dms,selfhosted,paperless-ngx,receipts

@@ -17,8 +17,22 @@ struct DocumentDetailView: View {
     @State private var shareURL: URL? = nil
     @State private var selectedTab = 0
     @AppStorage("translationEnabled") private var translationEnabled = true
+    @AppStorage("pdfDarkMode") private var pdfDarkMode = false
+    @AppStorage("readingMode") private var readingMode = false
+    @AppStorage("readingFontSize") private var readingFontSize: Double = 17
+    @AppStorage("appearanceMode") private var appearanceMode = 0
+    @Environment(\.colorScheme) private var systemScheme
+    @Environment(\.palette) private var palette
+
+    /// Papierton für den Lesemodus — im Dunkeln nicht sinnvoll, dort bleibt es dunkel.
+    private var readingBackground: Color {
+        isDarkAppearance(mode: appearanceMode, system: systemScheme)
+            ? Color(.systemBackground)
+            : Color(hex: "F6EEDC")
+    }
     @State private var newNote = ""
     @State private var liveDoc: Document? = nil
+    @State private var loadError: String? = nil
 
     private var displayDoc: Document { liveDoc ?? doc }
 
@@ -34,16 +48,43 @@ struct DocumentDetailView: View {
             .padding(.horizontal)
 
             if selectedTab == 0 {
-                if let data = pdfData { PDFKitView(data: data, searchQuery: searchQuery) }
-                else { Spacer(); ProgressView(); Spacer() }
+                if let data = pdfData {
+                    PDFKitView(
+                        data: data,
+                        searchQuery: searchQuery,
+                        darkened: pdfDarkMode && isDarkAppearance(mode: appearanceMode, system: systemScheme)
+                    )
+                } else if let loadError {
+                    Spacer()
+                    VStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.system(size: 40)).foregroundColor(.orange)
+                        Text("Dokument konnte nicht geladen werden")
+                            .font(.headline).multilineTextAlignment(.center)
+                        Text(loadError)
+                            .font(.caption).foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button("Erneut versuchen") {
+                            self.loadError = nil
+                            loadContent()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding()
+                    Spacer()
+                } else {
+                    Spacer(); ProgressView(); Spacer()
+                }
             } else if selectedTab == 1 {
                 if let content = displayDoc.content, !content.isEmpty {
                     ScrollView {
                         LinkifiedText(text: content)
-                            .font(.body)
+                            .font(readingMode ? .system(size: readingFontSize, design: .serif) : .body)
+                            .lineSpacing(readingMode ? 6 : 0)
                             .padding()
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .background(readingMode ? readingBackground : (palette.surface ?? Color(.systemBackground)))
                 } else {
                     Spacer()
                     Text("Kein OCR-Text vorhanden").foregroundColor(.gray)
@@ -62,6 +103,7 @@ struct DocumentDetailView: View {
                         }
                         .onDelete(perform: deleteNote)
                     }
+                    .themedSurface(palette)
                     HStack {
                         TextField("Neue Notiz...", text: $newNote).textFieldStyle(.roundedBorder)
                         Button { Task { await addNote() } } label: {
@@ -77,11 +119,9 @@ struct DocumentDetailView: View {
                 HStack {
                     Button {
                         if let data = pdfData {
-                            let safeName = displayDoc.title.replacingOccurrences(of: "/", with: "-")
-                            let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("\(safeName).pdf")
-                            try? data.write(to: tmp)
-                            shareURL = tmp
-                            showShare = true
+                            ShareStaging.cleanUp()
+                            shareURL = ShareStaging.stage(data, filename: "\(displayDoc.title).pdf")
+                            showShare = shareURL != nil
                         }
                     } label: { Image(systemName: "square.and.arrow.up") }
                     Button { showShareLink = true } label: { Image(systemName: "link") }
@@ -137,10 +177,16 @@ struct DocumentDetailView: View {
             return
         }
         Task {
-            guard let api = makeAPI() else { return }
-            if let data = try? await api.downloadDocument(id: doc.id) {
+            guard let api = makeAPI() else {
+                loadError = String(localized: "Kein gültiges Login")
+                return
+            }
+            do {
+                let data = try await api.downloadDocument(id: doc.id)
                 pdfData = data
-                try? data.write(to: store.localFileURL(for: doc.id))
+                try? PersistenceService.writeFile(data, to: store.localFileURL(for: doc.id))
+            } catch {
+                loadError = error.localizedDescription
             }
         }
     }

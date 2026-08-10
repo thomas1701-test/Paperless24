@@ -1,0 +1,10 @@
+• Support for paperless-ngx 3.0: the app negotiates the API version per server and copes with dates that carry no time.
+• Batch scanning: feed a whole stack at once and have the pages grouped into separate documents automatically.
+• Ask your archive: put a question in your own words and get an answer with its sources.
+• Drive a network scanner over Wi-Fi (AirScan/eSCL).
+• Translate and summarise with no connection needed.
+• Six colour themes, a free accent colour, OLED black and five alternative app icons.
+• Home screen widget: latest documents or an overview.
+• Three-column layout on iPad and Mac.
+• Demo mode with a full set of sample data — try it without a server.
+• Many small fixes to sorting, pagination and the offline queue.

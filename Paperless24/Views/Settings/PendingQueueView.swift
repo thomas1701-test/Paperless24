@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PendingQueueView: View {
+    @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
 
     var body: some View {
@@ -30,6 +31,7 @@ struct PendingQueueView: View {
                 .onDelete(perform: store.removePendingEdit)
             }
         }
+        .themedSurface(palette)
         .navigationTitle("Warteschlange")
     }
 }

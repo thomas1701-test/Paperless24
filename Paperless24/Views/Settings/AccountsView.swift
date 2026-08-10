@@ -3,6 +3,7 @@ import SwiftUI
 struct AccountsView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.locale) private var locale
+    @Environment(\.palette) private var palette
     @State private var showAddAccount = false
     @State private var accountToDelete: Account? = nil
     @State private var showDeleteConfirm = false
@@ -23,7 +24,7 @@ struct AccountsView: View {
                         }
                         Spacer()
                         if account.id == store.activeAccountId {
-                            Image(systemName: "checkmark").foregroundColor(.accentColor)
+                            Image(systemName: "checkmark").foregroundColor(palette.accent)
                         }
                     }
                 }
@@ -46,6 +47,7 @@ struct AccountsView: View {
                 Label("Konto hinzufügen", systemImage: "plus")
             }
         }
+        .themedSurface(palette)
         .navigationTitle("Konten")
         .sheet(isPresented: $showAddAccount) {
             LoginView(useFaceID: .constant(false), mode: .addAccount, onConnect: {})

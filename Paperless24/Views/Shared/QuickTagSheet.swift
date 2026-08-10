@@ -3,6 +3,7 @@ import SwiftUI
 struct QuickTagSheet: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.dismiss) var dismiss
+    @Environment(\.palette) private var palette
     let doc: Document
 
     @State private var selectedTags: Set<Int>
@@ -16,7 +17,7 @@ struct QuickTagSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 Picker("Modus", selection: $assignMode) {
                     Text("Tags").tag(0)
@@ -37,7 +38,7 @@ struct QuickTagSheet: View {
                                 Text(tag.safeName).foregroundColor(.primary)
                                 Spacer()
                                 if selectedTags.contains(tag.id) {
-                                    Image(systemName: "checkmark").foregroundColor(.accentColor)
+                                    Image(systemName: "checkmark").foregroundColor(palette.accent)
                                 }
                             }
                         }
@@ -53,7 +54,7 @@ struct QuickTagSheet: View {
                                 Text("Kein Sender").foregroundColor(.primary).italic()
                                 Spacer()
                                 if selectedCorrespondent == nil {
-                                    Image(systemName: "checkmark").foregroundColor(.accentColor)
+                                    Image(systemName: "checkmark").foregroundColor(palette.accent)
                                 }
                             }
                         }
@@ -66,7 +67,7 @@ struct QuickTagSheet: View {
                                     Text(corr.safeName).foregroundColor(.primary)
                                     Spacer()
                                     if selectedCorrespondent == corr.id {
-                                        Image(systemName: "checkmark").foregroundColor(.accentColor)
+                                        Image(systemName: "checkmark").foregroundColor(palette.accent)
                                     }
                                 }
                             }

@@ -158,22 +158,14 @@ struct MetadataFormSection: View {
     }
 
     func runAnalysis() async {
-        guard let data = pdfData,
-              let pdf = PDFDocument(data: data),
-              let page = pdf.page(at: 0),
-              let cgImage = page.thumbnail(of: CGSize(width: 1000, height: 1000), for: .mediaBox).cgImage else { return }
+        guard let data = pdfData else { return }
 
         isAnalyzing = true
         analysisResult = ""
 
-        let request = VNRecognizeTextRequest()
-        request.recognitionLevel = .accurate
-        try? VNImageRequestHandler(cgImage: cgImage).perform([request])
-
-        guard let observations = request.results as? [VNRecognizedTextObservation] else {
-            isAnalyzing = false; return
-        }
-        let fullText = observations.compactMap { $0.topCandidates(1).first?.string }.joined(separator: " ")
+        // Rendern und Texterkennung laufen in `OCRService` abseits des Main Threads —
+        // vorher stand die Oberfläche währenddessen still.
+        let fullText = await OCRService.recognizeFirstPage(ofPDF: data)
 
         // Bevorzugt Apple Intelligence; fällt sonst auf die Stichwort-Logik zurück.
         if AIService.shared.isAvailable {

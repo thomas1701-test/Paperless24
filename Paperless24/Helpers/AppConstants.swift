@@ -2,11 +2,69 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "1.8.1"
+    static let appVersion = "2.1.2"
     static let urlScheme = "paperless24"
     static let appStoreId = "6770317210"
 
+    /// Schemata, die als Rückruf-Ziel der Dokumentauswahl (`paperless24://pick?callback=`)
+    /// nicht in Frage kommen.
+    ///
+    /// Den Rückruf darf jede App auf dem Gerät setzen. Ohne Prüfung ließe sich dort eine
+    /// Web-Adresse hinterlegen — die App würde nach der Auswahl den Browser öffnen und
+    /// Dokument-ID und Titel als Parameter an eine fremde Seite übergeben. Der Rückruf geht
+    /// an eine App auf demselben Gerät, ein Web- oder Datei-Schema ergibt hier also nie Sinn.
+    private static let blockedCallbackSchemes: Set<String> = [
+        "http", "https", "file", "data", "javascript", "mailto", "tel", "sms", "ftp", "about"
+    ]
+
+    /// Prüft das Rückruf-Ziel der Dokumentauswahl.
+    static func isAllowedPickerCallback(_ raw: String) -> Bool {
+        guard let scheme = URL(string: raw)?.scheme?.lowercased(), !scheme.isEmpty else { return false }
+        return !blockedCallbackSchemes.contains(scheme)
+    }
+
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "2.1.2", date: "10.08.2026", changes: [
+            "Behoben: Beim Bearbeiten eines Dokuments wurde das Erstelldatum überschrieben – gespeichert wurde der heutige Tag statt des tatsächlichen Datums. Je nach Server konnte es außerdem um einen Tag zurückspringen.",
+            "Behoben: Beim Import konnte dasselbe Dokument zweimal hochgeladen werden und lag danach doppelt im Archiv.",
+            "Behoben: Ließ sich ein Dokument nicht löschen – etwa ohne Verbindung oder ohne Berechtigung –, verschwand es trotzdem aus der Liste und tauchte beim nächsten Abgleich wieder auf. Jetzt bleibt es stehen und die App nennt den Grund.",
+            "Behoben: Suchbegriffe mit „&“ oder „+“ lieferten keine oder falsche Treffer.",
+            "Behoben: Nach einem Kontowechsel konnten die Miniaturansichten des vorherigen Kontos in der Liste stehen bleiben.",
+            "Behoben: In „Darstellung“ blieben die Vorschauen der App-Symbole leer – dort waren nur graue Kacheln zu sehen.",
+            "Behoben: Wurden mehrere Dokumente mit gleichem Titel auf einmal geteilt, überschrieben sie sich gegenseitig. Die Zwischenkopien werden jetzt auch wieder aufgeräumt.",
+            "Behoben: Unter ungünstigen Umständen konnte die Warteschlange mit noch nicht übertragenen Änderungen verloren gehen.",
+            "Behoben: Telefonnummern und Links im erkannten Text waren an der falschen Stelle antippbar, wenn sie mehrfach im Dokument vorkamen.",
+            "Sicherheit: Der Anmeldeschlüssel liegt strenger geschützt im Schlüsselbund und wandert nicht mehr in Backups auf andere Geräte.",
+            "Sicherheit: Die App-Sperre fragt jetzt nach dem Gerätecode, wenn Face ID nicht verfügbar oder gesperrt ist. Vorher öffnete sich die App in diesem Fall ungeprüft. Nach einem Abbruch bleibt sie gesperrt und lässt sich über „Entsperren“ erneut öffnen.",
+            "Sicherheit: Die Dokumentauswahl für Vermietoo nimmt keine Web-Adressen mehr als Rückrufziel an.",
+            "Schneller: Die Dokumentliste scrollt flüssiger, die PDF-Ansicht ruckelt nicht mehr beim Blättern, und die App startet zügiger.",
+            "Schneller: Texterkennung und „Archiv fragen“ blockieren die Bedienung nicht mehr, während sie rechnen.",
+            "Verbessert: Antwortet der Server nicht, bricht die App nach 30 Sekunden ab, statt lange zu warten.",
+        ]),
+        ChangelogEntry(version: "2.1.1", date: "10.08.2026", changes: [
+            "Behoben: In Englisch, Französisch, Spanisch und Italienisch blieben einzelne Texte auf Deutsch stehen – darunter die Kacheln auf der Startseite, der Netzwerkscanner, die Archiv-Frage und die Auswahllisten für Filter, Tags und Sender. Alle vier Sprachen sind jetzt vollständig übersetzt.",
+            "Behoben: Werte in eigenen Feldern werden jetzt passend zum Feldtyp angezeigt – Datumsangaben im Format der Gerätesprache, Beträge mit Währung, Ja/Nein statt „true“/„false“ und bei Auswahlfeldern die Bezeichnung statt der internen Kennung. Verknüpfte Dokumente erscheinen mit ihrem Titel.",
+        ]),
+        ChangelogEntry(version: "2.1.0", date: "10.08.2026", changes: [
+            "Neu: Das Design lässt sich jetzt mit diversen Farben anpassen – Indigo, Ozean, Wald, Sonnenuntergang, Graphit und Kontrast stehen als fertige Farbthemen bereit.",
+            "Mit „Eigene Farbe“ wählst du deine Akzentfarbe frei über den Farbwähler.",
+            "Ein Farbthema färbt nicht nur Knöpfe, sondern auch Verläufe und Chips – die App wirkt aus einem Guss. Tag-Farben kommen weiterhin vom Server und bleiben unverändert.",
+            "Alle Farben gibt es in einer hellen und einer dunklen Variante, damit sie in beiden Erscheinungsbildern gut lesbar bleiben.",
+        ]),
+        ChangelogEntry(version: "2.0.0", date: "28.07.2026", changes: [
+            "Unterstützt paperless-ngx 3.0 und neuer. Mit 3.0 hat der Server das Format seiner Antworten umgestellt – Dokumente, Notizen und Auswahlfelder kamen danach anders an, als die App sie erwartet hat.",
+            "Die App einigt sich beim ersten Kontakt mit dem Server auf ein gemeinsames Datenformat. Ältere Installationen ab paperless-ngx 2.x funktionieren unverändert weiter, es ist nichts einzustellen.",
+            "Nach einem Server-Update genügt ein Start der App – sie erkennt die neue Version von selbst.",
+            "Behoben: Nach dem Server-Update konnte dasselbe Dokument mehrfach in der Übersicht landen. Dadurch ließen sich Dokumente nicht mehr per Tipp öffnen, und das Kontextmenü ging auf der falschen Kachel auf.",
+            "iPhone: Dokumente und Posteingang lassen sich wieder per Tipp öffnen",
+            "iPad: Dokumente lassen sich in der Übersicht wieder per Tipp öffnen",
+            "iPad: Neue Dreispalten-Ansicht – Filter links, Dokumente in der Mitte, Vorschau rechts",
+            "iPad: Filter, Tags, Sender, Typen und gespeicherte Ansichten jetzt in einer eigenen Seitenleiste statt in der schmalen Chip-Leiste",
+            "iPad: Dialoge wie Import, Bearbeiten, Netzwerkscanner und Archiv fragen werden nicht mehr halb leer dargestellt",
+            "iPad: Doppelte Navigationsleiste in den Einstellungen entfernt",
+            "Suchfeld sitzt jetzt fest in der Navigationsleiste und springt beim Umschalten von Raster und Liste nicht mehr",
+            "Lädt eine Vorschau nicht, zeigt die App den Grund an und bietet einen erneuten Versuch – statt eines endlosen Ladekreises",
+        ]),
         ChangelogEntry(version: "1.8.1", date: "14.06.2026", changes: [
             "Du kannst die App jetzt direkt aus den Einstellungen heraus bewerten.",
         ]),

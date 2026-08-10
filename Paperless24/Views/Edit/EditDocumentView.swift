@@ -19,7 +19,7 @@ struct EditDocumentView: View {
     @State private var pdfData: Data? = nil
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("Meta") {
                     TextField("Titel", text: $title)
@@ -64,9 +64,11 @@ struct EditDocumentView: View {
         documentType = document.documentType
         customFields = document.customFields
         if let a = document.archiveSerialNumber { asn = "\(a)" }
-        let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = iso.date(from: document.created) { date = d }
+        // Über `dateObject`, nicht über einen eigenen Formatter: ein Parser, der Millisekunden
+        // erzwingt, scheitert an `2026-08-10T00:00:00+02:00` und erst recht am reinen Datum der
+        // API-Version 9. `date` bliebe dann auf „heute" stehen — und „Speichern" würde das
+        // echte Erstelldatum überschreiben.
+        if let d = document.dateObject { date = d }
 
         if store.fileExists(docId: document.id) {
             pdfData = try? Data(contentsOf: store.localFileURL(for: document.id))

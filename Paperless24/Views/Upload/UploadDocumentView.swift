@@ -14,7 +14,7 @@ struct UploadDocumentView: View {
     @State private var isUploading = false
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("Vorschau") {
                     HStack {

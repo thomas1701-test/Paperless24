@@ -6,17 +6,27 @@ enum PersistenceService {
             .appendingPathComponent(name)
     }
 
+    /// Eine serielle Queue für alle Schreibvorgänge.
+    ///
+    /// `saveToDisk()` stößt acht Schreibvorgänge auf einmal an, und das bei jeder Bearbeitung.
+    /// Auf einer nebenläufigen Queue überholten die sich gegenseitig; zusammen mit dem
+    /// nicht-atomaren `write(to:)` konnte eine halb geschriebene Datei zurückbleiben. Beim
+    /// nächsten Start schlug das Dekodieren fehl und `?? []` machte daraus stillschweigend
+    /// eine leere Liste — die Warteschlange war weg.
+    private static let ioQueue = DispatchQueue(label: "de.tedi.paperless.persistence", qos: .utility)
+
+    /// Atomar schreiben und mit Dateischutz versehen. `completeFileProtectionUnlessOpen`
+    /// hält die Dokumentdaten verschlüsselt, blockiert aber keine bereits geöffnete Datei.
+    private static let writeOptions: Data.WritingOptions = [.atomic, .completeFileProtectionUnlessOpen]
+
     // MARK: - JSON Data (account-agnostic, für globale Einstellungen — nicht mehr verwendet)
 
     static func save<T: Encodable>(_ value: T, to filename: String) {
-        DispatchQueue.global(qos: .background).async {
-            try? JSONEncoder().encode(value).write(to: url(filename))
-        }
+        save(value, toURL: url(filename))
     }
 
     static func load<T: Decodable>(_ type: T.Type, from filename: String) -> T? {
-        guard let data = try? Data(contentsOf: url(filename)) else { return nil }
-        return try? JSONDecoder().decode(type, from: data)
+        load(type, fromURL: url(filename))
     }
 
     // MARK: - Per-Account JSON Data
@@ -28,9 +38,17 @@ enum PersistenceService {
     }
 
     static func save<T: Encodable>(_ value: T, toURL fileURL: URL) {
-        DispatchQueue.global(qos: .background).async {
-            try? JSONEncoder().encode(value).write(to: fileURL)
+        // Kodieren beim Aufrufer, nicht in der Queue: `value` ist dann bereits ein fertiger
+        // Byte-Puffer und der Wert kann sich nicht mehr unter dem Schreibvorgang ändern.
+        guard let data = try? JSONEncoder().encode(value) else { return }
+        ioQueue.async {
+            try? data.write(to: fileURL, options: writeOptions)
         }
+    }
+
+    /// Schreibt eine bereits fertige Datei (PDF, Bild) mit denselben Garantien.
+    static func writeFile(_ data: Data, to fileURL: URL) throws {
+        try data.write(to: fileURL, options: writeOptions)
     }
 
     static func load<T: Decodable>(_ type: T.Type, fromURL fileURL: URL) -> T? {
@@ -72,13 +90,17 @@ enum PersistenceService {
                 if file.lastPathComponent.hasPrefix("doc_") { count += 1 }
             }
         }
-        if let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first,
-           let subs = try? FileManager.default.subpathsOfDirectory(atPath: cacheDir.path) {
-            for path in subs {
-                if let attrs = try? FileManager.default.attributesOfItem(
-                    atPath: cacheDir.appendingPathComponent(path).path
-                ), let size = attrs[.size] as? Int64 {
-                    totalBytes += size
+        // Nur die Miniaturansichten dieses Kontos. Vorher lief hier der komplette Caches-Ordner
+        // durch — inklusive der Vorschauen aller anderen Konten und allem, was das System dort
+        // sonst ablegt. Die angezeigte Größe gehörte damit nicht zum gewählten Konto.
+        let thumbsDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("Thumbnails/\(accountId.uuidString)")
+        if let thumbs = try? FileManager.default.contentsOfDirectory(
+            at: thumbsDir, includingPropertiesForKeys: [.fileSizeKey]
+        ) {
+            for file in thumbs {
+                if let size = try? file.resourceValues(forKeys: [.fileSizeKey]).fileSize {
+                    totalBytes += Int64(size)
                 }
             }
         }

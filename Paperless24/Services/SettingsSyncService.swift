@@ -6,7 +6,9 @@ enum SettingsSyncService {
     private static let keys = [
         "appearanceMode", "layoutStyle", "appLanguage",
         "pageSize", "gridItemSize", "aiEnabled", "notificationsEnabled",
-        "batchScanEnabled", "translationEnabled"
+        "batchScanEnabled", "translationEnabled",
+        "themeId", "customAccentHex", "amoledEnabled",
+        "pdfDarkMode", "readingMode", "readingFontSize"
     ]
 
     static func start() {

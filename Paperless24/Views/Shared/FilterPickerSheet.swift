@@ -11,6 +11,7 @@ struct FilterPickerSheet: View {
     var noneLabel: String = "Alle"
     @Binding var selectedId: Int?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.palette) private var palette
     @State private var searchText = ""
 
     private var filtered: [FilterPickerItem] {
@@ -19,7 +20,7 @@ struct FilterPickerSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Button {
                     selectedId = nil
@@ -29,7 +30,7 @@ struct FilterPickerSheet: View {
                         Text(noneLabel)
                         Spacer()
                         if selectedId == nil {
-                            Image(systemName: "checkmark").foregroundColor(.accentColor)
+                            Image(systemName: "checkmark").foregroundColor(palette.accent)
                         }
                     }
                 }
@@ -44,7 +45,7 @@ struct FilterPickerSheet: View {
                             Text(item.name)
                             Spacer()
                             if selectedId == item.id {
-                                Image(systemName: "checkmark").foregroundColor(.accentColor)
+                                Image(systemName: "checkmark").foregroundColor(palette.accent)
                             }
                         }
                     }

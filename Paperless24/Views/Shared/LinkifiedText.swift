@@ -20,7 +20,13 @@ struct LinkifiedText: View {
         detector.enumerateMatches(in: text, options: [], range: NSRange(location: 0, length: ns.length)) { match, _, _ in
             guard let match else { return }
             let sub = ns.substring(with: match.range)
-            guard let range = attr.range(of: sub) else { return }
+            // Die tatsächliche Fundstelle übernehmen, nicht per `attr.range(of:)` suchen:
+            // die Suche liefert immer das erste Vorkommen — steht dieselbe Nummer zweimal
+            // im Text, bekäme die erste beide Links und die zweite bliebe tot.
+            guard let textRange = Range(match.range, in: text),
+                  let lower = AttributedString.Index(textRange.lowerBound, within: attr),
+                  let upper = AttributedString.Index(textRange.upperBound, within: attr) else { return }
+            let range = lower..<upper
 
             switch match.resultType {
             case .link:
@@ -31,8 +37,11 @@ struct LinkifiedText: View {
                     if let url = URL(string: "tel:\(digits)") { attr[range].link = url }
                 }
             case .address:
-                let q = sub.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sub
-                if let url = URL(string: "http://maps.apple.com/?q=\(q)") { attr[range].link = url }
+                // Über `URLComponents`, damit ein `&` in der Adresse nicht als Parametertrenner
+                // gelesen wird. Und über HTTPS statt HTTP.
+                var comps = URLComponents(string: "https://maps.apple.com/")
+                comps?.queryItems = [URLQueryItem(name: "q", value: sub)]
+                if let url = comps?.url { attr[range].link = url }
             default:
                 break
             }

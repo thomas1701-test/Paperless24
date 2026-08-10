@@ -36,6 +36,34 @@
     "%lld Dokument(e) können nicht wiederhergestellt werden." : {
 
     },
+    "%1$lld indiziert, %2$lld abgelehnt: %3$@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld indexed, %2$lld rejected: %3$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld indexados, %2$lld rechazados: %3$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld indexés, %2$lld refusés : %3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld indicizzati, %2$lld rifiutati: %3$@"
+          }
+        }
+      }
+    },
     "%lld pt" : {
 
     },
@@ -412,6 +440,9 @@
         }
       }
     },
+    "App bewerten" : {
+
+    },
     "App Speicher" : {
       "localizations" : {
         "en" : {
@@ -436,6 +467,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Archiviazione app"
+          }
+        }
+      }
+    },
+    "App-Symbol" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App icon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icono de la app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icône de l'app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icona dell'app"
           }
         }
       }
@@ -721,7 +780,32 @@
       }
     },
     "Darstellung" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualización"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Affichage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualizzazione"
+          }
+        }
+      }
     },
     "Das letzte Konto kann nicht gelöscht werden. Melde dich stattdessen ab." : {
       "localizations" : {
@@ -900,6 +984,34 @@
         }
       }
     },
+    "Der Lesemodus zeigt den erkannten Text auf warmem Papierton mit größerer Schrift." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading mode shows the recognized text on a warm paper tone in larger type."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El modo lectura muestra el texto reconocido sobre un tono papel cálido y con letra más grande."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mode lecture affiche le texte reconnu sur un ton papier chaud, en plus grand."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La modalità lettura mostra il testo riconosciuto su un tono carta caldo e con caratteri più grandi."
+          }
+        }
+      }
+    },
     "Design" : {
       "localizations" : {
         "en" : {
@@ -997,6 +1109,9 @@
     "Dokument für Vermietoo auswählen" : {
 
     },
+    "Dokument konnte nicht geladen werden" : {
+
+    },
     "Dokument scannen" : {
 
     },
@@ -1090,6 +1205,9 @@
         }
       }
     },
+    "Du wirst dafür zu PayPal weitergeleitet. Vielen Dank für deine Unterstützung! 🙏" : {
+
+    },
     "Dunkel" : {
       "localizations" : {
         "en" : {
@@ -1148,6 +1266,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modifica"
+          }
+        }
+      }
+    },
+    "Eigene Farbe" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Custom color"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color propio"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couleur personnalisée"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colore personalizzato"
           }
         }
       }
@@ -1217,6 +1363,40 @@
     "Enthält Text (optional)" : {
 
     },
+    "Entsperren" : {
+
+    },
+    "Erneut versuchen" : {
+
+    },
+    "Erscheinungsbild" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apariencia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apparence"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aspetto"
+          }
+        }
+      }
+    },
     "Erstellen" : {
       "localizations" : {
         "en" : {
@@ -1269,6 +1449,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Face ID"
+          }
+        }
+      }
+    },
+    "Farbthema" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Color theme"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema de color"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thème de couleur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema colore"
+          }
+        }
+      }
+    },
+    "Farbthema & Darstellung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theme & appearance"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema y apariencia"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thème et apparence"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema e aspetto"
           }
         }
       }
@@ -1340,6 +1576,37 @@
           }
         }
       }
+    },
+    "Fertig — %lld Dokumente im Index" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done — %lld documents indexed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo — %lld documentos en el índice"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminé — %lld documents dans l'index"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fine — %lld documenti nell'indice"
+          }
+        }
+      }
+    },
+    "Filter" : {
+
     },
     "Filter speichern" : {
       "extractionState" : "stale",
@@ -1416,6 +1683,9 @@
         }
       }
     },
+    "Gespeicherte Ansichten" : {
+
+    },
     "gewählt" : {
       "localizations" : {
         "de" : {
@@ -1478,6 +1748,34 @@
         }
       }
     },
+    "Graphit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Graphite"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafito"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Graphite"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grafite"
+          }
+        }
+      }
+    },
     "Hell" : {
       "localizations" : {
         "en" : {
@@ -1515,6 +1813,9 @@
     "https://" : {
 
     },
+    "Ich entwickle Paperless 24 in meiner Freizeit und stelle die App kostenlos zur Verfügung. Wenn sie dir hilft, freue ich mich über ein kleines Trinkgeld – ganz freiwillig und in beliebiger Höhe." : {
+
+    },
     "Import" : {
       "localizations" : {
         "en" : {
@@ -1539,6 +1840,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Importa"
+          }
+        }
+      }
+    },
+    "Indigo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indigo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Índigo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indigo"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indaco"
           }
         }
       }
@@ -1581,6 +1910,9 @@
 
     },
     "Kein Filter" : {
+
+    },
+    "Kein gültiges Login" : {
 
     },
     "Kein OCR-Text vorhanden" : {
@@ -1732,6 +2064,40 @@
     "Keine Scanner gefunden" : {
 
     },
+    "keychain_save_failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Anmeldeschlüssel konnte nicht sicher gespeichert werden. Bitte erneut versuchen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The login key could not be stored securely. Please try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo guardar la clave de acceso de forma segura. Inténtalo de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé de connexion n'a pas pu être enregistrée en toute sécurité. Veuillez réessayer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non è stato possibile salvare la chiave di accesso in modo sicuro. Riprova."
+          }
+        }
+      }
+    },
     "KI denkt..." : {
       "localizations" : {
         "en" : {
@@ -1875,6 +2241,34 @@
         }
       }
     },
+    "Kontrast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contrast"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraste"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contraste"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contrasto"
+          }
+        }
+      }
+    },
     "Kopieren" : {
 
     },
@@ -1977,8 +2371,63 @@
         }
       }
     },
+    "Lesemodus für den Text-Reiter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading mode for the text tab"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo lectura para la pestaña de texto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode lecture pour l'onglet texte"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modalità lettura per la scheda testo"
+          }
+        }
+      }
+    },
+    "Lesen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lectura"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lecture"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lettura"
+          }
+        }
+      }
+    },
     "Letzte ASN" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2219,6 +2668,9 @@
 
     },
     "Mit Apple Intelligence zusammenfassen" : {
+
+    },
+    "Mit PayPal ein Trinkgeld geben" : {
 
     },
     "Modus" : {
@@ -2551,11 +3003,67 @@
     "Original" : {
 
     },
+    "Ozean" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocean"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Océano"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Océan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oceano"
+          }
+        }
+      }
+    },
     "Paperless 24" : {
 
     },
-    "Papierkorb" : {
+    "Paperless 24 ist kostenlos" : {
 
+    },
+    "Papierkorb" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Papelera"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corbeille"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cestino"
+          }
+        }
+      }
     },
     "Papierkorb ist leer" : {
 
@@ -2584,6 +3092,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Password"
+          }
+        }
+      }
+    },
+    "PDF im Dunkelmodus abdunkeln" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dim PDFs in dark mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atenuar los PDF en modo oscuro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assombrir les PDF en mode sombre"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scurisci i PDF in modalità scura"
           }
         }
       }
@@ -2647,6 +3183,62 @@
     "Posteingang öffnen" : {
 
     },
+    "Raster" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grid"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuadrícula"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grille"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Griglia"
+          }
+        }
+      }
+    },
+    "Rechnung Mai" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "May invoice"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Factura de mayo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Facture de mai"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fattura di maggio"
+          }
+        }
+      }
+    },
     "Scan" : {
       "localizations" : {
         "en" : {
@@ -2705,6 +3297,90 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Assegnazione rapida"
+          }
+        }
+      }
+    },
+    "Schriftgröße" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Font size"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamaño de letra"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taille du texte"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dimensione del testo"
+          }
+        }
+      }
+    },
+    "Schwarzer Hintergrund" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Black background"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fondo negro"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fond noir"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sfondo nero"
+          }
+        }
+      }
+    },
+    "Schwarzer Hintergrund spart auf OLED-Displays Strom und wirkt nur im Dunkelmodus." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A black background saves power on OLED displays and only applies in dark mode."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El fondo negro ahorra energía en pantallas OLED y solo se aplica en modo oscuro."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le fond noir économise de l'énergie sur les écrans OLED et ne s'applique qu'en mode sombre."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo sfondo nero riduce i consumi sui display OLED e vale solo in modalità scura."
           }
         }
       }
@@ -2802,6 +3478,34 @@
         }
       }
     },
+    "Sonnenuntergang" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunset"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atardecer"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coucher de soleil"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tramonto"
+          }
+        }
+      }
+    },
     "Speichern" : {
       "localizations" : {
         "en" : {
@@ -2860,6 +3564,34 @@
     },
     "Sprache" : {
 
+    },
+    "Stadtwerke" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "City utilities"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servicios municipales"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Services municipaux"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Servizi municipali"
+          }
+        }
+      }
     },
     "Stapel scannen" : {
 
@@ -3002,6 +3734,34 @@
     },
     "Tag suchen" : {
 
+    },
+    "Tag-Farben kommen vom Server und bleiben unverändert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tag colors come from the server and stay unchanged."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los colores de las etiquetas vienen del servidor y no cambian."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les couleurs des étiquettes viennent du serveur et restent inchangées."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I colori dei tag arrivano dal server e restano invariati."
+          }
+        }
+      }
     },
     "Tags" : {
       "localizations" : {
@@ -3298,6 +4058,9 @@
     "unbegrenzt" : {
 
     },
+    "Unterstützung" : {
+
+    },
     "Upload" : {
       "localizations" : {
         "en" : {
@@ -3398,10 +4161,60 @@
 
     },
     "Verwaltung" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Management"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Administración"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestion"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestione"
+          }
+        }
+      }
     },
     "Vorschau" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista previa"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aperçu"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anteprima"
+          }
+        }
+      }
     },
     "Wählen" : {
       "localizations" : {
@@ -3427,6 +4240,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Seleziona"
+          }
+        }
+      }
+    },
+    "Wald" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bosque"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forêt"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bosco"
           }
         }
       }
@@ -3534,7 +4375,6 @@
 
     },
     "Zeichen" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3594,7 +4434,6 @@
 
     },
     "Zeitraum" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

@@ -7,7 +7,7 @@ struct AirScanView: View {
     @StateObject private var service = AirScanService()
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section {
                     if service.scanners.isEmpty {

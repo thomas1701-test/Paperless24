@@ -17,7 +17,13 @@ final class AirScanService: NSObject, ObservableObject {
         let name: String
         let host: String
         let port: Int
-        var baseURL: URL? { URL(string: "http://\(host):\(port)/eSCL") }
+
+        /// IPv6-Adressen gehören in eckige Klammern, sonst liest `URL` den Doppelpunkt als
+        /// Trenner vor dem Port und die Adresse wird ungültig.
+        var baseURL: URL? {
+            let hostPart = host.contains(":") && !host.hasPrefix("[") ? "[\(host)]" : host
+            return URL(string: "http://\(hostPart):\(port)/eSCL")
+        }
     }
 
     // MARK: - Discovery

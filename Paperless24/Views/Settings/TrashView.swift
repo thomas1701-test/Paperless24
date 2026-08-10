@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Papierkorb: gelöschte Dokumente wiederherstellen oder endgültig löschen.
 struct TrashView: View {
+    @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
     @State private var isLoading = true
     @State private var selection = Set<Int>()
@@ -43,6 +44,7 @@ struct TrashView: View {
                 .environment(\.editMode, .constant(.active))
             }
         }
+        .themedSurface(palette)
         .navigationTitle("Papierkorb")
         .toolbar {
             ToolbarItemGroup(placement: .navigationBarTrailing) {

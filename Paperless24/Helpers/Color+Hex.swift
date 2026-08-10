@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 extension Color {
     init(hex: String) {
@@ -13,5 +14,14 @@ extension Color {
         default: (a, r, g, b) = (255, 0, 0, 0)
         }
         self.init(.sRGB, red: Double(r) / 255, green: Double(g) / 255, blue: Double(b) / 255, opacity: Double(a) / 255)
+    }
+
+    /// Sechsstelliges Hex ohne `#`. Gegenstück zu `init(hex:)`, damit die im `ColorPicker`
+    /// gewählte Farbe als `String` in `UserDefaults` (und via iCloud auf andere Geräte) passt.
+    var hexString: String {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a)
+        func byte(_ v: CGFloat) -> Int { Int((max(0, min(1, v)) * 255).rounded()) }
+        return String(format: "%02X%02X%02X", byte(r), byte(g), byte(b))
     }
 }

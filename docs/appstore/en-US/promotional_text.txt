@@ -1,0 +1,1 @@
+New in 2.0: paperless-ngx 3.0 support, batch scanning with automatic splitting, ask-your-archive with sources, six colour themes and a home screen widget.

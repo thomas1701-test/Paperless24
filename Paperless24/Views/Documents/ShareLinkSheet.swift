@@ -15,7 +15,7 @@ struct ShareLinkSheet: View {
     @State private var copiedSlug: String? = nil
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("Neuen Link erstellen") {
                     Picker("Version", selection: $fileVersion) {

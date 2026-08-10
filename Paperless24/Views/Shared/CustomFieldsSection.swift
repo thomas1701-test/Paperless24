@@ -5,6 +5,7 @@ import SwiftUI
 struct CustomFieldsSection: View {
     @EnvironmentObject var store: AppStore
     @Binding var values: [CustomFieldEdit]
+    @Environment(\.palette) private var palette
 
     @State private var linkPickerField: CustomField? = nil
 
@@ -154,6 +155,7 @@ struct DocumentLinkPickerSheet: View {
     @EnvironmentObject var store: AppStore
     @Binding var selected: [Int]
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.palette) private var palette
     @State private var searchText = ""
 
     private var filtered: [Document] {
@@ -162,7 +164,7 @@ struct DocumentLinkPickerSheet: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List(filtered) { doc in
                 Button {
                     if let idx = selected.firstIndex(of: doc.id) { selected.remove(at: idx) }
@@ -172,7 +174,7 @@ struct DocumentLinkPickerSheet: View {
                         Text(doc.title).foregroundColor(.primary).lineLimit(1)
                         Spacer()
                         if selected.contains(doc.id) {
-                            Image(systemName: "checkmark").foregroundColor(.accentColor)
+                            Image(systemName: "checkmark").foregroundColor(palette.accent)
                         }
                     }
                 }

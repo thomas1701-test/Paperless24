@@ -20,16 +20,7 @@ struct Document: Identifiable, Codable, Hashable {
         case customFields = "custom_fields"
     }
 
-    var dateObject: Date? {
-        let iso = ISO8601DateFormatter()
-        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let d = iso.date(from: created) { return d }
-        iso.formatOptions = [.withInternetDateTime]
-        if let d = iso.date(from: created) { return d }
-        let simple = DateFormatter()
-        simple.dateFormat = "yyyy-MM-dd"
-        return simple.date(from: created)
-    }
+    var dateObject: Date? { DateFormatting.parseAPIDate(created) }
 
     var safeNotes: [Note] { notes ?? [] }
 }

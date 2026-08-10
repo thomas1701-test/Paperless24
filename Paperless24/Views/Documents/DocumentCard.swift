@@ -9,6 +9,7 @@ struct DocumentCard: View {
     var allDocTypes: [DocumentType] = []
     var isSelected: Bool = false
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.palette) private var palette
 
     private var firstTagColor: Color {
         guard let firstTagId = doc.tags.first,
@@ -16,6 +17,14 @@ struct DocumentCard: View {
             return Color(.systemGray4)
         }
         return Color(hex: tag.safeColor)
+    }
+
+    /// Im Kontrast-Thema hat jede Karte eine sichtbare Kante — dort trägt nicht die Farbfläche
+    /// die Abgrenzung, sondern der Rahmen.
+    private var borderColor: Color {
+        if isSelected { return palette.accent }
+        if palette.strongEdges { return palette.accent.opacity(0.55) }
+        return colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear
     }
 
     var body: some View {
@@ -66,7 +75,7 @@ struct DocumentCard: View {
                                     .frame(width: 6, height: 6)
                                 Text(name)
                                     .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(.accentColor)
+                                    .foregroundColor(palette.accent)
                                     .lineLimit(1)
                             }
                         }
@@ -99,14 +108,11 @@ struct DocumentCard: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(
-                        isSelected ? Color.accentColor : (colorScheme == .dark ? Color.white.opacity(0.06) : Color.clear),
-                        lineWidth: isSelected ? 2 : 1
-                    )
+                    .stroke(borderColor, lineWidth: isSelected ? 2 : 1)
             )
 
             if isSelected {
-                Image(systemName: "checkmark.circle.fill").foregroundColor(.accentColor).padding(6)
+                Image(systemName: "checkmark.circle.fill").foregroundColor(palette.accent).padding(6)
             }
         }
     }

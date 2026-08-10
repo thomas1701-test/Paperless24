@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TagListView: View {
+    @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
     @State private var showSheet = false
     @State private var newName = ""
@@ -34,6 +35,7 @@ struct TagListView: View {
             }
         }
         .searchable(text: $searchText, prompt: "Tag suchen")
+        .themedSurface(palette)
         .navigationTitle("Tags")
         .toolbar {
             Button { showSheet = true } label: { Image(systemName: "plus") }
@@ -48,6 +50,7 @@ struct TagListView: View {
 }
 
 struct CorrespondentListView: View {
+    @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
     @State private var showSheet = false
     @State private var newName = ""
@@ -70,6 +73,7 @@ struct CorrespondentListView: View {
             }
         }
         .searchable(text: $searchText, prompt: "Sender suchen")
+        .themedSurface(palette)
         .navigationTitle("Sender")
         .toolbar {
             Button { showSheet = true } label: { Image(systemName: "plus") }
@@ -84,6 +88,7 @@ struct CorrespondentListView: View {
 }
 
 struct DocTypeListView: View {
+    @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
     @State private var showSheet = false
     @State private var newName = ""
@@ -106,6 +111,7 @@ struct DocTypeListView: View {
             }
         }
         .searchable(text: $searchText, prompt: "Typ suchen")
+        .themedSurface(palette)
         .navigationTitle("Typen")
         .toolbar {
             Button { showSheet = true } label: { Image(systemName: "plus") }
@@ -120,6 +126,7 @@ struct DocTypeListView: View {
 }
 
 struct ChangelogView: View {
+    @Environment(\.palette) private var palette
     var body: some View {
         List(AppConstants.appChangelog) { entry in
             VStack(alignment: .leading, spacing: 6) {
@@ -134,6 +141,7 @@ struct ChangelogView: View {
             }
             .padding(.vertical, 4)
         }
+        .themedSurface(palette)
         .navigationTitle("Changelog")
     }
 }

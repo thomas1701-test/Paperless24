@@ -1,0 +1,64 @@
+Paperless 24 bringt dein Dokumentenarchiv aufs iPhone, aufs iPad und auf den Mac. Die App verbindet sich direkt mit deinem eigenen paperless-ngx-Server — ohne Umweg über fremde Clouds, ohne Abo, ohne Konto bei uns.
+
+SCANNEN UND ABLEGEN
+• Dokumentenscanner mit Kantenerkennung, auch mehrseitig
+• Fotos und PDFs aus der Mediathek oder der Dateien-App
+• Netzwerkscanner im WLAN direkt ansteuern (AirScan/eSCL, 300 dpi)
+• Stapel-Scan: mehrere Briefe am Stück einlesen — die App trennt sie automatisch in einzelne Dokumente, Korrektur mit einem Tipp
+• Aus jeder anderen App über das Teilen-Menü ins Archiv schicken
+
+AUTOMATISCH BENANNT
+• Der Zauberstab liest die erste Seite und schlägt Titel, Absender, Typ, Tags und Datum vor
+• Fehlende Absender, Typen und Tags legt die App gleich mit an
+• Alles läuft auf dem Gerät — der Text verlässt dein iPhone nicht
+
+FINDEN
+• Volltextsuche über den erkannten Text aller Dokumente, mit Suchverlauf
+• Filter nach Tag, Absender, Typ, Zeitraum und eigenen Feldern
+• Gespeicherte Ansichten vom Server laden, anwenden und anlegen
+• Spotlight: deine Dokumente erscheinen in der iOS-Suche
+• Archiv fragen: eine Frage in eigenen Worten stellen und eine Antwort mit Quellenangabe bekommen
+
+LESEN UND BEARBEITEN
+• PDF-Ansicht mit hervorgehobenen Suchtreffern
+• Erkannter Text im Lesemodus: warmer Papierton, Serifenschrift, einstellbare Größe
+• Telefonnummern, Links und Adressen sind anklickbar
+• Zusammenfassung auf Knopfdruck
+• Übersetzen ohne Netzverbindung
+• Titel, Datum, Absender, Typ, ASN, Tags und eigene Felder ändern
+• Notizen anlegen und löschen
+• Freigabe-Links erstellen, auflisten und widerrufen
+
+ORDNUNG HALTEN
+• Posteingang als eigener Tab mit Abzeichen
+• Wischgesten für Tag setzen, Bearbeiten und Löschen
+• Mehrfachauswahl: Tag oder Absender für viele Dokumente auf einmal
+• Tags, Absender und Typen verwalten — inklusive verschachtelter Tags
+• Papierkorb mit Wiederherstellen und endgültigem Löschen
+• Eigene Felder in allen Typen: Text, Zahl, Datum, Auswahl, Ja/Nein, Betrag, Dokument-Link
+
+OFFLINE
+• Alle Dokumente herunterladen und ohne Netz lesen
+• Änderungen und Uploads werden gepuffert und automatisch nachgereicht
+• Speicherverbrauch jederzeit im Blick, einzelne Dateien löschbar
+
+MEHRERE KONTEN
+• Beliebig viele Server und Benutzer, getrennte Daten je Konto
+• Face ID oder Touch ID als Sperre
+• Zwei-Faktor-Anmeldung (TOTP)
+• Zugangsdaten liegen im iOS-Schlüsselbund
+
+AUF JEDEM GERÄT
+• Widget mit den letzten Dokumenten oder der Übersicht
+• Siri und Kurzbefehle: scannen, suchen, Posteingang öffnen, Archiv fragen
+• Benachrichtigung, wenn neue Post im Posteingang liegt
+• Dreispalten-Layout auf iPad und Mac
+• Einstellungen über iCloud auf allen Geräten gleich
+• Sechs Farbthemen, freie Akzentfarbe, OLED-Schwarz, fünf alternative App-Symbole
+• Deutsch, Englisch, Französisch, Spanisch, Italienisch
+
+VORAUSSETZUNG
+Paperless 24 ist eine Client-App. Du brauchst einen eigenen paperless-ngx-Server (Version 2.x bis 3.0.x). Ohne Server kannst du jederzeit den Demo-Modus mit Beispieldaten ausprobieren.
+
+DATENSCHUTZ
+Die App spricht ausschließlich mit deinem Server. Kein Tracking, keine Werbung, keine Analysedienste, keine Zwischenserver. Zusammenfassungen, Vorschläge und Übersetzungen laufen auf dem Gerät.

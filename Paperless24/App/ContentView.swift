@@ -7,14 +7,35 @@ struct ContentView: View {
     @Environment(\.locale) private var locale
     @AppStorage("useFaceID") private var useFaceID = false
     @AppStorage("appearanceMode") private var appearanceMode = 0
+    @AppStorage("themeId") private var themeId = AppTheme.indigo.rawValue
+    @AppStorage("customAccentHex") private var customAccentHex = "3F51B5"
+    @AppStorage("amoledEnabled") private var amoledEnabled = false
+    @Environment(\.colorScheme) private var systemScheme
 
     @State private var appState: AppState = .loading
     @State private var lastBackgroundTime: Date?
     @State private var isBlurry = false
     @State private var isAuthenticating = false
+    /// Anmeldung abgebrochen oder fehlgeschlagen — die Sperre bleibt, mit Knopf zum erneuten Versuch.
+    @State private var authFailed = false
+
+    /// Aus den gespeicherten Werten abgeleitete Farben. Wird in die Umgebung gelegt,
+    /// damit jede Ansicht `@Environment(\.palette)` nutzen kann.
+    private var palette: ThemePalette {
+        ThemeSettings(
+            theme: AppTheme(rawValue: themeId) ?? .indigo,
+            customAccentHex: customAccentHex,
+            amoled: amoledEnabled
+        )
+        .palette(isDark: isDarkAppearance(mode: appearanceMode, system: systemScheme))
+    }
 
     var body: some View {
         ZStack {
+            if let surface = palette.surface {
+                surface.ignoresSafeArea()
+            }
+
             Group {
                 switch appState {
                 case .loading:  ProgressView()
@@ -33,12 +54,20 @@ struct ContentView: View {
 
             if isBlurry {
                 Rectangle().fill(Material.ultraThin).ignoresSafeArea()
-                VStack {
+                VStack(spacing: 16) {
                     Image(systemName: "lock.shield.fill").font(.system(size: 60)).foregroundColor(.gray)
                     Text("Geschützt").font(.largeTitle).bold().foregroundColor(.gray)
+                    if authFailed {
+                        Button("Entsperren") { authenticate() }
+                            .buttonStyle(.borderedProminent)
+                    }
                 }
             }
         }
+        // `tint` färbt Systemsteuerelemente, `palette` alles Selbstgezeichnete. Beides ist
+        // nötig: `Color.accentColor` liest weiterhin das Asset und folgt `tint` nicht.
+        .tint(palette.accent)
+        .environment(\.palette, palette)
         .onAppear {
             ReviewRequestService.shared.registerLaunch()
             if store.serverUrl.isEmpty {
@@ -54,7 +83,10 @@ struct ContentView: View {
             switch newPhase {
             case .active:
                 if appState == .main && useFaceID {
-                    if let last = lastBackgroundTime, Date().timeIntervalSince(last) > 60 {
+                    let timedOut = lastBackgroundTime.map { Date().timeIntervalSince($0) > 60 } ?? false
+                    // `authFailed` hält die Sperre auch über einen kurzen Wechsel hinweg —
+                    // sonst ließe sie sich durch einmal Hoch- und Zurückwischen umgehen.
+                    if timedOut || authFailed {
                         if !isAuthenticating { authenticate() }
                     } else {
                         withAnimation { isBlurry = false }
@@ -82,23 +114,35 @@ struct ContentView: View {
     private func authenticate() {
         guard !isAuthenticating else { return }
         isAuthenticating = true
+        authFailed = false
         let context = LAContext()
         var error: NSError?
-        if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
-            context.evaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, localizedReason: String(localized: "biometric_reason", locale: locale)) { success, _ in
-                DispatchQueue.main.async {
-                    self.isAuthenticating = false
-                    if success {
-                        self.lastBackgroundTime = nil
-                        withAnimation { self.isBlurry = false }
-                        self.appState = .main
-                    }
-                }
-            }
-        } else {
+
+        // `.deviceOwnerAuthentication` statt `...WithBiometrics`: schlägt die Biometrie fehl
+        // oder ist sie gesperrt (fünf Fehlversuche, kein Gesicht/Finger hinterlegt), fragt das
+        // System nach dem Gerätecode. Vorher wurde in genau diesen Fällen ungeprüft entsperrt.
+        guard context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) else {
+            // Das Gerät hat überhaupt keine Sperre eingerichtet — es gibt nichts zu prüfen.
             isAuthenticating = false
             withAnimation { isBlurry = false }
             appState = .main
+            return
+        }
+
+        context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: String(localized: "biometric_reason", locale: locale)) { success, _ in
+            DispatchQueue.main.async {
+                self.isAuthenticating = false
+                if success {
+                    self.lastBackgroundTime = nil
+                    self.authFailed = false
+                    withAnimation { self.isBlurry = false }
+                    self.appState = .main
+                } else {
+                    // Abgebrochen oder fehlgeschlagen: gesperrt bleiben, aber einen Weg zurück
+                    // anbieten. Vorher blieb der Blur ohne jede Bedienmöglichkeit stehen.
+                    self.authFailed = true
+                }
+            }
         }
     }
 }

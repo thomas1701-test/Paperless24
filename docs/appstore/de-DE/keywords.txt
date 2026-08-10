@@ -1,0 +1,1 @@
+paperless,ngx,dokumente,archiv,scanner,scan,ocr,pdf,dms,selfhosted,papierlos,belege,rechnungen,büro

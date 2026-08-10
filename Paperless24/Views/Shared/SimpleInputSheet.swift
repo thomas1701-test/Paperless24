@@ -7,7 +7,7 @@ struct SimpleInputSheet: View {
     let onCancel: () -> Void
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form { TextField("Name", text: $text) }
                 .navigationTitle(title)
                 .toolbar {

@@ -4,11 +4,13 @@ import StoreKit
 struct RootTabView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.requestReview) private var requestReview
+    @Environment(\.scenePhase) private var scenePhase
     let onLogout: () -> Void
 
     @State private var selectedTab = 0
     @State private var showScanner = false
     @State private var showAskArchive = false
+    @State private var reviewPending = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -25,11 +27,11 @@ struct RootTabView: View {
                 .tabItem { Label("Scan", systemImage: "camera.viewfinder") }
                 .tag(2)
 
-            NavigationStack {
-                SettingsView(onLogout: onLogout)
-            }
-            .tabItem { Label("Einstellungen", systemImage: "gear") }
-            .tag(3)
+            // SettingsView bringt eigenen NavigationStack mit — kein zweiter Wrapper,
+            // sonst doppelte Navigation Bar auf iPad.
+            SettingsView(onLogout: onLogout)
+                .tabItem { Label("Einstellungen", systemImage: "gear") }
+                .tag(3)
         }
         .onChange(of: selectedTab) { tab in
             if tab == 2 { showScanner = true; selectedTab = 0 }
@@ -55,8 +57,9 @@ struct RootTabView: View {
         .onChange(of: store.shouldRequestReview) { req in
             if req {
                 store.shouldRequestReview = false
-                ReviewRequestService.shared.recordPrompt()
-                requestReview()
+                guard !reviewPending else { return }
+                reviewPending = true
+                Task { await promptForReviewWhenIdle() }
             }
         }
         .sheet(isPresented: $showScanner) {
@@ -67,5 +70,25 @@ struct RootTabView: View {
         .sheet(isPresented: $showAskArchive) {
             AskArchiveView()
         }
+    }
+
+    /// iOS unterdrückt den Bewertungsdialog stillschweigend, solange ein Sheet
+    /// auf- oder zugeht oder die Szene nicht aktiv ist — `recordPrompt()` würde
+    /// den Versuch aber trotzdem verbrennen und die Version für immer sperren.
+    /// Darum: warten, bis die Oberfläche ruhig ist, und erst dann fragen.
+    /// Nach ~20 s aufgeben, der nächste positive Moment versucht es erneut.
+    @MainActor
+    private func promptForReviewWhenIdle() async {
+        for _ in 0..<10 {
+            try? await Task.sleep(nanoseconds: 2_000_000_000)
+            guard reviewPending else { return }
+            if scenePhase == .active && !showScanner && !showAskArchive {
+                reviewPending = false
+                ReviewRequestService.shared.recordPrompt()
+                requestReview()
+                return
+            }
+        }
+        reviewPending = false
     }
 }

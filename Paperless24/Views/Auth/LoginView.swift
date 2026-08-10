@@ -119,7 +119,14 @@ struct LoginView: View {
                     }
                 }
 
-                KeychainService.saveToken(cleanToken, for: serverUrl, username: username)
+                // Ohne diese Prüfung meldete die App „angemeldet", obwohl der Token gar nicht
+                // im Keychain gelandet ist — der nächste Sync lief dann in „Sitzung abgelaufen".
+                guard KeychainService.saveToken(cleanToken, for: serverUrl, username: username) else {
+                    errorMessage = String(localized: "keychain_save_failed", locale: locale)
+                    isChecking = false
+                    return
+                }
+                store.invalidateTokenCache()
                 store.isDemoMode = false
 
                 if mode == .addAccount {

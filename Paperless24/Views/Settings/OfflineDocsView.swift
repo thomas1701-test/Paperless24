@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct OfflineDocsView: View {
+    @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
     @State private var selectedDoc: Document? = nil
 
@@ -27,6 +28,7 @@ struct OfflineDocsView: View {
             }
             .onDelete(perform: deleteLocal)
         }
+        .themedSurface(palette)
         .navigationTitle("Offline Dateien")
     }
 

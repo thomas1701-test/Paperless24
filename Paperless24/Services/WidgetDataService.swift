@@ -29,6 +29,17 @@ enum WidgetDataService {
         d.set(try? JSONEncoder().encode(docs), forKey: "widget_documents")
     }
 
+    /// Schreibt die fertigen Akzentfarben für das Widget.
+    ///
+    /// Das Widget läuft in einem eigenen Prozess ohne Zugriff auf `UserDefaults.standard`
+    /// und kennt die Themen-Tabelle nicht. Statt die Ableitung dort zu wiederholen, legt die
+    /// App beide Ergebnisse ab — das Widget wählt nur noch nach seinem Erscheinungsbild aus.
+    static func writeTheme(accentLightHex: String, accentDarkHex: String) {
+        guard let d = defaults else { return }
+        d.set(accentLightHex, forKey: "widget_accent_light")
+        d.set(accentDarkHex, forKey: "widget_accent_dark")
+    }
+
     static func readDocuments() -> [WidgetDocument] {
         guard let d = defaults,
               let data = d.data(forKey: "widget_documents") else { return [] }
@@ -50,5 +61,11 @@ enum WidgetDataService {
 
     static func readMode() -> String {
         defaults?.string(forKey: "widget_mode") ?? "documents"
+    }
+
+    /// Akzentfarbe als Hex, passend zum Erscheinungsbild des Widgets.
+    static func readAccentHex(isDark: Bool) -> String {
+        let key = isDark ? "widget_accent_dark" : "widget_accent_light"
+        return defaults?.string(forKey: key) ?? (isDark ? "5C6BC0" : "3F51B5")
     }
 }

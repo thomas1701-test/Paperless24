@@ -14,7 +14,7 @@ struct BatchScanView: View {
     private var documentCount: Int { Set(groups).count }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 if isProcessing {
                     VStack(spacing: 12) { ProgressView(); Text("Analysiere Seiten …").foregroundColor(.secondary) }

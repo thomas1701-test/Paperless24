@@ -1,0 +1,1 @@
+Neu in 2.0: paperless-ngx 3.0, Stapel-Scan mit automatischer Trennung, Archiv fragen mit Quellenangabe, sechs Farbthemen und ein Widget für den Home-Bildschirm.

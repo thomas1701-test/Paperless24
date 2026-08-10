@@ -11,7 +11,13 @@ final class ReviewRequestService {
 
     // Justierbare Schwellen
     private let minLaunchDays = 3
-    private let minDaysBetweenPrompts = 120
+    /// Apple deckelt selbst auf 3 Dialoge / 365 Tage. Unser eigener Cooldown muss
+    /// deshalb nicht strenger sein als ~1/3 Jahr; 35 Tage lassen den System-Deckel
+    /// die Obergrenze setzen, statt sie zusätzlich zu unterbieten.
+    private let minDaysBetweenPrompts = 35
+    /// Mindestens so viele positive Momente, bevor überhaupt gefragt wird.
+    /// Verhindert, dass ein brandneuer Nutzer nach dem allerersten Upload gefragt wird.
+    private let minPositiveEvents = 3
 
     private let defaults: UserDefaults
     private var didAttemptThisSession = false
@@ -21,6 +27,7 @@ final class ReviewRequestService {
         static let launchDays = "review.launchDays"
         static let lastPromptDate = "review.lastPromptDate"
         static let lastPromptVersion = "review.lastPromptVersion"
+        static let positiveEvents = "review.positiveEvents"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -39,6 +46,15 @@ final class ReviewRequestService {
         defaults.set(days, forKey: Key.launchDays)
     }
 
+    /// Zählt einen positiven Moment (Upload fertig, Bearbeitung gespeichert, …).
+    /// Getrennt von `shouldRequestReview`, damit auch Events zählen, die das
+    /// Gating gerade blockiert — der Zähler wächst über Sessions hinweg weiter.
+    func registerPositiveEvent() {
+        defaults.set(positiveEventCount + 1, forKey: Key.positiveEvents)
+    }
+
+    var positiveEventCount: Int { defaults.integer(forKey: Key.positiveEvents) }
+
     /// Reine Gating-Funktion — alle Regeln müssen erfüllt sein.
     func shouldRequestReview(now: Date = Date(),
                              version: String = AppConstants.appVersion) -> Bool {
@@ -46,6 +62,8 @@ final class ReviewRequestService {
 
         let days = defaults.stringArray(forKey: Key.launchDays) ?? []
         if days.count < minLaunchDays { return false }
+
+        if positiveEventCount < minPositiveEvents { return false }
 
         if let last = defaults.object(forKey: Key.lastPromptDate) as? Date {
             let elapsedDays = now.timeIntervalSince(last) / 86_400
