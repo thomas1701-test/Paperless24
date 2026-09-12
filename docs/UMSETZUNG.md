@@ -351,6 +351,20 @@ Zwei Punkte, die nach dem ersten Durchgang übrig blieben:
 
 Im Simulator gegengeprüft (Demo-Modus), 113 Tests grün.
 
+### L3 Optimistisches Einfügen und Animationen
+**Neu:** `Views/Documents/InFlightUploadViews.swift`, `AppStore.InFlightUpload`.
+Zwischen „abgeschickt" und „im Archiv" war bisher nichts zu sehen außer einem Zähler am
+unteren Rand. Jetzt steht der Upload als Platzhalter ganz oben in Liste und Raster — dort, wo
+gleich das fertige Dokument steht. Fehlschlag oder Dublette bleiben mit Begründung stehen, bis
+sie weggetippt werden; der untere Balken entfällt.
+
+Dazu: Listenwechsel animiert (an die Anzahl gebunden, nicht an den Inhalt — sonst kostet es
+Vergleichsarbeit pro Bild), Nachladen fünf Zeilen vor dem Ende statt am letzten Eintrag,
+Dokumentzahl zählt hoch (`numericText`), Vorschaubilder blenden sich ein.
+
+**Noch offen aus derselben Liste:** Scrollposition beim Aktualisieren halten
+(`scrollPosition(id:)`).
+
 ### Zwischenfall beim Aufteilen der Commits
 Das Skript, das die Änderungen thematisch auf Commits verteilt, rechnete gegen `HEAD` statt
 gegen eine feste Basis. Nach dem ersten Commit war die Basis eine andere, die Blöcke wurden neu
