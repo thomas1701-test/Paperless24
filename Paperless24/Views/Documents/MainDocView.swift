@@ -214,7 +214,32 @@ struct MainDocView: View {
             }
             .zIndex(0)
             .animation(.easeInOut(duration: 0.22), value: store.isOffline)
+            .animation(.easeInOut(duration: 0.2), value: isBusy)
             .animation(.easeInOut(duration: 0.22), value: store.lastSyncError)
+
+            // Dünne Linie am oberen Rand des Inhalts, solange etwas läuft.
+            //
+            // Als Überlagerung: Sie liegt über dem Inhalt und kann deshalb nichts
+            // verschieben — anders als die frühere Statuszeile, die als eigene Zeile im
+            // Stack stand. Die Systemanzeige statt einer eigenen Animation, weil sie
+            // „Bewegung reduzieren" respektiert und im Ruhezustand nichts rechnet.
+            if isBusy {
+                Group {
+                    if let progress = store.activityProgress {
+                        // Bezifferbarer Fortschritt: Der Balken füllt sich tatsächlich.
+                        ProgressView(value: progress)
+                            .tint(.green)
+                    } else {
+                        // Kein messbarer Anteil — eine unbestimmte Linie sagt die Wahrheit.
+                        ProgressView()
+                            .tint(palette.accent)
+                    }
+                }
+                .progressViewStyle(.linear)
+                .animation(.easeInOut(duration: 0.25), value: store.activityProgress)
+                .transition(.opacity)
+                .zIndex(4)
+            }
 
             if let msg = store.uploadSuccessMessage {
                 // Schwebt über dem Inhalt, statt ihn zu verschieben.
@@ -629,14 +654,13 @@ struct MainDocView: View {
     }
 
     /// Läuft gerade etwas, das der Nutzer sehen sollte?
-    private var isBusy: Bool {
-        store.isSearching || store.isSyncing || store.isBulkEditing
-    }
+    private var isBusy: Bool { store.isActivityRunning }
 
+    /// Beschriftung samt Prozentwert, wo es einen gibt.
     private var busyLabel: String {
-        if store.isSearching { return String(localized: "Suche…", locale: locale) }
-        if store.isBulkEditing { return String(localized: "Wird übertragen…", locale: locale) }
-        return String(localized: "Aktualisieren…", locale: locale)
+        let base = store.activityLabel
+        guard let progress = store.activityProgress else { return base + " …" }
+        return "\(base) \(Int(progress * 100)) %"
     }
 
     /// Status in der Navigationsleiste statt im Inhalt.

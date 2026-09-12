@@ -354,7 +354,8 @@ struct PaperlessAPI {
     /// über `/api/tasks/` verfolgen, was aus der Datei geworden ist. Ältere Server antworten
     /// mit `"OK"` — dann gibt es nichts zu verfolgen und die Methode liefert `nil`.
     @discardableResult
-    func uploadDocument(_ item: PendingUpload) async throws -> String? {
+    func uploadDocument(_ item: PendingUpload,
+                        onProgress: (@Sendable (Double) -> Void)? = nil) async throws -> String? {
         let url = try url("documents/post_document/")
         var req = makeRequest(url)
         req.httpMethod = "POST"
@@ -375,9 +376,14 @@ struct PaperlessAPI {
         if let t = item.documentType { addField("document_type", "\(t)") }
         for tag in item.tags { addField("tags", "\(tag)") }
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
-        req.httpBody = body
-
-        let (data, response) = try await send(req)
+        // Der Körper wandert als eigener Datenblock in die Anfrage, nicht in `httpBody`:
+        // Nur so meldet `URLSession` den Sendefortschritt. Bei einem mehrseitigen Scan über
+        // eine schmale Leitung ist das der Unterschied zwischen „es tut sich was" und einem
+        // Bildschirm, der eine halbe Minute lang nichts sagt.
+        let session = ClientCertSessionProvider.shared.session(for: serverBase)
+        let progressDelegate = onProgress.map { UploadProgressDelegate(onProgress: $0) }
+        let (data, response) = try await session.upload(for: req, from: body,
+                                                        delegate: progressDelegate)
         try validateResponse(response)
 
         // Die Antwort ist ein JSON-String: "8f3c…". Alles andere (etwa "OK") ist keine
@@ -842,5 +848,26 @@ struct PaperlessAPI {
         guard let http = response as? HTTPURLResponse else { return }
         if http.statusCode == 401 { throw APIError.unauthorized }
         if !(200...299).contains(http.statusCode) { throw APIError.serverError(http.statusCode) }
+    }
+}
+
+/// Meldet den Sendefortschritt eines Uploads.
+///
+/// `URLSession.data(for:)` kennt keinen Fortschritt — die Anfrage ist unterwegs oder fertig.
+/// Erst `upload(for:from:delegate:)` ruft unterwegs zurück.
+final class UploadProgressDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    private let onProgress: @Sendable (Double) -> Void
+
+    init(onProgress: @escaping @Sendable (Double) -> Void) {
+        self.onProgress = onProgress
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask,
+                    didSendBodyData bytesSent: Int64,
+                    totalBytesSent: Int64,
+                    totalBytesExpectedToSend: Int64) {
+        guard totalBytesExpectedToSend > 0 else { return }
+        let fraction = Double(totalBytesSent) / Double(totalBytesExpectedToSend)
+        onProgress(min(1, max(0, fraction)))
     }
 }

@@ -36,6 +36,16 @@ struct InboxView: View {
                     listContent
                 }
             }
+            // Dieselbe Linie wie in der Dokumentliste — auch hier ohne Platz im Layout.
+            .overlay(alignment: .top) {
+                if store.isLoadingInbox && !inboxDocs.isEmpty {
+                    ProgressView()
+                        .progressViewStyle(.linear)
+                        .tint(palette.accent)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.2), value: store.isLoadingInbox)
             .navigationDestination(for: Document.self) { doc in
                 DocumentPagerView(documents: inboxDocs, startId: doc.id,
                                   onSave: updateDocument,

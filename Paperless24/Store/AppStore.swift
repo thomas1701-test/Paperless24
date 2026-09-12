@@ -1509,7 +1509,16 @@ class AppStore: ObservableObject {
         for item in pendingUploads {
             guard let api = api else { break }
             do {
-                let taskId = try await api.uploadDocument(item)
+                uploadProgress = 0
+                let title = item.title
+                let taskId = try await api.uploadDocument(item) { [weak self] fraction in
+                    Task { @MainActor in
+                        // Nur den laufenden Upload melden — der nächste beginnt wieder bei 0.
+                        self?.uploadProgress = fraction
+                        self?.uploadProgressTitle = title
+                    }
+                }
+                uploadProgress = nil
                 processed.append(item.id)
                 if let taskId {
                     // Der Server hat die Datei angenommen — verarbeitet ist sie damit noch
@@ -1583,6 +1592,41 @@ class AppStore: ObservableObject {
 
     /// Läufe, die die App gerade verfolgt. Sichtbar in `PendingQueueView`.
     @Published var uploadTaskStatuses: [UploadTaskStatus] = []
+
+    /// Sendefortschritt des laufenden Uploads (0…1), sonst `nil`.
+    @Published var uploadProgress: Double? = nil
+    @Published var uploadProgressTitle: String = ""
+
+    /// Fortschritt der laufenden Arbeit — wenn er sich beziffern lässt.
+    ///
+    /// `nil` heißt: Es läuft etwas, aber niemand kann sagen, wie weit. Eine einzelne Abfrage
+    /// ist unterwegs oder fertig; dazwischen gibt es nichts zu messen. Dann zeigt die
+    /// Oberfläche eine unbestimmte Linie. Einen Prozentwert zu erfinden, wo keiner existiert,
+    /// wäre eine Lüge an der auffälligsten Stelle der App.
+    var activityProgress: Double? {
+        if isDownloadingAll { return downloadProgress }
+        if isBuildingArchiveIndex { return archiveIndexProgress }
+        if let uploadProgress { return uploadProgress }
+        return nil
+    }
+
+    /// Was gerade läuft, in Worten.
+    var activityLabel: String {
+        if isDownloadingAll { return downloadStatusText.isEmpty ? "Lädt herunter" : downloadStatusText }
+        if isBuildingArchiveIndex { return "Index" }
+        if uploadProgress != nil {
+            return uploadProgressTitle.isEmpty ? "Lädt hoch" : "Lädt hoch: \(uploadProgressTitle)"
+        }
+        if isSearching { return "Suche" }
+        if isBulkEditing { return "Wird übertragen" }
+        return "Aktualisieren"
+    }
+
+    /// Läuft überhaupt etwas, das angezeigt werden soll?
+    var isActivityRunning: Bool {
+        isSearching || isSyncing || isBulkEditing || isDownloadingAll
+            || isBuildingArchiveIndex || uploadProgress != nil
+    }
 
     /// Wie lange auf den Consumer gewartet wird, bevor die App den Auftrag nur noch als
     /// „wird verarbeitet" führt.
