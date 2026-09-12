@@ -1,5 +1,6 @@
 import SwiftUI
 import WidgetKit
+import AppIntents
 
 // MARK: - Themenfarbe
 
@@ -243,6 +244,19 @@ struct LargeOverviewView: View {
                 Divider().padding(.horizontal, 14)
             }
             Spacer()
+
+            // Ein Knopf direkt im Widget: Scannen ist die Aktion, für die man die App sonst
+            // erst öffnen, dann das Plus finden müsste.
+            if #available(iOS 18.0, *) {
+                HStack {
+                    Button(intent: OpenScannerIntent()) {
+                        Label("Scannen", systemImage: "doc.viewfinder").font(.caption)
+                    }
+                    .buttonStyle(.bordered)
+                    Spacer()
+                }
+                .padding(.horizontal, 14).padding(.bottom, 10)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .widgetURL(URL(string: "paperless24://open"))

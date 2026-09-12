@@ -93,5 +93,34 @@ struct PaperlessShortcuts: AppShortcutsProvider {
             shortTitle: "Archiv fragen",
             systemImageName: "sparkles"
         )
+        // Die folgenden geben Werte zurück bzw. nehmen welche an — damit sind sie in
+        // Automationen verwendbar, nicht nur als Türöffner.
+        AppShortcut(
+            intent: InboxCountIntent(),
+            phrases: [
+                "Wie viel liegt in \(.applicationName)",
+                "\(.applicationName) Posteingang zählen"
+            ],
+            shortTitle: "Posteingang zählen",
+            systemImageName: "number.circle"
+        )
+        AppShortcut(
+            intent: FindDocumentsIntent(),
+            phrases: [
+                "Finde Dokumente in \(.applicationName)",
+                "\(.applicationName) Dokumente finden"
+            ],
+            shortTitle: "Dokumente finden",
+            systemImageName: "doc.text.magnifyingglass"
+        )
+        AppShortcut(
+            intent: UploadFileIntent(),
+            phrases: [
+                "Lade nach \(.applicationName) hoch",
+                "\(.applicationName) Dokument hochladen"
+            ],
+            shortTitle: "Hochladen",
+            systemImageName: "arrow.up.doc"
+        )
     }
 }

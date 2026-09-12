@@ -60,11 +60,32 @@ struct Paperless24App: App {
                 // darf sie das nicht immer), liegt die Datei trotzdem in der App Group.
                 // Beim nächsten Start bzw. Wechsel in den Vordergrund holen wir sie ab.
                 .onChange(of: scenePhase) { phase in
-                    if phase == .active { checkForSharedFile() }
+                    if phase == .active {
+                        checkForSharedFile()
+                        handleControlRequests()
+                    }
                 }
                 // Beim Kaltstart steht die Szene je nach System schon auf `active`, dann
                 // bleibt `onChange` stumm — deshalb zusätzlich einmal beim Erscheinen.
-                .task { checkForSharedFile() }
+                .task { checkForSharedFile(); handleControlRequests() }
+        }
+    }
+
+    /// Löst aus, was über ein Control im Control Center oder auf dem Sperrbildschirm
+    /// angetippt wurde.
+    ///
+    /// Controls können die App nur öffnen, nicht in ihr navigieren. Der Wunsch liegt deshalb
+    /// als Marke in der App Group und wird hier eingelöst — und sofort gelöscht, damit der
+    /// nächste Start nicht wieder im Scanner landet.
+    private func handleControlRequests() {
+        guard let defaults = UserDefaults(suiteName: AppConstants.appGroupId) else { return }
+        if defaults.bool(forKey: "control_request_scan") {
+            defaults.removeObject(forKey: "control_request_scan")
+            store.requestScan = true
+        }
+        if defaults.bool(forKey: "control_request_inbox") {
+            defaults.removeObject(forKey: "control_request_inbox")
+            store.requestInbox = true
         }
     }
 
