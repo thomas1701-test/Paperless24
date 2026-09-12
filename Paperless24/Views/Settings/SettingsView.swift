@@ -7,6 +7,15 @@ struct SettingsView: View {
     let onLogout: () -> Void
 
     @AppStorage("pageSize") private var pageSize = 25
+    @AppStorage("rowShowCorrespondent") private var rowShowCorrespondent = true
+    @AppStorage("rowShowDate") private var rowShowDate = true
+    @AppStorage("rowShowType") private var rowShowType = false
+    @AppStorage("rowShowASN") private var rowShowASN = false
+    @AppStorage("rowShowAdded") private var rowShowAdded = false
+    @AppStorage("deadlineRadarEnabled") private var deadlineRadarEnabled = false
+    @AppStorage("deadlineFieldId") private var deadlineFieldId = 0
+    @AppStorage("duplicateCheckEnabled") private var duplicateCheckEnabled = true
+    @State private var archiveIndexCount: Int? = nil
     @AppStorage("appLanguage") private var appLanguage = ""
     @AppStorage("aiEnabled") private var aiEnabled = true
     @AppStorage("notificationsEnabled") private var notificationsEnabled = false
@@ -93,6 +102,88 @@ struct SettingsView: View {
                     } else {
                         Button("Alle Dokumente herunterladen") { store.startFullDownload() }
                     }
+                }
+
+                Section {
+                    Toggle("Sender", isOn: $rowShowCorrespondent)
+                    Toggle("Typ", isOn: $rowShowType)
+                    Toggle("Belegdatum", isOn: $rowShowDate)
+                    Toggle("Hinzugefügt am", isOn: $rowShowAdded)
+                    Toggle("ASN", isOn: $rowShowASN)
+                } header: {
+                    Text("Angaben in der Liste")
+                } footer: {
+                    Text("Gilt für die Listenansicht. Bei einer Suche steht an dieser Stelle "
+                         + "der Textausschnitt mit dem Suchbegriff.")
+                }
+
+                Section {
+                    HStack {
+                        Text("Im Index")
+                        Spacer()
+                        Text(archiveIndexCount.map { "\($0) Dokumente" } ?? "—")
+                            .foregroundColor(.secondary)
+                    }
+                    if store.isBuildingArchiveIndex {
+                        VStack(alignment: .leading, spacing: 4) {
+                            ProgressView(value: store.archiveIndexProgress)
+                            Text(store.archiveIndexStatus ?? "").font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                    } else {
+                        Button("Index über das ganze Archiv aufbauen") {
+                            Task {
+                                await store.buildFullArchiveIndex()
+                                archiveIndexCount = await store.archiveIndexCount()
+                            }
+                        }
+                        if let status = store.archiveIndexStatus {
+                            Text(status).font(.caption).foregroundColor(.secondary)
+                        }
+                        if (archiveIndexCount ?? 0) > 0 {
+                            Button("Index leeren", role: .destructive) {
+                                Task {
+                                    await store.clearArchiveIndex()
+                                    archiveIndexCount = await store.archiveIndexCount()
+                                }
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Archiv fragen")
+                } footer: {
+                    Text("Ohne Index durchsucht die Frage nur die geladenen Dokumente. Der "
+                         + "Aufbau liest einmal das ganze Archiv und hält sich danach von "
+                         + "selbst aktuell.")
+                }
+
+                Section {
+                    Toggle("Dublettenprüfung beim Import", isOn: $duplicateCheckEnabled)
+                } footer: {
+                    Text("Vergleicht vor dem Hochladen Belegnummer, Betrag und Datum mit den "
+                         + "geladenen Dokumenten. Warnt nur — hochladen lässt sich trotzdem.")
+                }
+
+                Section {
+                    Toggle("Fristen-Radar", isOn: $deadlineRadarEnabled)
+                    if deadlineRadarEnabled {
+                        NavigationLink(destination: DeadlinesView()) {
+                            Label("Was steht an", systemImage: "calendar.badge.clock")
+                        }
+                        Picker("Feld für Fristen", selection: $deadlineFieldId) {
+                            Text("Automatisch").tag(0)
+                            ForEach(store.allCustomFields.filter { $0.type == .date }) { field in
+                                Text(field.safeName).tag(field.id)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Fristen")
+                } footer: {
+                    Text("Findet Zahlungsziele, Kündigungs- und Garantiefristen im Text — nur "
+                         + "wenn ein eindeutiges Schlüsselwort daneben steht. Gespeichert wird "
+                         + "erst, was du bestätigst; die Frist landet in einem Datumsfeld auf "
+                         + "dem Server.")
                 }
 
                 Section("Laden") {

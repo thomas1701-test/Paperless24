@@ -88,8 +88,11 @@ struct MainDocView: View {
             NavigationStack(path: $navPath) {
                 content
                     .navigationDestination(for: Document.self) { doc in
-                        DocumentDetailView(
-                            doc: doc,
+                        // Pager statt Einzelansicht: von hier aus lässt sich zum nächsten
+                        // Dokument der Liste wischen.
+                        DocumentPagerView(
+                            documents: store.filteredDocs,
+                            startId: doc.id,
                             onSave: updateDocument,
                             onDelete: { store.deleteDocument(id: $0) },
                             searchQuery: searchText
@@ -898,12 +901,12 @@ struct MainDocView: View {
                             Button {
                                 store.selectDocumentForPicker(doc: doc)
                             } label: {
-                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken(), allDocTypes: store.allDocTypes, searchQuery: searchText)
                             }
                             .buttonStyle(PlainButtonStyle())
                         } else if usesSplitLayout {
                             // Siehe Grid: Button + .onDrag frisst den Tap auf iPad.
-                            DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                            DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken(), allDocTypes: store.allDocTypes, searchQuery: searchText)
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 splitDoc = doc; store.haptic(.light)
@@ -926,7 +929,7 @@ struct MainDocView: View {
                             // Kein .onDrag: siehe Raster — es beansprucht den Druck für sich,
                             // bevor die Zeile ihn als Tap auswerten kann.
                             NavigationLink(value: doc) {
-                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken())
+                                DocumentRow(doc: doc, allTags: store.allTags, allCorrespondents: store.allCorrespondents, serverBase: store.makeServerBase(), token: store.authToken(), allDocTypes: store.allDocTypes, searchQuery: searchText)
                             }
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) {

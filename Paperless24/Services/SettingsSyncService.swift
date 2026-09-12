@@ -8,7 +8,8 @@ enum SettingsSyncService {
         "pageSize", "gridItemSize", "aiEnabled", "notificationsEnabled",
         "batchScanEnabled", "translationEnabled",
         "themeId", "customAccentHex", "amoledEnabled",
-        "pdfDarkMode", "readingMode", "readingFontSize"
+        "pdfDarkMode", "readingMode", "readingFontSize",
+        "rowShowCorrespondent", "rowShowDate", "rowShowType", "rowShowASN", "rowShowAdded"
     ]
 
     static func start() {
