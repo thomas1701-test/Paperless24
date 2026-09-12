@@ -93,6 +93,21 @@ struct SettingsView: View {
 
                 Section("Status") {
                     NavigationLink("Warteschlange", destination: PendingQueueView())
+                    NavigationLink(destination: UploadRulesView()) {
+                        Label("Import-Regeln", systemImage: "wand.and.stars")
+                    }
+                    NavigationLink(destination: SeriesView()) {
+                        Label("Regelmäßiges", systemImage: "repeat")
+                    }
+                    NavigationLink(destination: StatisticsView()) {
+                        Label("Statistik", systemImage: "chart.bar")
+                    }
+                    NavigationLink(destination: ServerAccessView()) {
+                        Label("Serverzugang", systemImage: "lock.shield")
+                    }
+                    NavigationLink(destination: DiagnosticsView()) {
+                        Label("Diagnose", systemImage: "stethoscope")
+                    }
                     if store.isDownloadingAll {
                         VStack(alignment: .leading) {
                             Text(store.downloadStatusText).font(.caption)

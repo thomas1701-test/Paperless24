@@ -13,6 +13,7 @@ struct EditDocumentView: View {
     @State private var correspondent: Int?
     @State private var documentType: Int?
     @State private var asn = ""
+    @State private var isFetchingASN = false
     @State private var tags: Set<Int> = []
     @State private var customFields: [CustomFieldEdit] = []
     @State private var showDelete = false
@@ -24,7 +25,30 @@ struct EditDocumentView: View {
                 Section("Meta") {
                     TextField("Titel", text: $title)
                     DatePicker("Datum", selection: $date, displayedComponents: .date)
-                    TextField("ASN", text: $asn).keyboardType(.numberPad)
+                    HStack {
+                        TextField("ASN", text: $asn).keyboardType(.numberPad)
+                        // Wer physisch ablegt, braucht die nächste freie Nummer — sie von
+                        // Hand zu suchen heißt, das ganze Archiv nach dem Maximum zu
+                        // durchsehen.
+                        if asn.isEmpty {
+                            Button {
+                                Task {
+                                    isFetchingASN = true
+                                    if let next = await store.nextFreeASN() { asn = "\(next)" }
+                                    isFetchingASN = false
+                                }
+                            } label: {
+                                if isFetchingASN {
+                                    ProgressView().controlSize(.mini)
+                                } else {
+                                    Label("Nächste freie", systemImage: "number")
+                                        .font(.caption)
+                                }
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                    }
                 }
 
                 MetadataFormSection(

@@ -316,6 +316,7 @@ class AppStore: ObservableObject {
         accounts = loadedAccounts
         activeAccountId = loadedActiveId
         ImageCache.shared.setAccount(loadedActiveId)
+        loadUploadRules()
 
         if let id = loadedActiveId, hasValidToken() {
             // Bewusst nicht synchron: das Dekodieren von `documents.json` dauert bei großen
@@ -1010,6 +1011,49 @@ class AppStore: ObservableObject {
         guard let match = DuplicateDetector.matches(for: candidate, in: known).first,
               let doc = documents.first(where: { $0.id == match.documentId }) else { return nil }
         return DuplicateWarning(document: doc, reason: match.reason, confidence: match.confidence)
+    }
+
+    // MARK: - Archiv-Seriennummer
+
+    /// Sucht das Dokument zu einer ASN — erst im Zwischenspeicher, dann auf dem Server.
+    func findDocument(asn: Int) async -> Document? {
+        if let local = documents.first(where: { $0.archiveSerialNumber == asn }) { return local }
+        guard let api = api, !isOffline, !isDemoMode else { return nil }
+        return try? await api.fetchDocument(asn: asn)
+    }
+
+    /// Die nächste freie Archiv-Seriennummer.
+    func nextFreeASN() async -> Int? {
+        guard let api = api, !isOffline, !isDemoMode else {
+            // Ohne Server aus dem Zwischenspeicher schätzen.
+            return (documents.compactMap(\.archiveSerialNumber).max() ?? 0) + 1
+        }
+        guard let highest = try? await api.fetchHighestASN() else { return nil }
+        return (highest ?? 0) + 1
+    }
+
+    // MARK: - Import-Regeln
+
+    /// Regeln, die das Importformular vorbelegen. Reihenfolge entscheidet.
+    ///
+    /// Gesichert wird ausdrücklich über `saveUploadRules()` — die Regelliste ändert sich beim
+    /// Bearbeiten mehrfach hintereinander, ein `didSet` würde bei jedem Tastendruck schreiben.
+    @Published var uploadRules: [UploadRule] = []
+
+    func loadUploadRules() {
+        guard let data = UserDefaults.standard.data(forKey: "uploadRules"),
+              let rules = try? JSONDecoder().decode([UploadRule].self, from: data) else { return }
+        uploadRules = rules
+    }
+
+    func saveUploadRules() {
+        guard let data = try? JSONEncoder().encode(uploadRules) else { return }
+        UserDefaults.standard.set(data, forKey: "uploadRules")
+    }
+
+    /// Die Regel, die zu diesem Dateinamen passt.
+    func uploadRule(for filename: String) -> UploadRule? {
+        uploadRules.firstMatch(filename: filename)
     }
 
     // MARK: - Bedeutungsindex („Archiv fragen")

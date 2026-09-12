@@ -3,6 +3,10 @@ import SwiftUI
 struct UploadDocumentView: View {
     @EnvironmentObject var store: AppStore
     let container: UploadContainer
+    /// Die Daten, die tatsächlich hochgeladen werden — nach dem Bearbeiten der Seiten kann
+    /// das eine andere Fassung sein als die übergebene.
+    @State private var payload: Data? = nil
+    @State private var showPageEditor = false
     let onUpload: (Data, String, String, Date, Int?, Int?, [Int], @escaping () -> Void) -> Void
     let onCancel: () -> Void
 
@@ -59,6 +63,13 @@ struct UploadDocumentView: View {
                 Section {
                     TextField("Titel", text: $title)
                     DatePicker("Datum", selection: $date, displayedComponents: .date)
+                } header: {
+                    Text("Meta")
+                } footer: {
+                    if let appliedRuleName, !appliedRuleName.isEmpty {
+                        Label("Vorbelegt durch Regel \(appliedRuleName)", systemImage: "wand.and.stars")
+                            .font(.caption)
+                    }
                 }
 
                 MetadataFormSection(
@@ -66,7 +77,7 @@ struct UploadDocumentView: View {
                     documentType: $documentType,
                     tags: $tags,
                     date: $date,
-                    pdfData: container.data
+                    pdfData: payload ?? container.data
                 )
             }
             .navigationTitle("Import")
@@ -81,7 +92,7 @@ struct UploadDocumentView: View {
                     } else {
                         Button("Upload") {
                             isUploading = true
-                            onUpload(container.data, container.filename, title, date, correspondent, documentType, Array(tags)) {
+                            onUpload(payload ?? container.data, container.filename, title, date, correspondent, documentType, Array(tags)) {
                                 isUploading = false
                                 onCancel()
                             }

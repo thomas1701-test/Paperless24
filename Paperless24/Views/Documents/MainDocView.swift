@@ -1000,6 +1000,11 @@ struct MainDocView: View {
                 if batchScanEnabled {
                     Button { showBatchScan = true } label: { Label("Stapel scannen", systemImage: "doc.on.doc") }
                 }
+                Divider()
+                // Kein Import, sondern der Weg zurück: vom Papier zum Dokument in der App.
+                Button { showASNScanner = true } label: {
+                    Label("ASN scannen", systemImage: "barcode.viewfinder")
+                }
             } label: { Image(systemName: "plus") }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
