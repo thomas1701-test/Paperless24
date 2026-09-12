@@ -26,8 +26,10 @@ Weitere Felder, die nicht in Dateien liegen:
 - Support-URL: `https://thomas1701-test.github.io/Paperless24/support.html`
 - Marketing-URL: `https://thomas1701-test.github.io/Paperless24/`
 - Datenschutz-URL: `https://thomas1701-test.github.io/Paperless24/privacy.html`
+- Impressum (kein eigenes Feld in App Store Connect, aber aus Marketing-, Support- und
+  Datenschutz-Seite verlinkt): `https://thomas1701-test.github.io/Paperless24/impressum.html`
 
-  (Die drei Seiten liegen in `docs/` und werden über GitHub Pages ausgeliefert — vor der
+  (Die Seiten liegen in `docs/` und werden über GitHub Pages ausgeliefert — vor der
   Einreichung prüfen, ob Pages für das Repository aktiv ist und die URLs wirklich laden.)
 - Kategorie: Produktivität (primär), Dienstprogramme (sekundär)
 - Datenschutz-Angaben: keine Datenerfassung — die App spricht nur mit dem Server des Nutzers
