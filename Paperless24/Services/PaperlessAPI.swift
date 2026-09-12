@@ -23,6 +23,8 @@ enum APIError: Error, LocalizedError {
 struct DocumentPage {
     let documents: [Document]
     let hasNext: Bool
+    /// `count` der Antwort — die Gesamtzahl der Treffer über alle Seiten hinweg.
+    var totalCount: Int? = nil
 }
 
 /// Handelt die paperless-ngx API-Version pro Server aus.
@@ -225,6 +227,22 @@ struct PaperlessAPI {
         return try Self.decodePage(data)
     }
 
+    /// Dokumente, die mindestens einen der übergebenen Tags tragen (`tags__id__in`).
+    /// Für den Posteingang: die Inbox-Tags des Servers.
+    func fetchDocuments(tagIDs: [Int], page: Int, pageSize: Int = 250,
+                        ordering: String = "-added,-id") async throws -> DocumentPage {
+        let url = try url("documents/", query: [
+            URLQueryItem(name: "tags__id__in", value: tagIDs.sorted().map(String.init).joined(separator: ",")),
+            URLQueryItem(name: "ordering", value: ordering),
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "page_size", value: "\(pageSize)")
+        ])
+        let req = makeRequest(url)
+        let (data, response) = try await send(req)
+        try validateResponse(response)
+        return try Self.decodePage(data)
+    }
+
     func searchDocuments(query: String, page: Int = 1) async throws -> DocumentPage {
         let url = try url("documents/", query: Self.pageQuery(
             page: page,
@@ -245,7 +263,7 @@ struct PaperlessAPI {
             return try? decoder.decode(Document.self, from: docData)
         }
         let hasNext = json["next"] != nil && !(json["next"] is NSNull)
-        return DocumentPage(documents: results, hasNext: hasNext)
+        return DocumentPage(documents: results, hasNext: hasNext, totalCount: json["count"] as? Int)
     }
 
     /// `-id` als Zweitkriterium hält die Seitenfolge eindeutig — siehe `orderingParam()`.
@@ -339,25 +357,45 @@ struct PaperlessAPI {
 
     // MARK: - Metadata
 
+    /// Holt eine Metadaten-Liste über alle Seiten hinweg.
+    ///
+    /// Vorher fragte jede dieser Listen genau eine Seite mit `page_size=1000` ab. Ein Archiv
+    /// mit mehr Einträgen verlor den Rest stillschweigend — bei den Tags konnte damit auch das
+    /// Inbox-Tag fehlen, und der Posteingang blieb ohne Fehlermeldung leer.
+    private func fetchAllPages<Item, Wrapper: Decodable>(
+        _ path: String,
+        as wrapper: Wrapper.Type,
+        pageSize: Int = 500,
+        maxPages: Int = 40,
+        results: (Wrapper) -> [Item]?
+    ) async throws -> [Item] {
+        var all: [Item] = []
+        var page = 1
+        while page <= maxPages {
+            let url = try url(path, query: [
+                URLQueryItem(name: "page", value: "\(page)"),
+                URLQueryItem(name: "page_size", value: "\(pageSize)")
+            ])
+            let (data, response) = try await send(makeRequest(url))
+            try validateResponse(response)
+            let items = (try? JSONDecoder().decode(Wrapper.self, from: data)).flatMap(results) ?? []
+            all.append(contentsOf: items)
+            if items.count < pageSize { break }
+            page += 1
+        }
+        return all
+    }
+
     func fetchTags() async throws -> [Tag] {
-        let url = try url("tags/", query: [URLQueryItem(name: "page_size", value: "1000")])
-        let (data, response) = try await send(makeRequest(url))
-        try validateResponse(response)
-        return (try? JSONDecoder().decode(TagResponse.self, from: data))?.results ?? []
+        try await fetchAllPages("tags/", as: TagResponse.self) { $0.results }
     }
 
     func fetchCorrespondents() async throws -> [Correspondent] {
-        let url = try url("correspondents/", query: [URLQueryItem(name: "page_size", value: "1000")])
-        let (data, response) = try await send(makeRequest(url))
-        try validateResponse(response)
-        return (try? JSONDecoder().decode(CorrespondentResponse.self, from: data))?.results ?? []
+        try await fetchAllPages("correspondents/", as: CorrespondentResponse.self) { $0.results }
     }
 
     func fetchDocumentTypes() async throws -> [DocumentType] {
-        let url = try url("document_types/", query: [URLQueryItem(name: "page_size", value: "1000")])
-        let (data, response) = try await send(makeRequest(url))
-        try validateResponse(response)
-        return (try? JSONDecoder().decode(DocTypeResponse.self, from: data))?.results ?? []
+        try await fetchAllPages("document_types/", as: DocTypeResponse.self) { $0.results }
     }
 
     func fetchStatistics() async throws -> PaperlessStatistics {
@@ -431,10 +469,7 @@ struct PaperlessAPI {
     // MARK: - Custom Fields
 
     func fetchCustomFields() async throws -> [CustomField] {
-        let url = try url("custom_fields/", query: [URLQueryItem(name: "page_size", value: "1000")])
-        let (data, response) = try await send(makeRequest(url))
-        try validateResponse(response)
-        return (try? JSONDecoder().decode(CustomFieldResponse.self, from: data))?.results ?? []
+        try await fetchAllPages("custom_fields/", as: CustomFieldResponse.self) { $0.results }
     }
 
     // MARK: - Trash
@@ -497,10 +532,7 @@ struct PaperlessAPI {
     // MARK: - Saved Views
 
     func fetchSavedViews() async throws -> [SavedView] {
-        let url = try url("saved_views/", query: [URLQueryItem(name: "page_size", value: "1000")])
-        let (data, response) = try await send(makeRequest(url))
-        try validateResponse(response)
-        return (try? JSONDecoder().decode(SavedViewResponse.self, from: data))?.results ?? []
+        try await fetchAllPages("saved_views/", as: SavedViewResponse.self) { $0.results }
     }
 
     func createSavedView(name: String, sortField: String, sortReverse: Bool, rules: [[String: Any]]) async throws -> SavedView {

@@ -40,6 +40,11 @@ struct PickerCallbackTests {
 
 /// Deckt die Ablage für das Teilen-Blatt ab. Dokumenttitel sind freier Text und landen
 /// unverändert im Dateinamen.
+///
+/// `.serialized`, weil sich alle Tests hier dasselbe Ablageverzeichnis teilen: `cleanUp()`
+/// löscht es komplett, und parallel laufende Tests haben sich damit gegenseitig die Dateien
+/// unter den Füßen weggeräumt.
+@Suite(.serialized)
 struct ShareStagingTests {
 
     @Test("Schrägstriche und Doppelpunkte verschwinden aus dem Dateinamen")

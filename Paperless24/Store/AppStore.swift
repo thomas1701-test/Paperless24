@@ -57,7 +57,100 @@ class AppStore: ObservableObject {
     @Published var requestAskArchive = false
     @Published var shouldRequestReview = false
 
-    var inboxCount: Int { documents.filter { $0.correspondent == nil }.count }
+    // MARK: - Posteingang
+    //
+    // paperless-ngx definiert den Posteingang über Tags mit `is_inbox_tag`. Die App hat ihn
+    // früher als „Dokument ohne Sender" gelesen — in einem gepflegten Archiv sind das hunderte
+    // längst bearbeitete Dokumente, während der Server selbst nur eine Handvoll meldet
+    // (Issue #1: Abzeichen 542 gegenüber 1 im Dashboard).
+
+    /// Dokumente mit Inbox-Tag, vom Server geladen (`loadInbox()`).
+    @Published var inboxDocuments: [Document] = []
+    @Published var isLoadingInbox = false
+    /// Gesamtzahl laut Server. `nil`, solange keine Antwort vorliegt.
+    @Published var inboxTotal: Int? = nil
+
+    var inboxTagIDs: Set<Int> { Set(allTags.filter(\.isInbox).map(\.id)) }
+
+    var inboxCount: Int { inboxTotal ?? inboxDocuments.count }
+
+    /// Rückfallebene ohne Server: filtert die bereits geladenen Dokumente.
+    private var cachedInboxDocs: [Document] {
+        let ids = inboxTagIDs
+        guard !ids.isEmpty else { return [] }
+        return documents.filter { !ids.isDisjoint(with: $0.tags) }
+    }
+
+    /// Lädt den Posteingang beim Server. Ohne Inbox-Tag gibt es keinen Posteingang —
+    /// dann ist er leer, genau wie in der Weboberfläche.
+    func loadInbox() async {
+        let ids = inboxTagIDs
+        guard !ids.isEmpty else {
+            inboxDocuments = []
+            inboxTotal = 0
+            return
+        }
+        if isDemoMode {
+            inboxDocuments = cachedInboxDocs
+            inboxTotal = inboxDocuments.count
+            return
+        }
+        guard let api = api else {
+            inboxDocuments = cachedInboxDocs
+            return
+        }
+        isLoadingInbox = true
+        do {
+            let page = try await api.fetchDocuments(tagIDs: Array(ids), page: 1)
+            inboxDocuments = page.documents.uniquedByID()
+            inboxTotal = page.totalCount ?? inboxDocuments.count
+        } catch {
+            let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
+            if !isCancelled { inboxDocuments = cachedInboxDocs }
+        }
+        reApplyPendingEditsToInbox()
+        isLoadingInbox = false
+    }
+
+    /// Hält den Posteingang nach einer Bearbeitung aktuell: Wer sein Inbox-Tag verliert,
+    /// verschwindet daraus, wer eins bekommt, kommt hinzu.
+    private func updateInboxMembership(for doc: Document) {
+        let ids = inboxTagIDs
+        guard !ids.isEmpty else { return }
+        let belongs = !ids.isDisjoint(with: doc.tags)
+        let idx = inboxDocuments.firstIndex { $0.id == doc.id }
+        if belongs {
+            if let idx {
+                inboxDocuments[idx] = doc
+            } else {
+                inboxDocuments.insert(doc, at: 0)
+                if let total = inboxTotal { inboxTotal = total + 1 }
+            }
+        } else if let idx {
+            inboxDocuments.remove(at: idx)
+            if let total = inboxTotal { inboxTotal = max(0, total - 1) }
+        }
+    }
+
+    /// Noch nicht übertragene Bearbeitungen auch auf den frisch geladenen Posteingang anwenden —
+    /// sonst taucht ein offline bearbeitetes Dokument dort wieder mit altem Stand auf.
+    private func reApplyPendingEditsToInbox() {
+        guard !pendingEdits.isEmpty else { return }
+        for edit in pendingEdits {
+            guard let idx = inboxDocuments.firstIndex(where: { $0.id == edit.docId }) else { continue }
+            inboxDocuments[idx].title = edit.title
+            inboxDocuments[idx].created = edit.created
+            inboxDocuments[idx].correspondent = edit.correspondent
+            inboxDocuments[idx].documentType = edit.documentType
+            inboxDocuments[idx].archiveSerialNumber = edit.archiveSerialNumber
+            inboxDocuments[idx].tags = edit.tags
+            inboxDocuments[idx].customFields = edit.customFields
+        }
+        let ids = inboxTagIDs
+        guard !ids.isEmpty else { return }
+        inboxDocuments.removeAll { ids.isDisjoint(with: $0.tags) }
+        inboxTotal = inboxDocuments.count
+    }
 
     // MARK: - Settings
 
@@ -299,7 +392,9 @@ class AppStore: ObservableObject {
         saveToDisk()
 
         let resolvedStats = await stats
+        if let inbox = resolvedStats?.documentsInbox { inboxTotal = inbox }
         updateWidget(stats: resolvedStats)
+        await loadInbox()
     }
 
     // MARK: - Pagination
@@ -590,6 +685,13 @@ class AppStore: ObservableObject {
         if let idx = filteredDocs.firstIndex(where: { $0.id == docId }) {
             apply(to: &filteredDocs[idx])
         }
+        // Ein Dokument aus dem Posteingang steht nicht zwingend in `documents` — die Liste
+        // dort kommt aus einer eigenen Abfrage.
+        if var doc = documents.first(where: { $0.id == docId })
+            ?? inboxDocuments.first(where: { $0.id == docId }) {
+            apply(to: &doc)
+            updateInboxMembership(for: doc)
+        }
         let edit = PendingEdit(docId: docId, title: title, created: iso, correspondent: corr, documentType: type, archiveSerialNumber: asn, tags: tags, customFields: customFields)
         pendingEdits.append(edit)
         saveToDisk()
@@ -709,6 +811,10 @@ class AppStore: ObservableObject {
     func removeDocumentLocally(id: Int) {
         documents.removeAll { $0.id == id }
         filteredDocs.removeAll { $0.id == id }
+        if inboxDocuments.contains(where: { $0.id == id }) {
+            inboxDocuments.removeAll { $0.id == id }
+            if let total = inboxTotal { inboxTotal = max(0, total - 1) }
+        }
         updateFilteredDocs()
     }
 
@@ -1443,6 +1549,8 @@ class AppStore: ObservableObject {
         allCustomFields = content.customFields
         documents = content.documents
         demoStatistics = content.statistics
+        inboxDocuments = cachedInboxDocs
+        inboxTotal = inboxDocuments.count
 
         // PDFs und Miniaturen liegen lokal, damit Liste und Detailansicht ohne Server
         // echte Seiten zeigen. Läuft im Hintergrund, die Liste steht sofort.

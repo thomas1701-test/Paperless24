@@ -1,4 +1,9 @@
-Neu in 2.1.3
+Neu in 2.1.4
+
+• Der Posteingang zählte viel zu viele Dokumente: Die App hat jeden Eintrag ohne Sender als unbearbeitet gewertet — in einem gepflegten Archiv sind das hunderte längst erledigte Dokumente. Maßgeblich sind jetzt die Tags, die auf dem Server als Posteingang markiert sind, genau wie in der Weboberfläche.
+• Bei sehr vielen Tags, Sendern oder Dokumenttypen holte die App nur die ersten 1000 und ließ den Rest stillschweigend weg. Jetzt kommt die vollständige Liste an.
+
+Aus 2.1.3
 
 • Teilen aus anderen Apps funktioniert wieder: PDF oder Foto über das Teilen-Menü an Paperless 24 geben, die App öffnet sich und übernimmt die Datei. Klappt der Wechsel einmal nicht, geht nichts verloren — die Datei wird beim nächsten Start übernommen.
 • Systemsuche (Spotlight) findet wieder Dokumente — und jetzt das ganze Archiv statt nur der zuletzt geladenen Seite.

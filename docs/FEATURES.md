@@ -1,6 +1,6 @@
 # Paperless 24 — Funktionsübersicht
 
-Stand: 10.08.2026 · App-Version 2.1.3 (iOS)
+Stand: 12.09.2026 · App-Version 2.1.4 (iOS)
 
 Quelle: Code-Inventur über `Paperless24/`, `PaperlessShare/`, `PaperlessWidget/`.
 Nur Funktionen, die tatsächlich im Code existieren.
@@ -34,7 +34,7 @@ Nur Funktionen, die tatsächlich im Code existieren.
 - Kontextmenü: bearbeiten, Vorschau (QuickLook-Sheet), löschen
 - Zum Aktualisieren ziehen
 - Drag & Drop von Dokumenten in andere Apps (iPad)
-- Posteingang als eigener Tab mit Badge (Definition aktuell: Dokumente ohne Sender)
+- Posteingang als eigener Tab mit Badge (Definition: Dokumente mit einem Tag, das auf dem Server `is_inbox_tag` trägt — wie in der Weboberfläche; die Zahl kommt aus `/api/statistics/`)
 - Dubletten-Schutz in der Liste (`Array+UniqueByID`) — verhindert doppelte Einträge bei instabiler Server-Sortierung
 
 ## 3. Dokumentansicht

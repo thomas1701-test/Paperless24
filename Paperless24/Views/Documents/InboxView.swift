@@ -13,20 +13,21 @@ struct InboxView: View {
 
     private var layoutStyle: LayoutStyle { LayoutStyle(rawValue: layoutStyleRaw) ?? .grid }
 
-    private var inboxDocs: [Document] {
-        store.documents.filter { $0.correspondent == nil }
-    }
+    /// Posteingang = Dokumente mit Inbox-Tag, vom Server geliefert (siehe `AppStore.loadInbox()`).
+    private var inboxDocs: [Document] { store.inboxDocuments }
 
     var body: some View {
         NavigationStack(path: $navPath) {
             Group {
-                if store.isSyncing && store.documents.isEmpty {
+                if store.isLoadingInbox && inboxDocs.isEmpty {
                     ProgressView("Lade...").frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if inboxDocs.isEmpty {
                     VStack(spacing: 20) {
                         Image(systemName: "tray").font(.system(size: 60)).foregroundColor(.gray)
                         Text("Posteingang leer").font(.title2).foregroundColor(.gray)
-                        Text("Alle Dokumente haben einen Sender.")
+                        Text(store.inboxTagIDs.isEmpty
+                             ? "Auf dem Server ist kein Tag als Posteingang markiert."
+                             : "Alle Dokumente sind bearbeitet.")
                             .font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -49,7 +50,7 @@ struct InboxView: View {
                         }
                         .padding(10)
                     }
-                    .refreshable { await store.loadFirstPage() }
+                    .refreshable { await store.loadInbox() }
                 } else {
                     List {
                         ForEach(inboxDocs) { doc in
@@ -68,12 +69,13 @@ struct InboxView: View {
                     }
                     .listStyle(.plain)
                     .themedSurface(palette)
-                    .refreshable { await store.loadFirstPage() }
+                    .refreshable { await store.loadInbox() }
                 }
             }
             .navigationDestination(for: Document.self) { doc in
                 DocumentDetailView(doc: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) })
             }
+            .task { await store.loadInbox() }
             .navigationTitle("Posteingang")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -24,6 +24,18 @@ enum AppConstants {
     }
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "2.1.4", date: "12.09.2026", changes: [
+            "Behoben: Der Posteingang zählte viel zu viele Dokumente. Die App hat jeden Eintrag ohne Sender als unbearbeitet gewertet – in einem gepflegten Archiv sind das hunderte längst erledigte Dokumente, und das Abzeichen am Tab zeigte eine ganz andere Zahl als die Übersicht in den Einstellungen.",
+            "Der Posteingang richtet sich jetzt nach demselben Merkmal wie die Weboberfläche: nach den Tags, die auf dem Server als Posteingang markiert sind. Ist dort kein Tag so markiert, bleibt der Posteingang leer und sagt das auch.",
+            "Behoben: Bei sehr vielen Tags, Sendern oder Dokumenttypen holte die App nur die ersten 1000 und ließ den Rest stillschweigend weg. Jetzt kommt die vollständige Liste an.",
+        ]),
+        ChangelogEntry(version: "2.1.3", date: "10.08.2026", changes: [
+            "Behoben: Teilen aus anderen Apps funktioniert wieder. PDF oder Foto über das Teilen-Menü an Paperless 24 geben, die App öffnet sich und übernimmt die Datei. Klappt der Wechsel einmal nicht, geht nichts verloren – die Datei wird beim nächsten Start übernommen.",
+            "Behoben: Die Systemsuche (Spotlight) findet wieder Dokumente – und jetzt das ganze Archiv statt nur der zuletzt geladenen Seite.",
+            "Neu: Spotlight-Treffer zeigen die Vorschau des Dokuments statt des App-Symbols.",
+            "Behoben: Mehrere Konten bleiben in der Systemsuche sauber getrennt – ein Treffer öffnet nie ein Dokument aus einem anderen Archiv.",
+            "Verbessert: „Spotlight-Index neu erstellen“ meldet jetzt, wie viele Dokumente im Index gelandet sind.",
+        ]),
         ChangelogEntry(version: "2.1.2", date: "10.08.2026", changes: [
             "Behoben: Beim Bearbeiten eines Dokuments wurde das Erstelldatum überschrieben – gespeichert wurde der heutige Tag statt des tatsächlichen Datums. Je nach Server konnte es außerdem um einen Tag zurückspringen.",
             "Behoben: Beim Import konnte dasselbe Dokument zweimal hochgeladen werden und lag danach doppelt im Archiv.",

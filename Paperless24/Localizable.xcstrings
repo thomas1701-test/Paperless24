@@ -313,30 +313,58 @@
         }
       }
     },
-    "Alle Dokumente haben einen Sender." : {
+    "Alle Dokumente sind bearbeitet." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "All documents have a correspondent."
+            "value" : "All documents have been processed."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Todos los documentos tienen un remitente."
+            "value" : "Todos los documentos están procesados."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tous les documents ont un expéditeur."
+            "value" : "Tous les documents ont été traités."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tutti i documenti hanno un mittente."
+            "value" : "Tutti i documenti sono stati elaborati."
+          }
+        }
+      }
+    },
+    "Auf dem Server ist kein Tag als Posteingang markiert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tag on the server is marked as the inbox."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ninguna etiqueta del servidor está marcada como bandeja de entrada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune étiquette du serveur n'est marquée comme boîte de réception."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun tag sul server è contrassegnato come posta in arrivo."
           }
         }
       }

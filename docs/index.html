@@ -77,6 +77,14 @@
     <div class="changelog">
       <h2>Was ist neu</h2>
       <div class="release">
+        <div class="ver"><strong>Version 2.1.4</strong><span>12.09.2026</span></div>
+        <ul>
+            <li>Behoben: Der Posteingang zählte viel zu viele Dokumente. Die App hat jeden Eintrag ohne Sender als unbearbeitet gewertet — in einem gepflegten Archiv sind das hunderte längst erledigte Dokumente, und das Abzeichen am Tab zeigte eine ganz andere Zahl als die Übersicht in den Einstellungen.</li>
+            <li>Der Posteingang richtet sich jetzt nach demselben Merkmal wie die Weboberfläche: nach den Tags, die auf dem Server als Posteingang markiert sind. Ist dort kein Tag so markiert, bleibt der Posteingang leer und sagt das auch.</li>
+            <li>Behoben: Bei sehr vielen Tags, Sendern oder Dokumenttypen holte die App nur die ersten 1000 und ließ den Rest stillschweigend weg. Jetzt kommt die vollständige Liste an.</li>
+        </ul>
+      </div>
+      <div class="release">
         <div class="ver"><strong>Version 2.1.3</strong><span>10.08.2026</span></div>
         <ul>
           <li>Behoben: Teilen aus anderen Apps funktioniert wieder — PDF oder Foto über das Teilen-Menü an Paperless 24 geben, die App öffnet sich und übernimmt die Datei. Klappt der Wechsel einmal nicht, geht nichts verloren: die Datei wird beim nächsten Start übernommen.</li>
@@ -87,26 +95,6 @@
         </ul>
       </div>
       <div class="release">
-        <div class="ver"><strong>Version 2.1.2</strong><span>10.08.2026</span></div>
-        <ul>
-          <li>Behoben: Beim Bearbeiten eines Dokuments wurde das Erstelldatum überschrieben – gespeichert wurde der heutige Tag statt des tatsächlichen Datums. Je nach Server konnte es außerdem um einen Tag zurückspringen.</li>
-          <li>Behoben: Beim Import konnte dasselbe Dokument zweimal hochgeladen werden und lag danach doppelt im Archiv.</li>
-          <li>Behoben: Ließ sich ein Dokument nicht löschen – etwa ohne Verbindung oder ohne Berechtigung –, verschwand es trotzdem aus der Liste und tauchte beim nächsten Abgleich wieder auf. Jetzt bleibt es stehen und die App nennt den Grund.</li>
-          <li>Behoben: Suchbegriffe mit „&amp;“ oder „+“ lieferten keine oder falsche Treffer.</li>
-          <li>Behoben: Nach einem Kontowechsel konnten die Miniaturansichten des vorherigen Kontos in der Liste stehen bleiben.</li>
-          <li>Behoben: In „Darstellung“ blieben die Vorschauen der App-Symbole leer – dort waren nur graue Kacheln zu sehen.</li>
-          <li>Behoben: Wurden mehrere Dokumente mit gleichem Titel auf einmal geteilt, überschrieben sie sich gegenseitig. Die Zwischenkopien werden jetzt auch wieder aufgeräumt.</li>
-          <li>Behoben: Unter ungünstigen Umständen konnte die Warteschlange mit noch nicht übertragenen Änderungen verloren gehen.</li>
-          <li>Behoben: Telefonnummern und Links im erkannten Text waren an der falschen Stelle antippbar, wenn sie mehrfach im Dokument vorkamen.</li>
-          <li>Sicherheit: Der Anmeldeschlüssel liegt strenger geschützt im Schlüsselbund und wandert nicht mehr in Backups auf andere Geräte.</li>
-          <li>Sicherheit: Die App-Sperre fragt jetzt nach dem Gerätecode, wenn Face ID nicht verfügbar oder gesperrt ist. Vorher öffnete sich die App in diesem Fall ungeprüft. Nach einem Abbruch bleibt sie gesperrt und lässt sich über „Entsperren“ erneut öffnen.</li>
-          <li>Sicherheit: Die Dokumentauswahl für Vermietoo nimmt keine Web-Adressen mehr als Rückrufziel an.</li>
-          <li>Schneller: Die Dokumentliste scrollt flüssiger, die PDF-Ansicht ruckelt nicht mehr beim Blättern, und die App startet zügiger.</li>
-          <li>Schneller: Texterkennung und „Archiv fragen“ blockieren die Bedienung nicht mehr, während sie rechnen.</li>
-          <li>Verbessert: Antwortet der Server nicht, bricht die App nach 30 Sekunden ab, statt lange zu warten.</li>
-        </ul>
-      </div>
-      <div class="release">
         <div class="ver"><strong>Version 2.1.1</strong><span>10.08.2026</span></div>
         <ul>
           <li>Behoben: In Englisch, Französisch, Spanisch und Italienisch blieben einzelne Texte auf Deutsch stehen – darunter die Kacheln auf der Startseite, der Netzwerkscanner, die Archiv-Frage und die Auswahllisten für Filter, Tags und Sender. Alle vier Sprachen sind jetzt vollständig übersetzt.</li>
@@ -114,7 +102,27 @@
         </ul>
       </div>
       <details class="older">
-        <summary>Ältere Versionen (15)</summary>
+        <summary>Ältere Versionen (16)</summary>
+        <div class="release">
+          <div class="ver"><strong>Version 2.1.2</strong><span>10.08.2026</span></div>
+          <ul>
+            <li>Behoben: Beim Bearbeiten eines Dokuments wurde das Erstelldatum überschrieben – gespeichert wurde der heutige Tag statt des tatsächlichen Datums. Je nach Server konnte es außerdem um einen Tag zurückspringen.</li>
+            <li>Behoben: Beim Import konnte dasselbe Dokument zweimal hochgeladen werden und lag danach doppelt im Archiv.</li>
+            <li>Behoben: Ließ sich ein Dokument nicht löschen – etwa ohne Verbindung oder ohne Berechtigung –, verschwand es trotzdem aus der Liste und tauchte beim nächsten Abgleich wieder auf. Jetzt bleibt es stehen und die App nennt den Grund.</li>
+            <li>Behoben: Suchbegriffe mit „&amp;“ oder „+“ lieferten keine oder falsche Treffer.</li>
+            <li>Behoben: Nach einem Kontowechsel konnten die Miniaturansichten des vorherigen Kontos in der Liste stehen bleiben.</li>
+            <li>Behoben: In „Darstellung“ blieben die Vorschauen der App-Symbole leer – dort waren nur graue Kacheln zu sehen.</li>
+            <li>Behoben: Wurden mehrere Dokumente mit gleichem Titel auf einmal geteilt, überschrieben sie sich gegenseitig. Die Zwischenkopien werden jetzt auch wieder aufgeräumt.</li>
+            <li>Behoben: Unter ungünstigen Umständen konnte die Warteschlange mit noch nicht übertragenen Änderungen verloren gehen.</li>
+            <li>Behoben: Telefonnummern und Links im erkannten Text waren an der falschen Stelle antippbar, wenn sie mehrfach im Dokument vorkamen.</li>
+            <li>Sicherheit: Der Anmeldeschlüssel liegt strenger geschützt im Schlüsselbund und wandert nicht mehr in Backups auf andere Geräte.</li>
+            <li>Sicherheit: Die App-Sperre fragt jetzt nach dem Gerätecode, wenn Face ID nicht verfügbar oder gesperrt ist. Vorher öffnete sich die App in diesem Fall ungeprüft. Nach einem Abbruch bleibt sie gesperrt und lässt sich über „Entsperren“ erneut öffnen.</li>
+            <li>Sicherheit: Die Dokumentauswahl für Vermietoo nimmt keine Web-Adressen mehr als Rückrufziel an.</li>
+            <li>Schneller: Die Dokumentliste scrollt flüssiger, die PDF-Ansicht ruckelt nicht mehr beim Blättern, und die App startet zügiger.</li>
+            <li>Schneller: Texterkennung und „Archiv fragen“ blockieren die Bedienung nicht mehr, während sie rechnen.</li>
+            <li>Verbessert: Antwortet der Server nicht, bricht die App nach 30 Sekunden ab, statt lange zu warten.</li>
+          </ul>
+        </div>
         <div class="release">
           <div class="ver"><strong>Version 2.1.0</strong><span>10.08.2026</span></div>
           <ul>

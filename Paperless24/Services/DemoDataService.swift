@@ -54,6 +54,8 @@ enum DemoDataService {
         static let invoice = 1, tax = 2, insurance = 3, home = 4, car = 5
         static let health = 6, contract = 7, warranty = 8, bank = 9, important = 10
         static let work = 11, utilities = 12
+        /// Wie in paperless-ngx: der Posteingang ist ein Tag, kein fehlender Sender.
+        static let inbox = 13
     }
 
     private enum CorrID {
@@ -84,11 +86,13 @@ enum DemoDataService {
         (TagID.important, LText("Wichtig", "Important"),     "#B3001B", nil),
         (TagID.work,      LText("Arbeit", "Work"),           "#4C6663", nil),
         // Verschachtelt unter „Wohnung" — zeigt die Tag-Hierarchie in der Verwaltung.
-        (TagID.utilities, LText("Nebenkosten", "Utilities"), "#67A47B", TagID.home)
+        (TagID.utilities, LText("Nebenkosten", "Utilities"), "#67A47B", TagID.home),
+        (TagID.inbox,     LText("Posteingang", "Inbox"),      "#7B61FF", nil)
     ]
 
     static var tags: [Tag] {
-        tagNames.map { Tag(id: $0.0, name: $0.1.text, color: $0.2, parent: $0.3) }
+        tagNames.map { Tag(id: $0.0, name: $0.1.text, color: $0.2, parent: $0.3,
+                           isInboxTag: $0.0 == TagID.inbox) }
     }
 
     private static let correspondentNames: [(Int, LText)] = [
@@ -518,7 +522,7 @@ enum DemoDataService {
         ),
         Blueprint(
             id: 1026, title: LText("Scan {date}", "Scan {date}"),
-            corr: nil, type: nil, tags: [TagID.invoice], asn: nil, daysAgo: 2,
+            corr: nil, type: nil, tags: [TagID.invoice, TagID.inbox], asn: nil, daysAgo: 2,
             subject: LText("Eingescanntes Dokument – Absender fehlt noch",
                            "Scanned document – correspondent still missing"),
             body: [
@@ -533,7 +537,7 @@ enum DemoDataService {
         ),
         Blueprint(
             id: 1025, title: LText("Scan {date}", "Scan {date}"),
-            corr: nil, type: nil, tags: [], asn: nil, daysAgo: 4,
+            corr: nil, type: nil, tags: [TagID.inbox], asn: nil, daysAgo: 4,
             subject: LText("Eingescanntes Dokument – Posteingang", "Scanned document – inbox"),
             body: [
                 LText("Mehrseitiger Stapel-Scan. Die Seitentrennung wurde automatisch anhand der Briefköpfe vorgeschlagen.",
@@ -569,7 +573,7 @@ enum DemoDataService {
         let characters = documents.reduce(0) { $0 + ($1.content?.count ?? 0) }
         let stats = PaperlessStatistics(
             documentsTotal: documents.count,
-            documentsInbox: documents.filter { $0.correspondent == nil }.count,
+            documentsInbox: documents.filter { $0.tags.contains(TagID.inbox) }.count,
             characterCount: characters
         )
 

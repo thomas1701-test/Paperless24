@@ -1,4 +1,9 @@
-New in 2.1.3
+New in 2.1.4
+
+• The inbox counted far too many documents: the app treated every entry without a correspondent as unprocessed — in a well-kept archive that is hundreds of long-finished documents. It now goes by the tags marked as inbox on the server, just like the web interface does.
+• With a large number of tags, correspondents or document types the app fetched only the first 1000 and silently dropped the rest. The full list now arrives.
+
+From 2.1.3
 
 • Sharing from other apps works again: send a PDF or photo to Paperless 24 from the share sheet and the app opens and takes it. If the switch fails, nothing is lost — the file is picked up on the next launch.
 • System search (Spotlight) finds documents again — and now covers the whole archive instead of just the page last loaded.
