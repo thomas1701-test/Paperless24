@@ -4,6 +4,18 @@
     "%lld" : {
 
     },
+    "%lld im Posteingang" : {
+
+    },
+    "%lld unbearbeitet" : {
+
+    },
+    "Alles bearbeitet" : {
+
+    },
+    "Dokument scannen" : {
+
+    },
     "Dokumente" : {
       "localizations" : {
         "en" : {
@@ -31,6 +43,18 @@
           }
         }
       }
+    },
+    "Öffnet den Posteingang in Paperless 24." : {
+
+    },
+    "Öffnet Paperless 24 direkt im Scanner." : {
+
+    },
+    "Öffnet Paperless 24 im Posteingang." : {
+
+    },
+    "Öffnet Paperless 24 und startet den Scanner." : {
+
     },
     "Paperless24" : {
 
@@ -62,6 +86,12 @@
           }
         }
       }
+    },
+    "Posteingang öffnen" : {
+
+    },
+    "Scannen" : {
+
     },
     "Sync" : {
       "localizations" : {
@@ -124,6 +154,9 @@
           }
         }
       }
+    },
+    "Zeigt, wie viele Dokumente unbearbeitet sind." : {
+
     },
     "Zuletzt hinzugefügt" : {
       "localizations" : {

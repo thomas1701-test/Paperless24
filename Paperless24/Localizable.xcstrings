@@ -7,8 +7,24 @@
     "—" : {
 
     },
+    "„Alle diese Tags“ verlangt jeden ausgewählten Tag am Dokument, nicht irgendeinen." : {
+
+    },
+    "%@" : {
+
+    },
     "%@ suchen" : {
 
+    },
+    "%@: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        }
+      }
     },
     "%@:%lld" : {
       "localizations" : {
@@ -20,21 +36,15 @@
         }
       }
     },
-    "%lld" : {
-
-    },
-    "%lld %@" : {
+    "%@%@%@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$lld %2$@"
+            "value" : "%1$@%2$@%3$@"
           }
         }
       }
-    },
-    "%lld Dokument(e) können nicht wiederhergestellt werden." : {
-
     },
     "%1$lld indiziert, %2$lld abgelehnt: %3$@" : {
       "localizations" : {
@@ -64,6 +74,34 @@
         }
       }
     },
+    "%lld" : {
+
+    },
+    "%lld %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld %2$@"
+          }
+        }
+      }
+    },
+    "%lld Dokument(e) abgearbeitet" : {
+
+    },
+    "%lld Dokument(e) können nicht wiederhergestellt werden." : {
+
+    },
+    "%lld Dokumente" : {
+
+    },
+    "%lld Dokumente liegen im Posteingang." : {
+
+    },
+    "%lld Optionen" : {
+
+    },
     "%lld pt" : {
 
     },
@@ -87,8 +125,15 @@
         }
       }
     },
-    "•" : {
-
+    "%lld von %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld von %2$lld"
+          }
+        }
+      }
     },
     "• %@" : {
 
@@ -284,8 +329,16 @@
         }
       }
     },
+    "Ähnliche Dokumente" : {
+
+    },
+    "Aktiv" : {
+
+    },
+    "Aktualisieren…" : {
+
+    },
     "Alle" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -309,6 +362,37 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tutti"
+          }
+        }
+      }
+    },
+    "Alle auswählen" : {
+
+    },
+    "Alle Dokumente herunterladen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download all documents"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar todos los documentos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger tous les documents"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scarica tutti i documenti"
           }
         }
       }
@@ -341,69 +425,34 @@
         }
       }
     },
-    "Auf dem Server ist kein Tag als Posteingang markiert." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No tag on the server is marked as the inbox."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ninguna etiqueta del servidor está marcada como bandeja de entrada."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune étiquette du serveur n'est marquée comme boîte de réception."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nessun tag sul server è contrassegnato come posta in arrivo."
-          }
-        }
-      }
-    },
-    "Alle Dokumente herunterladen" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download all documents"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Descargar todos los documentos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Télécharger tous les documents"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scarica tutti i documenti"
-          }
-        }
-      }
-    },
     "Alle leeren" : {
+
+    },
+    "Alle zurücksetzen" : {
 
     },
     "Alles" : {
 
     },
+    "Als erledigt markieren" : {
+
+    },
+    "Als Liste" : {
+
+    },
+    "Als Raster" : {
+
+    },
     "Analysiere Seiten …" : {
+
+    },
+    "Angaben in der Liste" : {
+
+    },
+    "Anlegen" : {
+
+    },
+    "Ansehen dürfen" : {
 
     },
     "Ansicht" : {
@@ -438,6 +487,9 @@
 
     },
     "Antwort" : {
+
+    },
+    "Anwenden" : {
 
     },
     "Anzeige" : {
@@ -564,6 +616,52 @@
         }
       }
     },
+    "ASN scannen" : {
+
+    },
+    "ASN von Hand eingeben" : {
+
+    },
+    "Auf dem Server ist kein Tag als Posteingang markiert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No tag on the server is marked as the inbox."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ninguna etiqueta del servidor está marcada como bandeja de entrada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune étiquette du serveur n'est marquée comme boîte de réception."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun tag sul server è contrassegnato come posta in arrivo."
+          }
+        }
+      }
+    },
+    "Auffällig" : {
+
+    },
+    "aus" : {
+
+    },
+    "ausgewählt" : {
+
+    },
+    "Auslöser" : {
+
+    },
     "Auswählen" : {
 
     },
@@ -595,6 +693,12 @@
         }
       }
     },
+    "Automatisch" : {
+
+    },
+    "Barcode-Scanner auf diesem Gerät nicht verfügbar." : {
+
+    },
     "Bearbeiten" : {
       "localizations" : {
         "en" : {
@@ -623,6 +727,9 @@
         }
       }
     },
+    "Bearbeiten dürfen" : {
+
+    },
     "Bearbeitungen" : {
       "localizations" : {
         "en" : {
@@ -650,6 +757,12 @@
           }
         }
       }
+    },
+    "Beispiel: offen, bezahlt, storniert" : {
+
+    },
+    "Belegdatum" : {
+
     },
     "Benachrichtigungen" : {
 
@@ -710,6 +823,15 @@
           }
         }
       }
+    },
+    "Bericht kopieren" : {
+
+    },
+    "Besitzer" : {
+
+    },
+    "Bestand" : {
+
     },
     "Bestehende Links" : {
 
@@ -779,6 +901,9 @@
         }
       }
     },
+    "Client-Zertifikat (mTLS)" : {
+
+    },
     "Code bestätigen" : {
       "localizations" : {
         "en" : {
@@ -834,6 +959,9 @@
           }
         }
       }
+    },
+    "Das Fristen-Radar ist in den Einstellungen abgeschaltet." : {
+
     },
     "Das letzte Konto kann nicht gelöscht werden. Melde dich stattdessen ab." : {
       "localizations" : {
@@ -892,6 +1020,9 @@
       }
     },
     "Datei" : {
+
+    },
+    "Daten" : {
 
     },
     "Datum" : {
@@ -1040,6 +1171,12 @@
         }
       }
     },
+    "Der Posteingang ist leer." : {
+
+    },
+    "Der Server gibt sie nur Administratoren heraus." : {
+
+    },
     "Design" : {
       "localizations" : {
         "en" : {
@@ -1069,6 +1206,18 @@
       }
     },
     "Details" : {
+
+    },
+    "Diagnose" : {
+
+    },
+    "Die Datei enthält keine Seiten." : {
+
+    },
+    "Die Datei konnte nicht übergeben werden." : {
+
+    },
+    "Die Werte dieses Feldes verschwinden damit aus allen Dokumenten." : {
 
     },
     "Dieses Jahr" : {
@@ -1137,6 +1286,9 @@
     "Dokument für Vermietoo auswählen" : {
 
     },
+    "Dokument hochladen" : {
+
+    },
     "Dokument konnte nicht geladen werden" : {
 
     },
@@ -1202,6 +1354,12 @@
         }
       }
     },
+    "Dokumente finden" : {
+
+    },
+    "Dokumente pro Monat" : {
+
+    },
     "Dokumente suchen" : {
 
     },
@@ -1236,6 +1394,9 @@
     "Du wirst dafür zu PayPal weitergeleitet. Vielen Dank für deine Unterstützung! 🙏" : {
 
     },
+    "Dublettenprüfung beim Import" : {
+
+    },
     "Dunkel" : {
       "localizations" : {
         "en" : {
@@ -1263,6 +1424,9 @@
           }
         }
       }
+    },
+    "Durchwischen" : {
+
     },
     "Edit" : {
       "localizations" : {
@@ -1325,6 +1489,12 @@
           }
         }
       }
+    },
+    "Eigene Felder" : {
+
+    },
+    "Eigene Kopfzeilen" : {
+
     },
     "Einstellungen" : {
       "localizations" : {
@@ -1392,6 +1562,18 @@
 
     },
     "Entsperren" : {
+
+    },
+    "Erinnern" : {
+
+    },
+    "Erledigt" : {
+
+    },
+    "Erledigt und weiter" : {
+
+    },
+    "Erledigte ausblenden" : {
 
     },
     "Erneut versuchen" : {
@@ -1568,7 +1750,22 @@
     "Fehler: %@" : {
 
     },
+    "Fehlt: %@" : {
+
+    },
     "Feld" : {
+
+    },
+    "Feld „Fälligkeit“ anlegen" : {
+
+    },
+    "Feld für Fristen" : {
+
+    },
+    "Feld löschen?" : {
+
+    },
+    "Feld suchen" : {
 
     },
     "Feld-Filter" : {
@@ -1665,6 +1862,9 @@
         }
       }
     },
+    "Finde ${query} im Archiv, höchstens ${limit} Treffer" : {
+
+    },
     "Findet AirScan-/eSCL-fähige Scanner im lokalen Netzwerk. Funktioniert nicht mit jedem Modell." : {
 
     },
@@ -1677,10 +1877,25 @@
     "Freigabe-Links" : {
 
     },
+    "Frist erkannt" : {
+
+    },
+    "Frist löschen" : {
+
+    },
+    "Fristen" : {
+
+    },
+    "Fristen-Radar" : {
+
+    },
     "Gefundene Dokumente" : {
 
     },
     "gelöscht: %@" : {
+
+    },
+    "Gerät" : {
 
     },
     "Geschützt" : {
@@ -1776,6 +1991,12 @@
         }
       }
     },
+    "Gibt zurück, wie viele Dokumente unbearbeitet sind." : {
+
+    },
+    "Gilt für %lld Dokument(e)." : {
+
+    },
     "Graphit" : {
       "localizations" : {
         "en" : {
@@ -1803,6 +2024,9 @@
           }
         }
       }
+    },
+    "Häufigste Sender" : {
+
     },
     "Hell" : {
       "localizations" : {
@@ -1832,7 +2056,13 @@
         }
       }
     },
+    "Hinweis" : {
+
+    },
     "Hinweis: Apple Intelligence ist auf diesem Gerät nicht verfügbar – es wird nur semantisch gesucht." : {
+
+    },
+    "Hinzugefügt am" : {
 
     },
     "Hochladen" : {
@@ -1842,6 +2072,9 @@
 
     },
     "Ich entwickle Paperless 24 in meiner Freizeit und stelle die App kostenlos zur Verfügung. Wenn sie dir hilft, freue ich mich über ein kleines Trinkgeld – ganz freiwillig und in beliebiger Höhe." : {
+
+    },
+    "Im Index" : {
 
     },
     "Import" : {
@@ -1871,6 +2104,18 @@
           }
         }
       }
+    },
+    "Import-Regeln" : {
+
+    },
+    "Importieren" : {
+
+    },
+    "Index leeren" : {
+
+    },
+    "Index über das ganze Archiv aufbauen" : {
+
     },
     "Indigo" : {
       "localizations" : {
@@ -1940,7 +2185,13 @@
     "Kein Filter" : {
 
     },
+    "Kein Fristenfeld" : {
+
+    },
     "Kein gültiges Login" : {
+
+    },
+    "Kein Konto angemeldet. Bitte zuerst in der App anmelden." : {
 
     },
     "Kein OCR-Text vorhanden" : {
@@ -1999,6 +2250,9 @@
         }
       }
     },
+    "Kein Treffer" : {
+
+    },
     "Kein Typ" : {
 
     },
@@ -2029,6 +2283,9 @@
           }
         }
       }
+    },
+    "Keine Benutzerliste verfügbar." : {
+
     },
     "Keine Dokumente gefunden" : {
       "localizations" : {
@@ -2086,10 +2343,28 @@
         }
       }
     },
+    "Keine eigenen Felder" : {
+
+    },
+    "Keine Fristen gefunden." : {
+
+    },
     "Keine Links vorhanden" : {
 
     },
+    "Keine Regeln" : {
+
+    },
     "Keine Scanner gefunden" : {
+
+    },
+    "Keiner" : {
+
+    },
+    "Kennwort" : {
+
+    },
+    "Kennwort des Zertifikats" : {
 
     },
     "keychain_save_failed" : {
@@ -2297,10 +2572,19 @@
         }
       }
     },
+    "Kopfzeile hinzufügen" : {
+
+    },
     "Kopieren" : {
 
     },
     "Kopiert" : {
+
+    },
+    "Lade ${file} nach Paperless 24" : {
+
+    },
+    "Lade Benutzer …" : {
 
     },
     "Lade Dokument..." : {
@@ -2511,6 +2795,9 @@
         }
       }
     },
+    "Letzter Fehler" : {
+
+    },
     "Letzter Monat" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2689,6 +2976,18 @@
         }
       }
     },
+    "Maximale Anzahl" : {
+
+    },
+    "Mehr" : {
+
+    },
+    "Mehr (%lld)" : {
+
+    },
+    "Mehr Filter" : {
+
+    },
     "Meta" : {
 
     },
@@ -2728,6 +3027,12 @@
           }
         }
       }
+    },
+    "Nach Belegdatum, letzte 12 Monate mit Einträgen." : {
+
+    },
+    "Nächste freie" : {
+
     },
     "Name" : {
       "localizations" : {
@@ -2788,6 +3093,9 @@
           }
         }
       }
+    },
+    "Name, z. B. CF-Access-Client-Id" : {
+
     },
     "Netzwerkscanner" : {
 
@@ -2913,6 +3221,12 @@
         }
       }
     },
+    "Neues Feld" : {
+
+    },
+    "Nichts zu tun" : {
+
+    },
     "Notizen" : {
       "localizations" : {
         "en" : {
@@ -3027,6 +3341,9 @@
           }
         }
       }
+    },
+    "Optionen, mit Komma getrennt" : {
+
     },
     "Original" : {
 
@@ -3152,6 +3469,12 @@
         }
       }
     },
+    "PKCS#12-Datei wählen (.p12)" : {
+
+    },
+    "PKCS#12-Dateien sind immer mit einem Kennwort geschützt." : {
+
+    },
     "Posteingang" : {
       "localizations" : {
         "en" : {
@@ -3211,6 +3534,9 @@
     "Posteingang öffnen" : {
 
     },
+    "Posteingang zählen" : {
+
+    },
     "Raster" : {
       "localizations" : {
         "en" : {
@@ -3267,6 +3593,18 @@
         }
       }
     },
+    "Rechte" : {
+
+    },
+    "Rechte …" : {
+
+    },
+    "Regelmäßiges" : {
+
+    },
+    "Regeln" : {
+
+    },
     "Scan" : {
       "localizations" : {
         "en" : {
@@ -3301,6 +3639,9 @@
     "Scanner wird geöffnet …" : {
 
     },
+    "Schließen" : {
+
+    },
     "Schnellzuweisung" : {
       "localizations" : {
         "en" : {
@@ -3328,6 +3669,9 @@
           }
         }
       }
+    },
+    "Schon im Archiv?" : {
+
     },
     "Schriftgröße" : {
       "localizations" : {
@@ -3413,7 +3757,19 @@
         }
       }
     },
+    "seit %lld Monaten nichts" : {
+
+    },
     "Seite %lld" : {
+
+    },
+    "Seiten" : {
+
+    },
+    "Seiten bearbeiten" : {
+
+    },
+    "Seiten bearbeitet ✓" : {
 
     },
     "Seiten mit gleicher Nummer werden zu einem Dokument zusammengefasst." : {
@@ -3506,6 +3862,15 @@
         }
       }
     },
+    "Server-Filter erneut versuchen" : {
+
+    },
+    "Serverzugang" : {
+
+    },
+    "Sichern" : {
+
+    },
     "Sonnenuntergang" : {
       "localizations" : {
         "en" : {
@@ -3534,6 +3899,9 @@
         }
       }
     },
+    "Speicher" : {
+
+    },
     "Speichern" : {
       "localizations" : {
         "en" : {
@@ -3561,6 +3929,12 @@
           }
         }
       }
+    },
+    "Speichern und Verbindung prüfen" : {
+
+    },
+    "Speicherpfad" : {
+
     },
     "Spotlight Index neu erstellen" : {
       "localizations" : {
@@ -3683,6 +4057,9 @@
         }
       }
     },
+    "Statistik" : {
+
+    },
     "Status" : {
 
     },
@@ -3724,6 +4101,7 @@
 
     },
     "Suche..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3751,13 +4129,22 @@
         }
       }
     },
+    "Suche…" : {
+
+    },
     "Suchen" : {
+
+    },
+    "Sucht im Archiv und gibt die Treffer zurück — zum Weiterverarbeiten im Kurzbefehl." : {
 
     },
     "Sucht in Paperless nach Dokumenten." : {
 
     },
     "Tag" : {
+
+    },
+    "Tag entfernen" : {
 
     },
     "Tag suchen" : {
@@ -3903,6 +4290,9 @@
         }
       }
     },
+    "Textteil im Dateinamen" : {
+
+    },
     "Titel" : {
       "localizations" : {
         "en" : {
@@ -3930,6 +4320,9 @@
           }
         }
       }
+    },
+    "Titel-Vorlage" : {
+
     },
     "Typ" : {
       "localizations" : {
@@ -3960,6 +4353,9 @@
       }
     },
     "Typ suchen" : {
+
+    },
+    "Typ zuweisen" : {
 
     },
     "Typen" : {
@@ -4018,6 +4414,15 @@
         }
       }
     },
+    "Übereinstimmung: %@" : {
+
+    },
+    "Übergibt eine Datei an Paperless 24. Die App öffnet sich mit dem Importformular." : {
+
+    },
+    "Übernehmen" : {
+
+    },
     "Übersetzen-Aktion in Dokumenten" : {
 
     },
@@ -4048,6 +4453,12 @@
           }
         }
       }
+    },
+    "Überspringen" : {
+
+    },
+    "Umbenennen" : {
+
     },
     "unbearbeitet" : {
       "localizations" : {
@@ -4087,6 +4498,9 @@
 
     },
     "Unterstützung" : {
+
+    },
+    "Unverändert lassen" : {
 
     },
     "Upload" : {
@@ -4182,6 +4596,15 @@
     "v%@" : {
 
     },
+    "Verarbeitung auf dem Server" : {
+
+    },
+    "Verbindung" : {
+
+    },
+    "Verbindung prüfen" : {
+
+    },
     "Verknüpfen" : {
 
     },
@@ -4216,6 +4639,18 @@
         }
       }
     },
+    "Vollständig" : {
+
+    },
+    "Vom Server ermittelt." : {
+
+    },
+    "Vorbelegt aus den Vorschlägen des Servers." : {
+
+    },
+    "Vorbelegt durch Regel %@" : {
+
+    },
     "Vorschau" : {
       "localizations" : {
         "en" : {
@@ -4243,6 +4678,9 @@
           }
         }
       }
+    },
+    "Vorschläge" : {
+
     },
     "Wählen" : {
       "localizations" : {
@@ -4300,6 +4738,9 @@
         }
       }
     },
+    "Wann" : {
+
+    },
     "Warteschlange" : {
       "localizations" : {
         "en" : {
@@ -4327,6 +4768,15 @@
           }
         }
       }
+    },
+    "Was steht an" : {
+
+    },
+    "Was vorbelegt wird" : {
+
+    },
+    "Wert" : {
+
     },
     "Widerrufen" : {
 
@@ -4365,6 +4815,9 @@
     "Wiederherstellen" : {
 
     },
+    "Wird als Datum im Feld „Fälligkeit“ gespeichert." : {
+
+    },
     "wrong_otp_code" : {
       "localizations" : {
         "de" : {
@@ -4398,6 +4851,12 @@
           }
         }
       }
+    },
+    "z. B. Fälligkeit" : {
+
+    },
+    "z. B. Kontoauszüge" : {
+
     },
     "z. B. Wert" : {
 
@@ -4517,6 +4976,12 @@
         }
       }
     },
+    "Zertifikat entfernen" : {
+
+    },
+    "Zertifikat hinterlegt" : {
+
+    },
     "Zuletzt hinzugefügt" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4545,6 +5010,9 @@
           }
         }
       }
+    },
+    "Zuordnung" : {
+
     },
     "Zurücksetzen" : {
 
