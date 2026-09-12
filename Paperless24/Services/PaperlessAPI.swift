@@ -150,13 +150,27 @@ struct PaperlessAPI {
         if let version = APIVersionNegotiator.version(for: serverBase) {
             req.setValue("application/json; version=\(version)", forHTTPHeaderField: "Accept")
         }
+        Self.applyCustomHeaders(to: &req, server: serverBase)
         return req
+    }
+
+    /// Eigene Kopfzeilen des Nutzers (Cloudflare Access, Authelia, Basic-Auth-Proxy).
+    ///
+    /// Nach den eigenen gesetzt, damit `Authorization` und `Accept` überschreibbar bleiben —
+    /// ein Proxy mit Basic-Auth braucht genau das.
+    static func applyCustomHeaders(to request: inout URLRequest, server: String) {
+        for (name, value) in ServerCredentials.headers(for: server) {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
     }
 
     /// Führt einen Request aus und wiederholt ihn einmal ohne Version-Header,
     /// falls der Server die angeforderte API-Version nicht kennt (406).
     private func send(_ request: URLRequest) async throws -> (Data, URLResponse) {
-        let (data, response) = try await URLSession.shared.data(for: request)
+        // Session je Server: Verlangt der Server ein Client-Zertifikat, braucht es eine
+        // Session mit Delegate — `URLSession.shared` kann die Anfrage nicht beantworten.
+        let session = ClientCertSessionProvider.shared.session(for: serverBase)
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { return (data, response) }
         APIVersionNegotiator.record(response: http, server: serverBase)
 
@@ -167,7 +181,7 @@ struct PaperlessAPI {
         APIVersionNegotiator.fallbackToServerDefault(server: serverBase)
         var retry = request
         retry.setValue(nil, forHTTPHeaderField: "Accept")
-        return try await URLSession.shared.data(for: retry)
+        return try await session.data(for: retry)
     }
 
     // MARK: - Token Exchange
@@ -188,7 +202,12 @@ struct PaperlessAPI {
         if let otp { body["code"] = otp }
         tokenReq.httpBody = try? JSONSerialization.data(withJSONObject: body)
 
-        let (data, response) = try await URLSession.shared.data(for: tokenReq)
+        // Schon die Anmeldung geht durch den Proxy: Header und Client-Zertifikat müssen hier
+        // bereits greifen, sonst kommt man nie bis zum Token.
+        let base = normalizedBase(serverUrl)
+        applyCustomHeaders(to: &tokenReq, server: base)
+        let session = ClientCertSessionProvider.shared.session(for: base)
+        let (data, response) = try await session.data(for: tokenReq)
         guard let http = response as? HTTPURLResponse else { throw APIError.noData }
 
         if (400...401).contains(http.statusCode) {
