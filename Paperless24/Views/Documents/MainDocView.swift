@@ -186,7 +186,10 @@ struct MainDocView: View {
                 // Die Filterleiste steht immer, auch während des ersten Ladens. Erschien sie
                 // erst mit den Daten, schob sie die halb aufgebaute Liste ein zweites Mal
                 // nach unten.
-                if !usesSplitLayout { filterBar.zIndex(1) }
+                // Kein `zIndex` mehr: Die Leiste liegt direkt unter dem Suchfeld, das das
+                // System in den Navigationsbereich setzt. Angehoben zeichnete sie sich über
+                // dessen unteren Rand — das Suchfeld sah abgeschnitten aus.
+                if !usesSplitLayout { filterBar }
 
                 if store.documents.isEmpty && store.isSyncing {
                     // Platzhalter statt Spinner: Die Liste steht schon da, wo sie gleich
@@ -866,7 +869,9 @@ struct MainDocView: View {
             Divider()
         }
         .background(Material.thickMaterial)
+        // Der Schatten fällt nach unten auf die Liste, nicht nach oben auf das Suchfeld.
         .shadow(color: Color.black.opacity(0.08), radius: 3, x: 0, y: 2)
+        .padding(.top, 1)
     }
 
     // MARK: - Document Grid
