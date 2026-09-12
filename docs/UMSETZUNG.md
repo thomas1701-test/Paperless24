@@ -334,6 +334,35 @@ erst in Xcode zu sehen. Das ist kein sinnvoller Schritt ohne Oberfläche.
 
 Alles Übrige aus der Liste ist gebaut.
 
+### L2 Nachbesserung Ladeverhalten (Rückmeldung aus dem Betrieb)
+Zwei Punkte, die nach dem ersten Durchgang übrig blieben:
+
+1. **Unzuverlässiges Nachladen — echter Fehler.** `loadFirstPage()` füllt `documents`;
+   angezeigt wird bei aktivem Filter oder aktiver Suche aber `filteredDocs`, die Antwort des
+   Servers. Nach Upload, übertragener Änderung oder Sammelaktion wurde nur die Gesamtliste
+   nachgeladen, die sichtbare Liste blieb stehen. Zusätzlich verhinderte die Prüfung „gleiche
+   Anfrage wie eben" das erneute Stellen derselben Abfrage. Neu `reloadVisible()` +
+   `invalidateLoadState()`; alle Änderungspfade gehen darüber.
+2. **Kopfbereich verschob weiter.** Die Statuszeile fester Höhe war nur die halbe Lösung. Der
+   Status steht jetzt in der **Navigationsleiste** (wie in Mail), Fehler- und Offline-Banner
+   gleiten, die Erfolgsmeldung schwebt als Kapsel. Dazu: Filterleiste steht von Anfang an,
+   und statt des zentrierten Spinners stehen **Platzhalterzeilen** in der Form der späteren
+   Einträge.
+
+Im Simulator gegengeprüft (Demo-Modus), 113 Tests grün.
+
+### Zwischenfall beim Aufteilen der Commits
+Das Skript, das die Änderungen thematisch auf Commits verteilt, rechnete gegen `HEAD` statt
+gegen eine feste Basis. Nach dem ersten Commit war die Basis eine andere, die Blöcke wurden neu
+geschnitten, ihre Zuordnung stimmte nicht mehr — und beim Zurückschreiben gingen Teile der
+Änderungen im Arbeitsbaum verloren. Fünf Dateien waren danach eine Mischung aus altem und neuem
+Code.
+
+Behoben: betroffene Dateien auf den Ursprungsstand zurückgesetzt, alle Änderungen neu
+angewendet, Endstand gegen Build und Tests geprüft (113 grün), Historie mit einer festen Basis
+neu aufgebaut. **Lehre:** Ein Werkzeug, das Dateien neu schreibt, darf seine Basis nie aus
+`HEAD` ziehen, solange es selbst committet.
+
 ### Notiz für die Werkzeuge
 Deutsche Strings mit Anführungszeichen nie über ein Python-Heredoc mit `\"` schreiben — die
 Escape-Ebene geht verloren und Swift bricht mit „unterminated string literal" ab. Entweder
