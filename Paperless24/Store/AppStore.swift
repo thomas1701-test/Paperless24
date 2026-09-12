@@ -147,13 +147,7 @@ class AppStore: ObservableObject {
         guard !pendingEdits.isEmpty else { return }
         for edit in pendingEdits {
             guard let idx = inboxDocuments.firstIndex(where: { $0.id == edit.docId }) else { continue }
-            inboxDocuments[idx].title = edit.title
-            inboxDocuments[idx].created = edit.created
-            inboxDocuments[idx].correspondent = edit.correspondent
-            inboxDocuments[idx].documentType = edit.documentType
-            inboxDocuments[idx].archiveSerialNumber = edit.archiveSerialNumber
-            inboxDocuments[idx].tags = edit.tags
-            inboxDocuments[idx].customFields = edit.customFields
+            inboxDocuments[idx] = edit.applied(to: inboxDocuments[idx])
         }
         let ids = inboxTagIDs
         guard !ids.isEmpty else { return }
@@ -726,13 +720,45 @@ class AppStore: ObservableObject {
         recentSearches = Array(searches.prefix(8))
     }
 
+    /// Rückmeldung der letzten Sammelaktion für die Oberfläche.
+    @Published var bulkResultMessage: String? = nil
+    @Published var isBulkEditing = false
+
+    /// Tags zuweisen.
     func bulkAssignTags(_ tagIds: [Int], to docIds: Set<Int>) {
-        for id in docIds {
-            guard let doc = documents.first(where: { $0.id == id }) else { continue }
-            let merged = Array(Set(doc.tags).union(Set(tagIds)))
-            addPendingEdit(docId: id, title: doc.title, created: doc.dateObject ?? Date(),
-                           corr: doc.correspondent, type: doc.documentType, asn: doc.archiveSerialNumber,
-                           tags: merged, customFields: doc.customFields)
+        bulkModifyTags(add: tagIds, remove: [], in: docIds)
+    }
+
+    /// Tags entfernen — mit `bulk_edit` genauso billig wie zuweisen.
+    func bulkRemoveTags(_ tagIds: [Int], from docIds: Set<Int>) {
+        bulkModifyTags(add: [], remove: tagIds, in: docIds)
+    }
+
+    /// Tags in einem Server-Aufruf ändern.
+    ///
+    /// Offline oder auf einem Server ohne `bulk_edit` bleibt die bisherige Einzel-PATCH-
+    /// Warteschlange als Rückfallebene — sonst ginge die Aktion ohne Netz verloren.
+    func bulkModifyTags(add: [Int], remove: [Int], in docIds: Set<Int>) {
+        guard !docIds.isEmpty, !(add.isEmpty && remove.isEmpty) else { return }
+        let ids = Array(docIds)
+
+        guard let api = api, !isOffline, !isDemoMode else {
+            queueTagChange(add: add, remove: remove, in: docIds)
+            return
+        }
+        Task {
+            isBulkEditing = true
+            do {
+                try await api.bulkModifyTags(ids: ids, add: add, remove: remove)
+                applyTagChangeLocally(add: add, remove: remove, in: docIds)
+                bulkResultMessage = "\(ids.count) Dokument(e) geändert"
+            } catch {
+                // Nicht verloren geben: als Einzeländerungen in die Warteschlange, die sie
+                // später erneut versucht.
+                queueTagChange(add: add, remove: remove, in: docIds)
+                bulkResultMessage = "In Warteschlange — \(error.localizedDescription)"
+            }
+            isBulkEditing = false
         }
     }
 
@@ -800,11 +826,223 @@ class AppStore: ObservableObject {
     /// Ist ein Server erreichbar und angemeldet?
     var hasLiveServer: Bool { api != nil && !isOffline && !isDemoMode }
 
+    // MARK: - Eigene Felder verwalten
+
+    /// Legt ein eigenes Feld an und nimmt es in die geladene Liste auf.
+    @discardableResult
+    func createCustomField(name: String, type: CustomFieldType,
+                           selectOptions: [String] = []) async -> CustomField? {
+        guard let api = api, !isDemoMode else { return nil }
+        do {
+            let field = try await api.createCustomField(
+                name: name, dataType: type.rawValue, selectOptions: selectOptions
+            )
+            allCustomFields.append(field)
+            saveToDisk()
+            return field
+        } catch {
+            lastSyncError = error.localizedDescription
+            return nil
+        }
+    }
+
+    func renameCustomField(id: Int, to name: String) async -> Bool {
+        guard let api = api, !isDemoMode else { return false }
+        do {
+            try await api.renameCustomField(id: id, name: name)
+            await syncCustomFields()
+            return true
+        } catch {
+            lastSyncError = error.localizedDescription
+            return false
+        }
+    }
+
+    func deleteCustomField(id: Int) async -> Bool {
+        guard let api = api, !isDemoMode else { return false }
+        do {
+            try await api.deleteCustomField(id: id)
+            allCustomFields.removeAll { $0.id == id }
+            saveToDisk()
+            return true
+        } catch {
+            lastSyncError = error.localizedDescription
+            return false
+        }
+    }
+
+    /// Lädt die Feldliste neu.
+    func syncCustomFields() async {
+        guard let api = api, !isDemoMode else { return }
+        if let fields = try? await api.fetchCustomFields() {
+            allCustomFields = fields
+            saveToDisk()
+        }
+    }
+
+    /// Sucht ein Feld nach Namen (unabhängig von Groß-/Kleinschreibung).
+    func customField(named name: String) -> CustomField? {
+        allCustomFields.first { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }
+    }
+
+    /// Prüft die Verbindung und beschreibt das Ergebnis in einem Satz (Diagnose-Ansicht).
+    func probeConnection() async -> String {
+        guard !isDemoMode else { return "Demo-Modus — kein Server." }
+        guard let api = api else { return "Kein Konto oder kein Token." }
+        let started = Date()
+        do {
+            let stats = try await api.fetchStatistics()
+            let ms = Int(Date().timeIntervalSince(started) * 1000)
+            isOffline = false
+            let total = stats.documentsTotal.map(String.init) ?? "?"
+            return "Erreichbar in \(ms) ms — \(total) Dokumente auf dem Server."
+        } catch APIError.unauthorized {
+            return "Antwort 401: Token abgelaufen, erneut anmelden."
+        } catch APIError.serverError(let code) {
+            return "Antwort \(code) vom Server."
+        } catch {
+            return "Nicht erreichbar: \(error.localizedDescription)"
+        }
+    }
+
+    /// Vorschläge des Servers holen. Liefert `nil`, wenn der Server keine hat.
+    func fetchSuggestions(for docId: Int) async -> DocumentSuggestions? {
+        guard let api = api, !isOffline, !isDemoMode else { return nil }
+        do {
+            let suggestions = try await api.fetchSuggestions(documentId: docId)
+            return suggestions.isEmpty ? nil : suggestions
+        } catch {
+            return nil
+        }
+    }
+
+    /// Ähnliche Dokumente vom Server. Leeres Ergebnis, wenn der Server das nicht kann.
+    func similarDocuments(to docId: Int) async -> [Document] {
+        guard let api = api, !isOffline, !isDemoMode else { return [] }
+        return (try? await api.fetchSimilarDocuments(to: docId)) ?? []
+    }
+
+    // MARK: - Speicherpfade und Berechtigungen
+
+    @Published var allStoragePaths: [StoragePath] = []
+    @Published var serverUsers: [ServerUser] = []
+    @Published var serverGroups: [ServerGroup] = []
+
+    /// Lädt Speicherpfade, Benutzer und Gruppen.
+    ///
+    /// Benutzer und Gruppen darf nur ein Administrator sehen; für alle anderen antwortet der
+    /// Server mit 403. Das ist kein Fehler, sondern der Normalfall — die Listen bleiben dann
+    /// leer und die Oberfläche bietet die Rechtevergabe gar nicht erst an.
+    func syncServerMetadata() async {
+        guard let api = api, !isDemoMode else { return }
+        if let paths = try? await api.fetchStoragePaths() { allStoragePaths = paths }
+        if let users = try? await api.fetchUsers() { serverUsers = users }
+        if let groups = try? await api.fetchGroups() { serverGroups = groups }
+    }
+
+    /// Weist einen Speicherpfad zu.
+    func assignStoragePath(_ pathId: Int?, to docIds: Set<Int>) {
+        guard let api = api, !docIds.isEmpty, !isDemoMode else { return }
+        Task {
+            isBulkEditing = true
+            do {
+                try await api.bulkSetStoragePath(ids: Array(docIds), storagePath: pathId)
+                bulkResultMessage = "\(docIds.count) Dokument(e) verschoben"
+                await loadFirstPage()
+            } catch {
+                bulkResultMessage = error.localizedDescription
+            }
+            isBulkEditing = false
+        }
+    }
+
+    /// Setzt Besitzer und Rechte.
+    func assignPermissions(owner: Int?, viewUsers: [Int], viewGroups: [Int],
+                           changeUsers: [Int], changeGroups: [Int], to docIds: Set<Int>) {
+        guard let api = api, !docIds.isEmpty, !isDemoMode else { return }
+        Task {
+            isBulkEditing = true
+            do {
+                try await api.bulkSetPermissions(
+                    ids: Array(docIds), owner: owner,
+                    viewUsers: viewUsers, viewGroups: viewGroups,
+                    changeUsers: changeUsers, changeGroups: changeGroups
+                )
+                bulkResultMessage = "Rechte für \(docIds.count) Dokument(e) gesetzt"
+            } catch {
+                bulkResultMessage = error.localizedDescription
+            }
+            isBulkEditing = false
+        }
+    }
+
+    // MARK: - Posteingang abarbeiten
+
+    /// Nimmt Dokumente aus dem Posteingang, indem alle Inbox-Tags entfernt werden.
+    ///
+    /// Das ist der Schritt, den paperless-ngx erwartet und den die App vorher nicht anbot:
+    /// Wer ein Dokument abarbeiten wollte, musste „Bearbeiten" öffnen und den Inbox-Tag in
+    /// der Tag-Liste von Hand abwählen.
+    func markAsDone(_ docIds: Set<Int>) {
+        let inboxIDs = Array(inboxTagIDs)
+        guard !inboxIDs.isEmpty, !docIds.isEmpty else { return }
+        haptic(.medium)
+        // Sofort aus dem Posteingang nehmen; der Server folgt. Bei einem Fehler landet die
+        // Änderung in der Warteschlange und der nächste `loadInbox()` korrigiert die Liste.
+        inboxDocuments.removeAll { docIds.contains($0.id) }
+        if let total = inboxTotal { inboxTotal = max(0, total - docIds.count) }
+        bulkModifyTags(add: [], remove: inboxIDs, in: docIds)
+    }
+
+    /// Trägt einen Inbox-Tag wieder ein (Rücknahme von `markAsDone`).
+    func markAsUnread(_ docIds: Set<Int>) {
+        guard let first = inboxTagIDs.sorted().first, !docIds.isEmpty else { return }
+        bulkModifyTags(add: [first], remove: [], in: docIds)
+        Task { await loadInbox() }
+    }
+
+    // MARK: - Helfer für Sammeländerungen
+
+    /// Dasselbe Dokument kann in drei Listen liegen. Sucht es in allen.
+    private func anyLoadedDocument(_ id: Int) -> Document? {
+        documents.first { $0.id == id }
+            ?? filteredDocs.first { $0.id == id }
+            ?? inboxDocuments.first { $0.id == id }
+    }
+
+    /// Wendet eine Änderung auf alle Listen an, in denen das Dokument steckt.
+    private func mutateLoadedDocuments(ids: Set<Int>, _ change: (inout Document) -> Void) {
+        for idx in documents.indices where ids.contains(documents[idx].id) { change(&documents[idx]) }
+        for idx in filteredDocs.indices where ids.contains(filteredDocs[idx].id) { change(&filteredDocs[idx]) }
+        for idx in inboxDocuments.indices where ids.contains(inboxDocuments[idx].id) { change(&inboxDocuments[idx]) }
+        saveToDisk()
+    }
+
+    private func applyTagChangeLocally(add: [Int], remove: [Int], in ids: Set<Int>) {
+        mutateLoadedDocuments(ids: ids) { doc in
+            var tags = Set(doc.tags)
+            tags.formUnion(add)
+            tags.subtract(remove)
+            doc.tags = Array(tags)
+        }
+        let inboxIDs = inboxTagIDs
+        if !inboxIDs.isEmpty {
+            inboxDocuments.removeAll { inboxIDs.isDisjoint(with: $0.tags) }
+            inboxTotal = inboxDocuments.count
+        }
+    }
+
+    /// Rückfallebene ohne Server: als Einzeländerungen in die Warteschlange.
+    private func queueTagChange(add: [Int], remove: [Int], in docIds: Set<Int>) {
         for id in docIds {
-            guard let doc = documents.first(where: { $0.id == id }) else { continue }
+            guard let doc = anyLoadedDocument(id) else { continue }
+            var tags = Set(doc.tags)
+            tags.formUnion(add)
+            tags.subtract(remove)
             addPendingEdit(docId: id, title: doc.title, created: doc.dateObject ?? Date(),
-                           corr: corrId, type: doc.documentType, asn: doc.archiveSerialNumber,
-                           tags: doc.tags, customFields: doc.customFields)
+                           corr: doc.correspondent, type: doc.documentType,
+                           asn: doc.archiveSerialNumber, tags: Array(tags),
+                           customFields: doc.customFields)
         }
     }
 

@@ -254,6 +254,43 @@ struct MainDocView: View {
                                     }
                                 }
                             } label: { Image(systemName: "person").frame(maxWidth: .infinity) }
+                            // Weitere Sammelaktionen hinter einem Menü, damit die Leiste nicht
+                            // zur Symbolsammlung wird.
+                            Menu {
+                                Menu("Typ zuweisen") {
+                                    ForEach(store.allDocTypes) { type in
+                                        Button(type.safeName) {
+                                            store.bulkAssignDocumentType(type.id, to: selectedDocIDs)
+                                        }
+                                    }
+                                }
+                                Menu("Tag entfernen") {
+                                    ForEach(store.allTags) { tag in
+                                        Button(tag.safeName) {
+                                            store.bulkRemoveTags([tag.id], from: selectedDocIDs)
+                                        }
+                                    }
+                                }
+                                if !store.allStoragePaths.isEmpty {
+                                    Menu("Speicherpfad") {
+                                        Button("Keiner") { store.assignStoragePath(nil, to: selectedDocIDs) }
+                                        ForEach(store.allStoragePaths) { path in
+                                            Button(path.safeName) {
+                                                store.assignStoragePath(path.id, to: selectedDocIDs)
+                                            }
+                                        }
+                                    }
+                                }
+                                Button {
+                                    showPermissions = true
+                                } label: { Label("Rechte …", systemImage: "person.badge.key") }
+                                if !store.inboxTagIDs.isEmpty {
+                                    Button {
+                                        store.markAsDone(selectedDocIDs)
+                                        isSelectionMode = false; selectedDocIDs.removeAll()
+                                    } label: { Label("Als erledigt markieren", systemImage: "tray.and.arrow.down") }
+                                }
+                            } label: { Image(systemName: "ellipsis.circle").frame(maxWidth: .infinity) }
                             if isBulkSharing {
                                 ProgressView().frame(maxWidth: .infinity)
                             } else {

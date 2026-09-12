@@ -382,6 +382,156 @@ struct PaperlessAPI {
     /// Vorher fragte jede dieser Listen genau eine Seite mit `page_size=1000` ab. Ein Archiv
     /// mit mehr Einträgen verlor den Rest stillschweigend — bei den Tags konnte damit auch das
     /// Inbox-Tag fehlen, und der Posteingang blieb ohne Fehlermeldung leer.
+    /// Vorschläge des Servers für ein Dokument.
+    ///
+    /// Ältere oder knapp konfigurierte Server antworten hier mit 404 — dann gibt es eben
+    /// keine Vorschläge, und die Oberfläche zeigt einfach keine an.
+    func fetchSuggestions(documentId: Int) async throws -> DocumentSuggestions {
+        let url = try url("documents/\(documentId)/suggestions/")
+        let (data, response) = try await send(makeRequest(url))
+        try validateResponse(response)
+        return try JSONDecoder().decode(DocumentSuggestions.self, from: data)
+    }
+
+    /// Das Dokument mit dieser Archiv-Seriennummer.
+    func fetchDocument(asn: Int) async throws -> Document? {
+        let url = try url("documents/", query: [
+            URLQueryItem(name: "archive_serial_number", value: "\(asn)"),
+            URLQueryItem(name: "page_size", value: "1")
+        ])
+        let (data, response) = try await send(makeRequest(url))
+        try validateResponse(response)
+        return try Self.decodePage(data).documents.first
+    }
+
+    /// Die höchste vergebene ASN — Grundlage für den Vorschlag „nächste freie Nummer".
+    func fetchHighestASN() async throws -> Int? {
+        let url = try url("documents/", query: [
+            URLQueryItem(name: "ordering", value: "-archive_serial_number"),
+            URLQueryItem(name: "archive_serial_number__isnull", value: "false"),
+            URLQueryItem(name: "page_size", value: "1")
+        ])
+        let (data, response) = try await send(makeRequest(url))
+        try validateResponse(response)
+        return try Self.decodePage(data).documents.first?.archiveSerialNumber
+    }
+
+    /// Dokumente, die diesem ähneln (`?more_like_id=`).
+    ///
+    /// Die Ähnlichkeit rechnet der Server auf seinem Volltextindex — er kennt alle Dokumente,
+    /// das Telefon nur die geladenen. Das ist der eine Teil der ngx-Serverintelligenz, der
+    /// über alle Versionen ab 1.x stabil verfügbar ist.
+    func fetchSimilarDocuments(to documentId: Int, limit: Int = 10) async throws -> [Document] {
+        let url = try url("documents/", query: [
+            URLQueryItem(name: "more_like_id", value: "\(documentId)"),
+            URLQueryItem(name: "page_size", value: "\(limit)")
+        ])
+        let (data, response) = try await send(makeRequest(url))
+        try validateResponse(response)
+        // Das Dokument selbst steht je nach Version mit in der Antwort.
+        return try Self.decodePage(data).documents.filter { $0.id != documentId }
+    }
+
+    // MARK: - Speicherpfade, Benutzer, Gruppen
+
+    func fetchStoragePaths() async throws -> [StoragePath] {
+        try await fetchAllPages("storage_paths/", as: StoragePathResponse.self) { $0.results }
+    }
+
+    /// Benutzerliste. Nur Administratoren dürfen sie sehen — sonst antwortet der Server mit
+    /// 403, und die Oberfläche zeigt schlicht keine Auswahl an.
+    func fetchUsers() async throws -> [ServerUser] {
+        struct Response: Decodable { let results: [ServerUser]? }
+        return try await fetchAllPages("users/", as: Response.self) { $0.results }
+    }
+
+    func fetchGroups() async throws -> [ServerGroup] {
+        struct Response: Decodable { let results: [ServerGroup]? }
+        return try await fetchAllPages("groups/", as: Response.self) { $0.results }
+    }
+
+    /// Setzt Besitzer und Berechtigungen eines Dokuments.
+    ///
+    /// `set_permissions` erwartet die vollständige Rechtelage, nicht eine Änderung daran —
+    /// wer nur den Besitzer setzen will, muss die bestehenden Rechte mitschicken.
+    @discardableResult
+    func bulkSetPermissions(ids: [Int], owner: Int?, viewUsers: [Int], viewGroups: [Int],
+                            changeUsers: [Int], changeGroups: [Int],
+                            merge: Bool = false) async throws -> Int {
+        try await bulkEdit(ids: ids, method: "set_permissions", parameters: [
+            "owner": Self.jsonValue(owner),
+            "set_permissions": [
+                "view": ["users": viewUsers, "groups": viewGroups],
+                "change": ["users": changeUsers, "groups": changeGroups]
+            ],
+            "merge": merge
+        ])
+    }
+
+    // MARK: - Sammelbearbeitung
+
+    /// `nil` muss als JSON-`null` im Körper landen — „kein Sender" ist eine gültige Angabe.
+    /// Ein Swift-Optional direkt in `[String: Any]` lässt `JSONSerialization` abstürzen.
+    private static func jsonValue(_ value: Int?) -> Any { value ?? NSNull() }
+
+    /// Sammelbearbeitung über `POST /api/documents/bulk_edit/`.
+    ///
+    /// Vorher lief jede Sammelaktion als ein PATCH pro Dokument über die Änderungs-
+    /// warteschlange: bei 200 markierten Dokumenten 200 Anfragen, seriell, ohne Bilanz am
+    /// Ende. Der Server kann das in einem Aufruf — und nur so lassen sich Tags auch
+    /// *entfernen*, was ein PATCH mit vollständiger Tag-Liste nur umständlich hinbekommt.
+    ///
+    /// Gibt die Anzahl der bearbeiteten Dokumente zurück.
+    @discardableResult
+    func bulkEdit(ids: [Int], method: String, parameters: [String: Any] = [:]) async throws -> Int {
+        guard !ids.isEmpty else { return 0 }
+        let url = try url("documents/bulk_edit/")
+        var req = makeRequest(url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: [
+            "documents": ids,
+            "method": method,
+            "parameters": parameters
+        ])
+        let (_, response) = try await send(req)
+        try validateResponse(response)
+        return ids.count
+    }
+
+    /// Tags hinzufügen und entfernen in einem Schritt.
+    @discardableResult
+    func bulkModifyTags(ids: [Int], add: [Int], remove: [Int]) async throws -> Int {
+        guard !add.isEmpty || !remove.isEmpty else { return 0 }
+        return try await bulkEdit(ids: ids, method: "modify_tags", parameters: [
+            "add_tags": add, "remove_tags": remove
+        ])
+    }
+
+    @discardableResult
+    func bulkSetCorrespondent(ids: [Int], correspondent: Int?) async throws -> Int {
+        try await bulkEdit(ids: ids, method: "set_correspondent",
+                           parameters: ["correspondent": Self.jsonValue(correspondent)])
+    }
+
+    @discardableResult
+    func bulkSetDocumentType(ids: [Int], documentType: Int?) async throws -> Int {
+        try await bulkEdit(ids: ids, method: "set_document_type",
+                           parameters: ["document_type": Self.jsonValue(documentType)])
+    }
+
+    @discardableResult
+    func bulkSetStoragePath(ids: [Int], storagePath: Int?) async throws -> Int {
+        try await bulkEdit(ids: ids, method: "set_storage_path",
+                           parameters: ["storage_path": Self.jsonValue(storagePath)])
+    }
+
+    /// In den Papierkorb (ngx ≥ 2.0) bzw. löschen.
+    @discardableResult
+    func bulkDelete(ids: [Int]) async throws -> Int {
+        try await bulkEdit(ids: ids, method: "delete")
+    }
+
     private func fetchAllPages<Item, Wrapper: Decodable>(
         _ path: String,
         as wrapper: Wrapper.Type,
