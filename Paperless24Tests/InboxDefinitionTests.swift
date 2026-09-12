@@ -81,3 +81,35 @@ struct InboxDefinitionTests {
         #expect(url.absoluteString == "http://paperless.local/api/documents/?tags__id__in=1,3&page=1")
     }
 }
+
+/// Zum Aktualisieren ziehen darf niemanden auf den Anmeldebildschirm werfen.
+///
+/// `loadFirstPage()` schloss aus „kein API-Client" auf „Sitzung abgelaufen" und setzte
+/// `needsReLogin`. Im Demo-Modus gibt es aber nie einen Token — ein Zug nach unten warf den
+/// Nutzer damit aus der App.
+@MainActor
+struct RefreshDoesNotLogOutTests {
+
+    @Test func demoModusFordertKeinenNeuenLogin() async {
+        let store = AppStore()
+        store.isDemoMode = true
+        store.needsReLogin = false
+
+        await store.loadFirstPage()
+        #expect(store.needsReLogin == false)
+
+        await store.reloadVisible()
+        #expect(store.needsReLogin == false)
+    }
+
+    @Test func ohneKontoKeinLoginZwang() async {
+        let store = AppStore()
+        store.isDemoMode = false
+        store.accounts = []
+        store.activeAccountId = nil
+        store.needsReLogin = false
+
+        await store.loadFirstPage()
+        #expect(store.needsReLogin == false)
+    }
+}

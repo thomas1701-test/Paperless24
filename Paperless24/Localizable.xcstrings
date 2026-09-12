@@ -115,16 +115,6 @@
         }
       }
     },
-    "%lld Upload%@ %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld Upload%2$@ %3$@"
-          }
-        }
-      }
-    },
     "%lld von %lld" : {
       "localizations" : {
         "de" : {
@@ -654,6 +644,9 @@
 
     },
     "aus" : {
+
+    },
+    "Ausblenden" : {
 
     },
     "ausgewählt" : {
@@ -3228,6 +3221,9 @@
     "Neues Feld" : {
 
     },
+    "Nicht verarbeitet" : {
+
+    },
     "Nichts zu tun" : {
 
     },
@@ -3673,6 +3669,9 @@
           }
         }
       }
+    },
+    "Schon im Archiv" : {
+
     },
     "Schon im Archiv?" : {
 
@@ -4564,6 +4563,7 @@
       }
     },
     "uploads_ausstehend" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4822,7 +4822,16 @@
     "Wird als Datum im Feld „Fälligkeit“ gespeichert." : {
 
     },
+    "Wird auf dem Server verarbeitet …" : {
+
+    },
+    "Wird hochgeladen …" : {
+
+    },
     "Wird übertragen…" : {
+
+    },
+    "Wird verarbeitet …" : {
 
     },
     "wrong_otp_code" : {

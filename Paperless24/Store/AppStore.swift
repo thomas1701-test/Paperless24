@@ -492,6 +492,19 @@ class AppStore: ObservableObject {
     // MARK: - Pagination
 
     func loadFirstPage(silent: Bool = false) async {
+        // Im Demo-Modus gibt es keinen Server und damit keinen Token. Das ist kein
+        // abgelaufener Login — wer hier zum Aktualisieren zog, landete auf dem
+        // Anmeldebildschirm.
+        guard !isDemoMode else {
+            updateFilteredDocs()
+            isSyncing = false
+            return
+        }
+        // Ohne Konto ist auch nichts abgelaufen; dann ist schlicht noch nichts eingerichtet.
+        guard activeAccount != nil, !serverUrl.isEmpty else {
+            isSyncing = false
+            return
+        }
         guard let api = api else {
             isSyncing = false
             needsReLogin = true
@@ -600,6 +613,10 @@ class AppStore: ObservableObject {
     /// das Laden zu Recht für unzuverlässig.
     func reloadVisible() async {
         invalidateLoadState()
+        guard !isDemoMode else {
+            updateFilteredDocs()
+            return
+        }
         await loadFirstPage()
         guard isQueryActive else { return }
         await runQuery(addingToRecents: nil)
