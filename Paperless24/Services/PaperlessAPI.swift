@@ -676,6 +676,42 @@ struct PaperlessAPI {
 
     // MARK: - Trash
 
+    /// Legt ein eigenes Feld an (`POST /api/custom_fields/`).
+    ///
+    /// Bis 2.1.4 konnte die App eigene Felder nur lesen und befüllen. Für das Fristen-Radar
+    /// braucht sie ein Datumsfeld — und wer eins anlegen will, musste dafür die Weboberfläche
+    /// öffnen.
+    func createCustomField(name: String, dataType: String,
+                           selectOptions: [String] = []) async throws -> CustomField {
+        let url = try url("custom_fields/")
+        var req = makeRequest(url)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        var body: [String: Any] = ["name": name, "data_type": dataType]
+        if dataType == "select", !selectOptions.isEmpty {
+            body["extra_data"] = ["select_options": selectOptions.map { ["label": $0] }]
+        }
+        req.httpBody = try JSONSerialization.data(withJSONObject: body)
+        let (data, response) = try await send(req)
+        try validateResponse(response)
+        return try JSONDecoder().decode(CustomField.self, from: data)
+    }
+
+    /// Benennt ein eigenes Feld um. Der Datentyp ist serverseitig nicht änderbar.
+    func renameCustomField(id: Int, name: String) async throws {
+        let url = try url("custom_fields/\(id)/")
+        var req = makeRequest(url)
+        req.httpMethod = "PATCH"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.httpBody = try JSONSerialization.data(withJSONObject: ["name": name])
+        let (_, response) = try await send(req)
+        try validateResponse(response)
+    }
+
+    func deleteCustomField(id: Int) async throws {
+        try await deleteMetadata(endpoint: "custom_fields/\(id)/")
+    }
+
     func fetchTrash() async throws -> [TrashDocument] {
         let url = try url("trash/", query: [URLQueryItem(name: "page_size", value: "1000")])
         let (data, response) = try await send(makeRequest(url))

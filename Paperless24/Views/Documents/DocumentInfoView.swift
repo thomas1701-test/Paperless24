@@ -7,6 +7,8 @@ struct DocumentInfoView: View {
 
     @State private var summary: String?
     @State private var isSummarizing = false
+    @State private var similar: [Document] = []
+    @State private var isLoadingSimilar = false
 
     var body: some View {
         List {
@@ -59,8 +61,32 @@ struct DocumentInfoView: View {
                     }
                 }
             }
+
+            if !similar.isEmpty {
+                Section {
+                    ForEach(similar) { other in
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(other.title).lineLimit(1)
+                            Text(String(other.created.prefix(10)))
+                                .font(.caption).foregroundColor(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Ähnliche Dokumente")
+                } footer: {
+                    // Der Server rechnet auf seinem Volltextindex und kennt damit das ganze
+                    // Archiv — anders als die App, die nur die geladene Seite sieht.
+                    Text("Vom Server ermittelt.")
+                }
+            }
         }
         .listStyle(.insetGrouped)
+        .task {
+            guard similar.isEmpty else { return }
+            isLoadingSimilar = true
+            similar = await store.similarDocuments(to: doc.id)
+            isLoadingSimilar = false
+        }
     }
 
     private func infoRow(_ label: String, _ value: String) -> some View {

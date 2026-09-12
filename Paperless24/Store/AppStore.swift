@@ -431,6 +431,9 @@ class AppStore: ObservableObject {
 
     private func syncMetadata() async {
         guard let api = api else { return }
+        // Speicherpfade gehören zu den Stammdaten; Benutzer und Gruppen werden erst dann
+        // geholt, wenn jemand die Rechte tatsächlich öffnet (dafür braucht es Adminrechte).
+        if let paths = try? await api.fetchStoragePaths() { allStoragePaths = paths }
         async let tags = try? api.fetchTags()
         async let corrs = try? api.fetchCorrespondents()
         async let types = try? api.fetchDocumentTypes()
