@@ -227,6 +227,26 @@ struct PaperlessAPI {
         return try Self.decodePage(data)
     }
 
+    /// Gefilterte Liste. Die Filter stehen als Query-Parameter in der Anfrage, der Server
+    /// entscheidet — nur so stimmt die Trefferzahl und nur so lässt sich *innerhalb* eines
+    /// Filters weiterblättern.
+    ///
+    /// Wirft `APIError.serverError(400)`, wenn ein Server einen der Parameter nicht kennt.
+    /// `AppStore` fängt das ab und fällt für diesen Server dauerhaft auf lokale Filterung
+    /// zurück (`DocumentFilterSupport`), statt eine leere Liste zu zeigen.
+    func fetchDocuments(query: DocumentQuery, page: Int, pageSize: Int,
+                        ordering: String = "-created,-id") async throws -> DocumentPage {
+        let url = try url("documents/", query: query.queryItems() + [
+            URLQueryItem(name: "ordering", value: ordering),
+            URLQueryItem(name: "page", value: "\(page)"),
+            URLQueryItem(name: "page_size", value: "\(pageSize)")
+        ])
+        let req = makeRequest(url)
+        let (data, response) = try await send(req)
+        try validateResponse(response)
+        return try Self.decodePage(data)
+    }
+
     /// Dokumente, die mindestens einen der übergebenen Tags tragen (`tags__id__in`).
     /// Für den Posteingang: die Inbox-Tags des Servers.
     func fetchDocuments(tagIDs: [Int], page: Int, pageSize: Int = 250,

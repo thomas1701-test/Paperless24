@@ -16,6 +16,15 @@ struct MainDocView: View {
     @State private var filterTag: Int? = nil
     @State private var filterCorr: Int? = nil
     @State private var filterType: Int? = nil
+    /// Mehrfach- und Negativfilter aus `AdvancedFilterSheet`. Die Chips oben halten
+    /// weiterhin je einen Wert; `AppStore.activeQuery` führt beides zusammen.
+    @State private var advTags = Set<Int>()
+    @State private var excludedTags = Set<Int>()
+    @State private var advCorrs = Set<Int>()
+    @State private var advTypes = Set<Int>()
+    @State private var showAdvancedFilter = false
+    @State private var showASNScanner = false
+    @State private var showPermissions = false
     @State private var filterCustomField: Int? = nil
     @State private var filterCustomText = ""
     @State private var showCustomFieldSheet = false
@@ -275,7 +284,7 @@ struct MainDocView: View {
             }
         }
         .navigationTitle(usesSplitLayout
-                         ? Text("\(store.filteredDocs.count) \(String(localized: "Dokumente", locale: locale))")
+                         ? Text("\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
                          : Text(""))
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText)
@@ -317,6 +326,21 @@ struct MainDocView: View {
             Button("Abbrechen", role: .cancel) { saveFilterName = "" }
         } message: {
             Text("Name für diese Ansicht (wird auf dem Server gespeichert):")
+        }
+        .sheet(isPresented: $showPermissions) {
+            PermissionsSheet(documentIds: selectedDocIDs)
+        }
+        .sheet(isPresented: $showASNScanner) {
+            ASNScannerSheet { doc in
+                // In den Push-Stack legen, damit „Zurück" wieder in der Liste landet.
+                navPath.append(doc)
+            }
+        }
+        .sheet(isPresented: $showAdvancedFilter, onDismiss: applyFilters) {
+            AdvancedFilterSheet(
+                tags: $advTags, excludedTags: $excludedTags,
+                correspondents: $advCorrs, documentTypes: $advTypes
+            )
         }
         .sheet(isPresented: $showCustomFieldSheet, onDismiss: applyFilters) {
             CustomFieldFilterSheet(selectedField: $filterCustomField, text: $filterCustomText)
@@ -438,7 +462,21 @@ struct MainDocView: View {
 
     private var hasActiveFilter: Bool {
         filterTag != nil || filterCorr != nil || filterType != nil
-            || filterDate != .all || filterCustomField != nil
+            || filterDate != .all || filterCustomField != nil || advancedFilterCount > 0
+    }
+
+    /// Anzahl der Einschränkungen aus „Mehr Filter".
+    private var advancedFilterCount: Int {
+        advTags.count + excludedTags.count + advCorrs.count + advTypes.count
+    }
+
+    /// Setzt alle Filter zurück — Chips *und* „Mehr Filter". Ohne den zweiten Teil blieb nach
+    /// „Zurücksetzen" eine unsichtbare Einschränkung stehen.
+    private func resetFilters() {
+        filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
+        filterCustomField = nil; filterCustomText = ""
+        advTags = []; excludedTags = []; advCorrs = []; advTypes = []
+        applyFilters(); store.haptic(.light)
     }
 
     @ViewBuilder
@@ -500,6 +538,11 @@ struct MainDocView: View {
                                          value: filterCustomField.flatMap { store.customField(id: $0)?.safeName })
                     }
                     .buttonStyle(.plain)
+                    Button { showAdvancedFilter = true } label: {
+                        sidebarPickerRow("Mehr Filter", systemImage: "line.3.horizontal.decrease.circle",
+                                         value: advancedFilterCount > 0 ? "\(advancedFilterCount)" : nil)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
 
@@ -537,9 +580,7 @@ struct MainDocView: View {
                         Label("Speichern", systemImage: "bookmark")
                     }
                     Button(role: .destructive) {
-                        filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
-                        filterCustomField = nil; filterCustomText = ""
-                        applyFilters(); store.haptic(.light)
+                        resetFilters()
                     } label: {
                         Label("Zurücksetzen", systemImage: "xmark.circle.fill")
                     }
@@ -649,7 +690,17 @@ struct MainDocView: View {
                         }
                     }
 
-                    if filterTag != nil || filterCorr != nil || filterType != nil || filterDate != .all || filterCustomField != nil {
+                    Button { showAdvancedFilter = true } label: {
+                        Label(advancedFilterCount > 0 ? "Mehr (\(advancedFilterCount))" : "Mehr",
+                              systemImage: "line.3.horizontal.decrease.circle")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(chipForeground(active: advancedFilterCount > 0))
+                            .padding(.horizontal, 12).padding(.vertical, 7)
+                            .background(chipBackground(active: advancedFilterCount > 0))
+                            .cornerRadius(8)
+                    }
+
+                    if hasActiveFilter {
                         Button {
                             showSaveFilterSheet = true
                         } label: {
@@ -660,9 +711,7 @@ struct MainDocView: View {
                                 .background(palette.accent.opacity(0.1)).cornerRadius(8)
                         }
                         Button {
-                            filterTag = nil; filterCorr = nil; filterType = nil; filterDate = .all
-                            filterCustomField = nil; filterCustomText = ""
-                            applyFilters(); store.haptic(.light)
+                            resetFilters()
                         } label: {
                             Label("Zurücksetzen", systemImage: "xmark.circle.fill")
                                 .font(.system(size: 13, weight: .medium))
@@ -772,7 +821,7 @@ struct MainDocView: View {
                             }
                             .onAppear {
                                 if doc.id == store.filteredDocs.last?.id {
-                                    if !store.currentSearchText.isEmpty {
+                                    if store.isQueryActive {
                                         Task { await store.loadNextSearchPage() }
                                     } else {
                                         Task { await store.loadNextPage() }
@@ -859,7 +908,7 @@ struct MainDocView: View {
                     }
                     .onAppear {
                         if doc.id == store.filteredDocs.last?.id {
-                            if !store.currentSearchText.isEmpty {
+                            if store.isQueryActive {
                                 Task { await store.loadNextSearchPage() }
                             } else {
                                 Task { await store.loadNextPage() }
@@ -897,7 +946,7 @@ struct MainDocView: View {
     var toolbarContent: some ToolbarContent {
         if !usesSplitLayout {
             ToolbarItem(placement: .principal) {
-                Text("\(store.filteredDocs.count) \(String(localized: "Dokumente", locale: locale))")
+                Text("\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -961,13 +1010,19 @@ struct MainDocView: View {
         store.currentFilterTag = filterTag
         store.currentFilterCorr = filterCorr
         store.currentFilterType = filterType
+        store.currentFilterTags = advTags
+        store.currentFilterCorrs = advCorrs
+        store.currentFilterTypes = advTypes
+        store.currentFilterExcludedTags = excludedTags
         store.currentFilterCustomField = filterCustomField
         store.currentFilterCustomText = filterCustomText
         store.currentDateFilter = filterDate
         store.customStartDate = customStartDate
         store.customEndDate = customEndDate
         store.currentSortOrder = sortOrder
-        store.updateFilteredDocs()
+        // Entscheidet selbst, ob der Server gefragt werden muss oder die geladene Liste
+        // lokal eingeschränkt wird — und lädt bei unveränderter Anfrage nicht erneut.
+        store.applyFilters()
     }
 
     private func updateDocument(id: Int, title: String, date: Date, corr: Int?, type: Int?, asn: Int?, tags: [Int], customFields: [CustomFieldEdit]) {

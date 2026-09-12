@@ -44,6 +44,15 @@ class AppStore: ObservableObject {
 
     @Published var hasNextPage = false
     @Published var isLoadingMore = false
+    /// Gesamtzahl der Treffer der aktuellen Server-Anfrage (`count` der Antwort). Nur gesetzt,
+    /// solange ein Filter oder eine Suche aktiv ist — sonst zählt `documents`.
+    @Published var queryTotalCount: Int? = nil
+
+    /// Seitengröße der Liste, wie in den Einstellungen gewählt.
+    static var listPageSize: Int {
+        let stored = UserDefaults.standard.integer(forKey: "pageSize")
+        return stored > 0 ? stored : 25
+    }
     /// Aktiv, solange eine semantische KI-Suche die Ergebnisliste bestimmt.
     @Published var needsReLogin = false
     @Published var savedFilters: [SavedFilter] = []
@@ -181,6 +190,59 @@ class AppStore: ObservableObject {
     var customStartDate: Date = Date()
     var customEndDate: Date = Date()
     var currentSearchText: String = ""
+
+    /// Tags, die ein Dokument *nicht* tragen darf.
+    var currentFilterExcludedTags: Set<Int> = []
+    /// Mehrfachauswahl: leere Menge = keine Einschränkung. `currentFilterTag` & Co. bleiben
+    /// als Einzelwert für die Schnellfilter-Chips erhalten und werden hier mit eingerechnet.
+    var currentFilterTags: Set<Int> = []
+    var currentFilterCorrs: Set<Int> = []
+    var currentFilterTypes: Set<Int> = []
+
+    /// Zuletzt an den Server geschickte Anfrage — verhindert, dass `applyFilters()` bei jedem
+    /// `onAppear` der Liste erneut lädt, obwohl sich nichts geändert hat.
+    private var lastAppliedQuery: DocumentQuery? = nil
+
+    /// Alle Filter und die Suche als eine Server-Anfrage.
+    var activeQuery: DocumentQuery {
+        let bounds = DocumentQuery.dateBounds(
+            filter: currentDateFilter, customStart: customStartDate, customEnd: customEndDate
+        )
+        var tags = currentFilterTags
+        if let single = currentFilterTag { tags.insert(single) }
+        var corrs = currentFilterCorrs
+        if let single = currentFilterCorr { corrs.insert(single) }
+        var types = currentFilterTypes
+        if let single = currentFilterType { types.insert(single) }
+
+        return DocumentQuery(
+            tagIDs: tags,
+            excludedTagIDs: currentFilterExcludedTags,
+            correspondentIDs: corrs,
+            documentTypeIDs: types,
+            createdFrom: bounds.from,
+            createdTo: bounds.to,
+            customFieldID: currentFilterCustomField,
+            customFieldText: currentFilterCustomText,
+            searchText: currentSearchText
+        )
+    }
+
+    /// Filtert der Server? Offline, im Demo-Modus und auf Servern, die einen der Parameter
+    /// nicht kennen, bleibt nur die lokale Einschränkung der geladenen Dokumente.
+    var isServerFiltering: Bool {
+        !isDemoMode && !isOffline && DocumentFilterSupport.isSupported(serverUrl)
+    }
+
+    /// Liegt in `filteredDocs` eine Server-Antwort (Filter oder Suche) statt der lokal
+    /// eingeschränkten Gesamtliste? Entscheidet, wie weitergeblättert wird.
+    var isQueryActive: Bool { isServerFiltering && !activeQuery.isEmpty }
+
+    /// Zahl für die Kopfzeile der Liste.
+    ///
+    /// Bei aktivem Filter die Gesamtzahl der Treffer, die der Server meldet — `filteredDocs`
+    /// enthält dann nur die bisher geladenen Seiten davon.
+    var listCount: Int { (isQueryActive ? queryTotalCount : nil) ?? filteredDocs.count }
 
     // MARK: - Private
 
@@ -449,6 +511,39 @@ class AppStore: ObservableObject {
         isSyncing = false
     }
 
+    /// Pflegt die erste Server-Seite in die bestehende Liste ein.
+    ///
+    /// Bekannte Dokumente werden aktualisiert, neue vorn eingefügt. Was weiter hinten schon
+    /// geladen war, bleibt geladen.
+    private func mergeFirstPage(_ fresh: [Document]) {
+        var index: [Int: Int] = [:]
+        for (position, doc) in documents.enumerated() { index[doc.id] = position }
+
+        var newcomers: [Document] = []
+        for doc in fresh {
+            if let position = index[doc.id] {
+                documents[position] = doc
+            } else {
+                newcomers.append(doc)
+            }
+        }
+        if !newcomers.isEmpty {
+            documents.insert(contentsOf: newcomers, at: 0)
+        }
+    }
+
+    /// Zum Aktualisieren ziehen.
+    ///
+    /// Aktualisiert die Gesamtliste und, wenn ein Filter oder eine Suche aktiv ist, auch die
+    /// Trefferliste. Ohne den zweiten Schritt bliebe die sichtbare Liste beim Ziehen
+    /// unverändert, weil sie dann aus der Server-Antwort und nicht aus `documents` kommt.
+    func refreshList() async {
+        await loadFirstPage()
+        guard isQueryActive else { return }
+        lastAppliedQuery = nil
+        await runQuery(addingToRecents: nil)
+    }
+
     func loadNextPage() async {
         guard !isLoadingMore, hasNextPage, let api = api else { return }
         isLoadingMore = true
@@ -494,52 +589,129 @@ class AppStore: ObservableObject {
         currentSearchText = query
         searchTask?.cancel()
         if query.isEmpty {
-            Task { await loadFirstPage() }
+            // Suchbegriff gelöscht: Wenn noch Filter gesetzt sind, muss die gefilterte
+            // Anfrage neu laufen; sonst genügt die schon geladene Gesamtliste.
+            applyFilters(debounce: false)
             return
         }
         searchTask = Task {
             isSearching = true
             try? await Task.sleep(nanoseconds: 400_000_000)
             guard !Task.isCancelled else { return }
-
-            // Ohne Server — offline oder im Demo-Modus — wird lokal über Titel und
-            // erkannten Text gesucht.
-            if isOffline || isDemoMode {
-                let low = query.lowercased()
-                filteredDocs = documents.filter {
-                    $0.title.localizedCaseInsensitiveContains(low) ||
-                    ($0.content?.localizedCaseInsensitiveContains(low) ?? false)
-                }
-                addRecentSearch(query)
-                isSearching = false
-                return
-            }
-
-            guard let api = api else { isSearching = false; return }
-            do {
-                let page = try await api.searchDocuments(query: query, page: 1)
-                filteredDocs = page.documents.uniquedByID()
-                searchHasNextPage = page.hasNext
-                currentSearchPage = 1
-                addRecentSearch(query)
-            } catch {
-                let isCancelled = (error is CancellationError) ||
-                    (error as? URLError)?.code == .cancelled
-                if !isCancelled { lastSyncError = error.localizedDescription }
-            }
+            await runQuery(addingToRecents: query)
             isSearching = false
         }
     }
 
+    /// Übernimmt den aktuellen Filter- und Suchzustand.
+    ///
+    /// Läuft bei jeder Änderung in der Oberfläche und bei jedem `onAppear` der Liste. Eine
+    /// unveränderte Anfrage löst deshalb bewusst kein erneutes Laden aus.
+    func applyFilters(debounce: Bool = true) {
+        let query = activeQuery
+
+        guard isServerFiltering, !query.isEmpty else {
+            // Lokale Einschränkung der geladenen Dokumente (offline, Demo, alter Server)
+            // oder gar kein Filter — beides braucht keine Anfrage.
+            lastAppliedQuery = nil
+            updateFilteredDocs()
+            return
+        }
+        guard query != lastAppliedQuery else {
+            // Gleiche Anfrage: nur die lokale Nachbearbeitung erneuern.
+            refineQueryResult()
+            return
+        }
+
+        searchTask?.cancel()
+        searchTask = Task {
+            isSearching = true
+            if debounce {
+                try? await Task.sleep(nanoseconds: 250_000_000)
+                guard !Task.isCancelled else { isSearching = false; return }
+            }
+            await runQuery(addingToRecents: nil)
+            isSearching = false
+        }
+    }
+
+    /// Holt Seite 1 der gefilterten Liste vom Server.
+    ///
+    /// Das Ergebnis landet in `filteredDocs`, nicht in `documents`: `documents` ist der
+    /// Offline-Cache, die Quelle für Spotlight und für „Archiv fragen" und muss die
+    /// *ungefilterte* Liste bleiben. Ein Filter darf den Cache nicht auf seine Treffer
+    /// zusammenschrumpfen.
+    private func runQuery(addingToRecents recent: String?) async {
+        let query = activeQuery
+
+        // Ohne Server — offline oder Demo — bleibt nur die lokale Liste.
+        guard isServerFiltering, let api = api else {
+            updateFilteredDocs()
+            if let recent { addRecentSearch(recent) }
+            return
+        }
+
+        do {
+            let page = try await api.fetchDocuments(
+                query: query, page: 1, pageSize: Self.listPageSize, ordering: orderingParam()
+            )
+            filteredDocs = page.documents.uniquedByID()
+            searchHasNextPage = page.hasNext
+            currentSearchPage = 1
+            queryTotalCount = page.totalCount
+            lastAppliedQuery = query
+            reApplyPendingEditsToQueryResult()
+            refineQueryResult()
+            if let recent { addRecentSearch(recent) }
+        } catch APIError.serverError(400) {
+            // Der Server kennt einen der Filterparameter nicht. Für diesen Server dauerhaft
+            // auf lokale Filterung zurückfallen — eine leere Liste wäre das schlechtere
+            // Ergebnis als ein unvollständiger Filter mit Hinweis.
+            DocumentFilterSupport.disable(serverUrl)
+            lastAppliedQuery = nil
+            updateFilteredDocs()
+        } catch {
+            let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
+            if !isCancelled { lastSyncError = error.localizedDescription }
+        }
+    }
+
+    /// Nachbearbeitung der Server-Antwort: der Textvergleich im eigenen Feld bleibt lokal
+    /// (siehe `DocumentQuery.customFieldText`).
+    private func refineQueryResult() {
+        guard isQueryActive else { return }
+        let query = activeQuery
+        guard query.needsLocalCustomFieldMatch, let fieldId = query.customFieldID else { return }
+        filteredDocs = filteredDocs.filter { doc in
+            guard let entry = doc.customFields.first(where: { $0.field == fieldId }), !entry.value.isEmpty
+            else { return false }
+            return customFieldDisplay(entry.value, fieldId: fieldId)
+                .localizedCaseInsensitiveContains(query.customFieldText)
+        }
+    }
+
+    /// Noch nicht übertragene Änderungen auch auf die Trefferliste anwenden.
+    private func reApplyPendingEditsToQueryResult() {
+        guard !pendingEdits.isEmpty else { return }
+        for edit in pendingEdits {
+            guard let idx = filteredDocs.firstIndex(where: { $0.id == edit.docId }) else { continue }
+            filteredDocs[idx] = edit.applied(to: filteredDocs[idx])
+        }
+    }
+
     func loadNextSearchPage() async {
-        guard !isSearching, searchHasNextPage, let api = api, !currentSearchText.isEmpty else { return }
+        guard !isSearching, searchHasNextPage, let api = api, isQueryActive else { return }
         isSearching = true
         let nextPage = currentSearchPage + 1
         do {
-            let page = try await api.searchDocuments(query: currentSearchText, page: nextPage)
+            let page = try await api.fetchDocuments(
+                query: activeQuery, page: nextPage,
+                pageSize: Self.listPageSize, ordering: orderingParam()
+            )
             filteredDocs.appendUniqueByID(page.documents)
             searchHasNextPage = page.hasNext
             currentSearchPage = nextPage
+            reApplyPendingEditsToQueryResult()
         } catch {
             let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
             if !isCancelled { lastSyncError = error.localizedDescription }
@@ -565,6 +737,69 @@ class AppStore: ObservableObject {
     }
 
     func bulkAssignCorrespondent(_ corrId: Int, to docIds: Set<Int>) {
+        guard !docIds.isEmpty else { return }
+        let ids = Array(docIds)
+        guard let api = api, !isOffline, !isDemoMode else {
+            for id in docIds {
+                guard let doc = anyLoadedDocument(id) else { continue }
+                addPendingEdit(docId: id, title: doc.title, created: doc.dateObject ?? Date(),
+                               corr: corrId, type: doc.documentType, asn: doc.archiveSerialNumber,
+                               tags: doc.tags, customFields: doc.customFields)
+            }
+            return
+        }
+        Task {
+            isBulkEditing = true
+            do {
+                try await api.bulkSetCorrespondent(ids: ids, correspondent: corrId)
+                mutateLoadedDocuments(ids: docIds) { $0.correspondent = corrId }
+                bulkResultMessage = "\(ids.count) Dokument(e) geändert"
+            } catch {
+                bulkResultMessage = error.localizedDescription
+            }
+            isBulkEditing = false
+        }
+    }
+
+    func bulkAssignDocumentType(_ typeId: Int, to docIds: Set<Int>) {
+        guard !docIds.isEmpty else { return }
+        let ids = Array(docIds)
+        guard let api = api, !isOffline, !isDemoMode else {
+            for id in docIds {
+                guard let doc = anyLoadedDocument(id) else { continue }
+                addPendingEdit(docId: id, title: doc.title, created: doc.dateObject ?? Date(),
+                               corr: doc.correspondent, type: typeId, asn: doc.archiveSerialNumber,
+                               tags: doc.tags, customFields: doc.customFields)
+            }
+            return
+        }
+        Task {
+            isBulkEditing = true
+            do {
+                try await api.bulkSetDocumentType(ids: ids, documentType: typeId)
+                mutateLoadedDocuments(ids: docIds) { $0.documentType = typeId }
+                bulkResultMessage = "\(ids.count) Dokument(e) geändert"
+            } catch {
+                bulkResultMessage = error.localizedDescription
+            }
+            isBulkEditing = false
+        }
+    }
+
+    /// Eine gefilterte Seite holen, ohne `api` nach außen zu geben.
+    ///
+    /// Für Erweiterungen in anderen Dateien (etwa das Fristen-Radar), die eine eigene Abfrage
+    /// brauchen, aber nicht den ganzen API-Client.
+    func fetchPage(query: DocumentQuery, page: Int = 1, pageSize: Int = 250,
+                   ordering: String? = nil) async throws -> DocumentPage {
+        guard let api else { throw APIError.noData }
+        return try await api.fetchDocuments(query: query, page: page, pageSize: pageSize,
+                                           ordering: ordering ?? orderingParam())
+    }
+
+    /// Ist ein Server erreichbar und angemeldet?
+    var hasLiveServer: Bool { api != nil && !isOffline && !isDemoMode }
+
         for id in docIds {
             guard let doc = documents.first(where: { $0.id == id }) else { continue }
             addPendingEdit(docId: id, title: doc.title, created: doc.dateObject ?? Date(),
@@ -584,14 +819,33 @@ class AppStore: ObservableObject {
         // Löschen und erneutes Suchen half. Änderungen an einzelnen Dokumenten pflegen
         // `removeDocumentLocally(id:)` und `addPendingEdit(...)` direkt in die Trefferliste ein.
         guard currentSearchText.isEmpty else { return }
+        // Filtert der Server, steht in `filteredDocs` seine Antwort. Ein lokaler Filterlauf
+        // über `documents` (= nur die geladene Seite) würde sie durch ein Teilergebnis
+        // ersetzen.
+        guard !isQueryActive else { return }
+
+        // Schnellpfad: Steht kein lokaler Filter an und kommt die Liste vom Server, ist sie
+        // bereits in der gewünschten Reihenfolge (`ordering`). Der lokale Sortierlauf wäre
+        // reine Arbeit — und er lief bisher bei *jedem* Nachladen erneut über die inzwischen
+        // gewachsene Gesamtliste.
+        if !activeQuery.hasFilters && hasLiveServer {
+            filteredDocs = documents
+            return
+        }
 
         let calendar = Calendar.current
         let now = Date()
 
         let filtered = documents.filter { doc in
-            let matchesTag = currentFilterTag == nil || doc.tags.contains(currentFilterTag!)
-            let matchesCorr = currentFilterCorr == nil || doc.correspondent == currentFilterCorr
-            let matchesType = currentFilterType == nil || doc.documentType == currentFilterType
+            // Der lokale Filter muss dieselben Mengen auswerten wie `activeQuery`, sonst
+            // zeigt dasselbe Filterset offline etwas anderes als online.
+            let query = activeQuery
+            let matchesTag = query.tagIDs.isSubset(of: Set(doc.tags))
+            let matchesExcluded = query.excludedTagIDs.isDisjoint(with: Set(doc.tags))
+            let matchesCorr = query.correspondentIDs.isEmpty
+                || (doc.correspondent.map { query.correspondentIDs.contains($0) } ?? false)
+            let matchesType = query.documentTypeIDs.isEmpty
+                || (doc.documentType.map { query.documentTypeIDs.contains($0) } ?? false)
 
             var matchesCustom = true
             if let fieldId = currentFilterCustomField {
@@ -624,7 +878,8 @@ class AppStore: ObservableObject {
                     break
                 }
             }
-            return matchesTag && matchesCorr && matchesType && matchesDate && matchesCustom
+            return matchesTag && matchesExcluded && matchesCorr && matchesType
+                && matchesDate && matchesCustom
         }
 
         // Seit API-Version 9 liefert paperless-ngx `created` nur noch als Datum ohne Uhrzeit.
