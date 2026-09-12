@@ -159,13 +159,11 @@ struct MainDocView: View {
                     }
                     .frame(maxWidth: .infinity).padding(6).background(Color.orange).foregroundColor(.white)
                 }
-                if store.isSearching {
-                    HStack { ProgressView(); Text("Suche...").font(.caption) }
-                        .padding(6).frame(maxWidth: .infinity).background(Color.blue.opacity(0.1))
-                }
-                if store.isSyncing && !store.documents.isEmpty {
-                    ProgressView().padding(5).frame(maxWidth: .infinity).background(Color.blue.opacity(0.07))
-                }
+                // Eine Zeile mit fester Höhe für Suche *und* Sync. Vorher waren das zwei
+                // Bausteine, die im Stack auftauchten und verschwanden — jedes Mal rutschte
+                // die ganze Liste um ihre Höhe nach unten und wieder zurück. Genau das ließ
+                // Laden und Aktualisieren holprig wirken.
+                activityStrip
 
                 if store.pickerCallbackURL != nil {
                     HStack {
@@ -458,7 +456,9 @@ struct MainDocView: View {
         } message: {
             Text(store.importErrorMessage ?? "")
         }
-        .onAppear { applyFilters(); store.sync() }
+        // `onAppear` läuft auch bei jeder Rückkehr aus der Detailansicht. Ein voller Sync
+        // pro Zurück-Tippen ist verschwendete Arbeit und sichtbares Zucken in der Liste.
+        .onAppear { applyFilters(); store.syncIfStale() }
         .onChange(of: store.pendingSearch) { q in
             guard let q else { return }
             store.pendingSearch = nil
@@ -630,6 +630,26 @@ struct MainDocView: View {
         .listStyle(.sidebar)
         .themedSurface(palette)
         .navigationTitle("Filter")
+    }
+
+    /// Statuszeile mit gleichbleibender Höhe.
+    ///
+    /// Sie ist immer im Layout, nur ihr Inhalt wechselt. Ein- und ausgeblendete Zeilen
+    /// verschieben sonst den gesamten Inhalt darunter.
+    @ViewBuilder
+    private var activityStrip: some View {
+        let active = store.isSearching || (store.isSyncing && !store.documents.isEmpty)
+        HStack(spacing: 6) {
+            if active {
+                ProgressView().controlSize(.small)
+                Text(store.isSearching ? "Suche…" : "Aktualisieren…")
+                    .font(.caption2).foregroundColor(.secondary)
+            }
+        }
+        .frame(height: 18)
+        .frame(maxWidth: .infinity)
+        .background(active ? palette.accent.opacity(0.07) : Color.clear)
+        .animation(.easeInOut(duration: 0.15), value: active)
     }
 
     // MARK: - Filter Bar
@@ -887,7 +907,7 @@ struct MainDocView: View {
             }
             .padding(10)
         }
-        .refreshable { await store.loadFirstPage() }
+        .refreshable { await store.refreshList() }
     }
 
     // MARK: - Document List
@@ -977,7 +997,7 @@ struct MainDocView: View {
         }
         .listStyle(.plain)
         .themedSurface(palette)
-        .refreshable { await store.loadFirstPage() }
+        .refreshable { await store.refreshList() }
     }
 
     // MARK: - Toolbar

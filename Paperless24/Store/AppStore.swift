@@ -416,17 +416,49 @@ class AppStore: ObservableObject {
 
     // MARK: - Sync
 
+    /// Zeitpunkt des letzten erfolgreichen Ladens — Grundlage für die Drosselung.
+    private(set) var lastSuccessfulSync: Date? = nil
+
+    /// Mindestabstand zwischen zwei automatisch ausgelösten Syncs.
+    ///
+    /// `MainDocView.onAppear` läuft bei jeder Rückkehr aus der Detailansicht. Ohne Drosselung
+    /// lädt die App dabei jedes Mal die erste Seite neu, ersetzt die Liste und schreibt alles
+    /// auf die Platte — bei jedem Zurück-Tippen.
+    private static let autoSyncMinInterval: TimeInterval = 20
+
+    /// Läuft gerade ein Sync? Verhindert, dass sich zwei Läufe überlagern.
+    private var isSyncRunning = false
+
     func sync(silent: Bool = false) {
         guard !isDemoMode, !serverUrl.isEmpty else { return }
+        guard !isSyncRunning else { return }
         if !silent { isSyncing = true }
+        isSyncRunning = true
         Task {
             await withTaskGroup(of: Void.self) { group in
-                group.addTask { await self.loadFirstPage() }
+                group.addTask { await self.loadFirstPage(silent: silent) }
                 group.addTask { await self.syncMetadata() }
                 if !self.pendingUploads.isEmpty { group.addTask { await self.processUploadQueue() } }
                 await self.processEditQueue()
             }
+            isSyncRunning = false
+            if silent { isSyncing = false }
         }
+    }
+
+    /// Sync beim Erscheinen der Liste — nur, wenn es etwas zu holen gibt.
+    ///
+    /// Beim ersten Aufbau (leere Liste) sofort und sichtbar, danach höchstens alle 20 Sekunden
+    /// und dann still im Hintergrund. Zum Aktualisieren ziehen umgeht die Drosselung.
+    func syncIfStale() {
+        guard !isDemoMode, !serverUrl.isEmpty else { return }
+        if documents.isEmpty {
+            sync()
+            return
+        }
+        if let last = lastSuccessfulSync,
+           Date().timeIntervalSince(last) < Self.autoSyncMinInterval { return }
+        sync(silent: true)
     }
 
     private func syncMetadata() async {
@@ -459,20 +491,30 @@ class AppStore: ObservableObject {
 
     // MARK: - Pagination
 
-    func loadFirstPage() async {
+    func loadFirstPage(silent: Bool = false) async {
         guard let api = api else {
             isSyncing = false
             needsReLogin = true
             return
         }
-        currentPage = 1
-        isSyncing = true
+        // Ein stiller Sync darf die Anzeige nicht anfassen: Die Fortschrittsanzeige beim
+        // Zurückkehren aus der Detailansicht war der Hauptgrund, warum das Laden ruckelig
+        // wirkte — sie erschien und verschwand bei jedem Wechsel.
+        if !silent { isSyncing = true }
         for attempt in 1...2 {
             do {
                 let page = try await api.fetchDocuments(page: 1, ordering: orderingParam())
-                documents = page.documents.uniquedByID()
-                hasNextPage = page.hasNext
-                currentPage = 1
+                // Hat der Nutzer schon nachgeladen, darf ein stiller Sync die Liste nicht auf
+                // die erste Seite zurückschneiden — sie würde unter dem Finger zusammenklappen
+                // und die Scrollposition verlieren. Dann wird die erste Seite eingepflegt und
+                // der Blätterstand bleibt, wie er ist.
+                if silent && documents.count > page.documents.count {
+                    mergeFirstPage(page.documents)
+                } else {
+                    documents = page.documents.uniquedByID()
+                    hasNextPage = page.hasNext
+                    currentPage = 1
+                }
                 isOffline = false
                 lastSyncError = nil
                 reApplyPendingEdits()
@@ -1303,9 +1345,13 @@ class AppStore: ObservableObject {
                 return order == .orderedSame ? byID($0, $1) : order == .orderedAscending
             }
         case .senderAZ:
+            // Namen einmal in ein Wörterbuch, statt sie im Vergleich zu suchen: Die lineare
+            // Suche im Komparator machte aus dem Sortieren O(n · log n · m).
+            let names = Dictionary(allCorrespondents.map { ($0.id, $0.safeName) },
+                                   uniquingKeysWith: { a, _ in a })
             filteredDocs = filtered.sorted { doc1, doc2 in
-                let n1 = allCorrespondents.first(where: { $0.id == doc1.correspondent })?.safeName ?? ""
-                let n2 = allCorrespondents.first(where: { $0.id == doc2.correspondent })?.safeName ?? ""
+                let n1 = doc1.correspondent.flatMap { names[$0] } ?? ""
+                let n2 = doc2.correspondent.flatMap { names[$0] } ?? ""
                 let order = n1.localizedCompare(n2)
                 return order == .orderedSame ? byID(doc1, doc2) : order == .orderedAscending
             }
@@ -1788,6 +1834,28 @@ class AppStore: ObservableObject {
     /// Beim ersten Lauf eines Kontos wird das ganze Archiv geholt, danach reicht, was
     /// ohnehin geladen ist — sonst blätterte jeder Sync durch den kompletten Server.
     /// Neue Dokumente stehen durch die Sortierung nach Datum immer auf der ersten Seite.
+    /// Zeitpunkt des letzten Spotlight-Durchlaufs.
+    private var lastSpotlightRun: Date? = nil
+    /// Mindestabstand zwischen zwei Durchläufen.
+    ///
+    /// Der Index lief bisher bei jedem `loadFirstPage()` an — also auch bei jedem stillen Sync.
+    /// Ein voller Durchlauf blättert durch das ganze Archiv und lädt Vorschaubilder nach; das
+    /// gehört nicht in den Weg des Nutzers.
+    private static let spotlightMinInterval: TimeInterval = 15 * 60
+
+    /// Indexiert, wenn der erste Aufbau noch fehlt oder der letzte Lauf lange her ist.
+    func indexDocumentsForSpotlightIfDue() {
+        if !fullSpotlightIndexBuilt {
+            lastSpotlightRun = Date()
+            indexDocumentsForSpotlight()
+            return
+        }
+        if let last = lastSpotlightRun,
+           Date().timeIntervalSince(last) < Self.spotlightMinInterval { return }
+        lastSpotlightRun = Date()
+        indexDocumentsForSpotlight()
+    }
+
     func indexDocumentsForSpotlight() {
         let full = !fullSpotlightIndexBuilt
         Task {
@@ -1958,16 +2026,74 @@ class AppStore: ObservableObject {
 
     // MARK: - Persistence
 
+    /// Fingerabdruck des Archivs beim letzten Schreibvorgang.
+    private var lastSavedArchiveSignature: Int? = nil
+
+    /// Speichert den Stand des aktiven Kontos.
+    ///
+    /// Getrennt nach Dringlichkeit und Größe:
+    /// * **Warteschlangen** (Uploads, Änderungen, Filter) sind klein, und ein Verlust wäre hier
+    ///   am schmerzhaftesten — sie werden sofort geschrieben.
+    /// * **Archiv** (Dokumente und Stammdaten) ist groß: `documents` enthält den erkannten Text
+    ///   jedes Dokuments, bei einem vollen Archiv zweistellige Megabyte. Das lief bisher bei
+    ///   *jedem* Sync durch `JSONEncoder` auf dem Main Thread — genau das machte das Laden
+    ///   ruckelig. Jetzt kodiert ein Hintergrund-Task, und unveränderte Daten werden gar nicht
+    ///   erst geschrieben.
     func saveToDisk() {
+        saveQueues()
+        saveArchive()
+    }
+
+    private func saveQueues() {
         guard let id = activeAccountId else { return }
-        PersistenceService.save(documents,         toURL: PersistenceService.accountDataURL(for: id, filename: "documents.json"))
-        PersistenceService.save(allTags,           toURL: PersistenceService.accountDataURL(for: id, filename: "tags.json"))
-        PersistenceService.save(allCorrespondents, toURL: PersistenceService.accountDataURL(for: id, filename: "corrs.json"))
-        PersistenceService.save(allDocTypes,       toURL: PersistenceService.accountDataURL(for: id, filename: "types.json"))
-        PersistenceService.save(allCustomFields,   toURL: PersistenceService.accountDataURL(for: id, filename: "customfields.json"))
-        PersistenceService.save(pendingUploads,    toURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))
-        PersistenceService.save(pendingEdits,      toURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))
-        PersistenceService.save(savedFilters,      toURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json"))
+        PersistenceService.save(pendingUploads, toURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))
+        PersistenceService.save(pendingEdits,   toURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))
+        PersistenceService.save(savedFilters,   toURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json"))
+    }
+
+    /// Schreibt Dokumente und Stammdaten, wenn sich etwas geändert hat.
+    func saveArchive(force: Bool = false) {
+        guard let id = activeAccountId else { return }
+        let signature = archiveSignature()
+        guard force || signature != lastSavedArchiveSignature else { return }
+        lastSavedArchiveSignature = signature
+
+        // Arrays sind Wertetypen — der Hintergrund-Task arbeitet auf einer eigenen Kopie und
+        // kann nichts sehen, was sich danach noch ändert.
+        let docs = documents
+        let tags = allTags
+        let corrs = allCorrespondents
+        let types = allDocTypes
+        let fields = allCustomFields
+        Task.detached(priority: .utility) {
+            PersistenceService.save(docs,   toURL: PersistenceService.accountDataURL(for: id, filename: "documents.json"))
+            PersistenceService.save(tags,   toURL: PersistenceService.accountDataURL(for: id, filename: "tags.json"))
+            PersistenceService.save(corrs,  toURL: PersistenceService.accountDataURL(for: id, filename: "corrs.json"))
+            PersistenceService.save(types,  toURL: PersistenceService.accountDataURL(for: id, filename: "types.json"))
+            PersistenceService.save(fields, toURL: PersistenceService.accountDataURL(for: id, filename: "customfields.json"))
+        }
+    }
+
+    /// Billiger Vergleichswert: erkennt Änderungen an Bestand und Metadaten, ohne den ganzen
+    /// erkannten Text zu hashen.
+    private func archiveSignature() -> Int {
+        var hasher = Hasher()
+        hasher.combine(documents.count)
+        for doc in documents {
+            hasher.combine(doc.id)
+            hasher.combine(doc.title)
+            hasher.combine(doc.created)
+            hasher.combine(doc.tags)
+            hasher.combine(doc.correspondent)
+            hasher.combine(doc.documentType)
+            hasher.combine(doc.archiveSerialNumber)
+            hasher.combine(doc.customFields)
+        }
+        hasher.combine(allTags.count)
+        hasher.combine(allCorrespondents.count)
+        hasher.combine(allDocTypes.count)
+        hasher.combine(allCustomFields.count)
+        return hasher.finalize()
     }
 
     func loadFromDisk(for id: UUID) {
