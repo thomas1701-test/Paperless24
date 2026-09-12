@@ -474,8 +474,10 @@ class AppStore: ObservableObject {
                 reApplyPendingEdits()
                 saveToDisk()
                 updateFilteredDocs()
-                indexDocumentsForSpotlight()
-                isSyncing = false
+                indexDocumentsForSpotlightIfDue()
+                updateArchiveIndexIncrementally()
+                lastSuccessfulSync = Date()
+                if !silent { isSyncing = false }
                 return
             } catch APIError.unauthorized {
                 if let account = activeAccount {
@@ -1008,6 +1010,88 @@ class AppStore: ObservableObject {
         guard let match = DuplicateDetector.matches(for: candidate, in: known).first,
               let doc = documents.first(where: { $0.id == match.documentId }) else { return nil }
         return DuplicateWarning(document: doc, reason: match.reason, confidence: match.confidence)
+    }
+
+    // MARK: - Bedeutungsindex („Archiv fragen")
+
+    @Published var archiveIndexStatus: String? = nil
+    @Published var archiveIndexProgress: Double = 0
+    @Published var isBuildingArchiveIndex = false
+
+    /// Nimmt die geladenen Dokumente in den Index auf, soweit sie noch fehlen.
+    ///
+    /// Läuft nebenbei und leise: Wer nie „Archiv fragen" benutzt, merkt davon nichts.
+    func updateArchiveIndexIncrementally() {
+        // Derselbe Schalter wie für alle KI-Funktionen: Wer sie abschaltet, will auch keinen
+        // Index im Hintergrund.
+        guard UserDefaults.standard.object(forKey: "aiEnabled") as? Bool ?? true else { return }
+        let payload = documents.compactMap { doc -> (id: Int, text: String)? in
+            guard let content = doc.content, !content.isEmpty else { return nil }
+            return (doc.id, doc.title + " " + content)
+        }
+        guard !payload.isEmpty else { return }
+        let account = activeAccountId
+        Task.detached(priority: .background) {
+            await ArchiveIndex.shared.use(account: account)
+            await ArchiveIndex.shared.index(payload)
+        }
+    }
+
+    /// Baut den Index über das **ganze** Archiv auf — seitenweise vom Server.
+    func buildFullArchiveIndex() async {
+        guard !isBuildingArchiveIndex else { return }
+        guard let api = api, !isDemoMode else {
+            archiveIndexStatus = "Kein Server verbunden."
+            return
+        }
+        isBuildingArchiveIndex = true
+        archiveIndexProgress = 0
+        archiveIndexStatus = "Index wird aufgebaut …"
+
+        let account = activeAccountId
+        await ArchiveIndex.shared.use(account: account)
+
+        var page = 1
+        var processed = 0
+        var total: Int? = nil
+        while true {
+            guard !Task.isCancelled else { break }
+            guard let result = try? await api.fetchDocuments(
+                page: page, pageSize: 250, ordering: "-added,-id"
+            ) else { break }
+            if total == nil { total = result.totalCount }
+
+            let payload = result.documents.compactMap { doc -> (id: Int, text: String)? in
+                guard let content = doc.content, !content.isEmpty else { return nil }
+                return (doc.id, doc.title + " " + content)
+            }
+            await ArchiveIndex.shared.index(payload)
+
+            processed += result.documents.count
+            if let total, total > 0 {
+                archiveIndexProgress = min(1, Double(processed) / Double(total))
+            }
+            archiveIndexStatus = "\(processed) Dokumente verarbeitet …"
+            guard result.hasNext else { break }
+            page += 1
+        }
+
+        let indexed = await ArchiveIndex.shared.count
+        archiveIndexStatus = "\(indexed) Dokumente im Index."
+        archiveIndexProgress = 1
+        isBuildingArchiveIndex = false
+    }
+
+    /// Anzahl der indexierten Dokumente — für die Anzeige in den Einstellungen.
+    func archiveIndexCount() async -> Int {
+        await ArchiveIndex.shared.use(account: activeAccountId)
+        return await ArchiveIndex.shared.count
+    }
+
+    func clearArchiveIndex() async {
+        await ArchiveIndex.shared.use(account: activeAccountId)
+        await ArchiveIndex.shared.clear()
+        archiveIndexStatus = "Index geleert."
     }
 
     // MARK: - Posteingang abarbeiten

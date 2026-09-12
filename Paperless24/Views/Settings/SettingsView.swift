@@ -287,6 +287,7 @@ struct SettingsView: View {
             }
             .themedSurface(palette)
             .navigationTitle("Einstellungen")
+            .task { archiveIndexCount = await store.archiveIndexCount() }
             .onAppear {
                 Task { stats = await store.fetchStatistics() }
             }
