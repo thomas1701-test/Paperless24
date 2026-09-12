@@ -976,6 +976,40 @@ class AppStore: ObservableObject {
         }
     }
 
+    // MARK: - Dublettenprüfung
+
+    /// Ergebnis der Prüfung vor dem Upload.
+    struct DuplicateWarning: Identifiable {
+        let id = UUID()
+        let document: Document
+        let reason: String
+        let confidence: Double
+    }
+
+    var isDuplicateCheckEnabled: Bool {
+        UserDefaults.standard.object(forKey: "duplicateCheckEnabled") as? Bool ?? true
+    }
+
+    /// Sucht im geladenen Archiv nach einem Dokument mit derselben Signatur.
+    ///
+    /// Arbeitet auf `documents`, also dem, was ohnehin im Speicher liegt — kein Netzverkehr,
+    /// keine Wartezeit vor dem Upload. Was der Zwischenspeicher nicht kennt, fängt der Server
+    /// beim Verarbeiten ab (siehe `ConsumptionTask.isDuplicate`).
+    func checkForDuplicate(text: String) -> DuplicateWarning? {
+        guard isDuplicateCheckEnabled, !text.isEmpty else { return nil }
+        let candidate = DuplicateDetector.fingerprint(of: text)
+        guard !candidate.isEmpty else { return nil }
+
+        let known: [(documentId: Int, fingerprint: DuplicateDetector.Fingerprint)] = documents
+            .compactMap { doc in
+                guard let content = doc.content, !content.isEmpty else { return nil }
+                return (doc.id, DuplicateDetector.fingerprint(of: content))
+            }
+        guard let match = DuplicateDetector.matches(for: candidate, in: known).first,
+              let doc = documents.first(where: { $0.id == match.documentId }) else { return nil }
+        return DuplicateWarning(document: doc, reason: match.reason, confidence: match.confidence)
+    }
+
     // MARK: - Posteingang abarbeiten
 
     /// Nimmt Dokumente aus dem Posteingang, indem alle Inbox-Tags entfernt werden.
