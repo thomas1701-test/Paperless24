@@ -465,7 +465,10 @@ class AppStore: ObservableObject {
         guard let api = api else { return }
         // Speicherpfade gehören zu den Stammdaten; Benutzer und Gruppen werden erst dann
         // geholt, wenn jemand die Rechte tatsächlich öffnet (dafür braucht es Adminrechte).
-        if let paths = try? await api.fetchStoragePaths() { allStoragePaths = paths }
+        //
+        // Mit in den parallelen Block: Davor stand das als eigenes `await` und verzögerte
+        // jeden Sync um eine volle Runde zum Server — beim Start am deutlichsten.
+        async let paths = try? api.fetchStoragePaths()
         async let tags = try? api.fetchTags()
         async let corrs = try? api.fetchCorrespondents()
         async let types = try? api.fetchDocumentTypes()
@@ -473,6 +476,7 @@ class AppStore: ObservableObject {
         async let views = try? api.fetchSavedViews()
         async let stats = try? api.fetchStatistics()
 
+        if let p = await paths { allStoragePaths = p }
         if let t = await tags { allTags = t }
         if let c = await corrs { allCorrespondents = c }
         if let tp = await types { allDocTypes = tp }
@@ -1151,14 +1155,26 @@ class AppStore: ObservableObject {
         // Derselbe Schalter wie für alle KI-Funktionen: Wer sie abschaltet, will auch keinen
         // Index im Hintergrund.
         guard UserDefaults.standard.object(forKey: "aiEnabled") as? Bool ?? true else { return }
-        let payload = documents.compactMap { doc -> (id: Int, text: String)? in
-            guard let content = doc.content, !content.isEmpty else { return nil }
-            return (doc.id, doc.title + " " + content)
-        }
-        guard !payload.isEmpty else { return }
+        guard !documents.isEmpty else { return }
+
+        // Das Array selbst ist ein Wertetyp und wird beim Übergeben nicht kopiert. Die Texte
+        // zusammenzusetzen passiert bewusst *im* Hintergrund-Task: Vorher lief das hier auf
+        // dem Main Thread und baute bei jedem Laden eine Zeichenkette aus dem erkannten Text
+        // aller geladenen Dokumente — bei einem vollen Archiv zweistellige Megabyte, mitten
+        // im Bildaufbau.
+        let snapshot = documents
         let account = activeAccountId
         Task.detached(priority: .background) {
             await ArchiveIndex.shared.use(account: account)
+            // Nur weiterarbeiten, wenn der Index überhaupt in Gebrauch ist. Wer „Archiv
+            // fragen" nie benutzt, soll dafür auch keine Rechenzeit und keinen Akku zahlen —
+            // der erste Aufbau passiert bewusst auf Knopfdruck in den Einstellungen.
+            guard await ArchiveIndex.shared.count > 0 else { return }
+            let payload = snapshot.compactMap { doc -> (id: Int, text: String)? in
+                guard let content = doc.content, !content.isEmpty else { return nil }
+                return (doc.id, doc.title + " " + content)
+            }
+            guard !payload.isEmpty else { return }
             await ArchiveIndex.shared.index(payload)
         }
     }
@@ -1976,10 +1992,22 @@ class AppStore: ObservableObject {
     private static let spotlightMinInterval: TimeInterval = 15 * 60
 
     /// Indexiert, wenn der erste Aufbau noch fehlt oder der letzte Lauf lange her ist.
+    /// Verhindert, dass der erste Durchlauf mehrfach angestoßen wird.
+    private var spotlightFullRunScheduled = false
+
     func indexDocumentsForSpotlightIfDue() {
         if !fullSpotlightIndexBuilt {
+            // Der erste Lauf blättert durch das ganze Archiv und lädt Vorschaubilder nach.
+            // Nicht in dem Moment, in dem der Nutzer auf seine Liste wartet — ein paar
+            // Sekunden später bekommt er davon nichts mit.
+            guard !spotlightFullRunScheduled else { return }
+            spotlightFullRunScheduled = true
             lastSpotlightRun = Date()
-            indexDocumentsForSpotlight()
+            Task {
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                indexDocumentsForSpotlight()
+                spotlightFullRunScheduled = false
+            }
             return
         }
         if let last = lastSpotlightRun,

@@ -26,6 +26,8 @@ struct MainDocView: View {
     @State private var showASNScanner = false
     @State private var showPermissions = false
     @State private var skeletonPulse = false
+    /// `isBusy` mit Nachlauf — siehe `activityTail`.
+    @State private var busyVisible = false
     @State private var filterCustomField: Int? = nil
     @State private var filterCustomText = ""
     @State private var showCustomFieldSheet = false
@@ -214,7 +216,7 @@ struct MainDocView: View {
             }
             .zIndex(0)
             .animation(.easeInOut(duration: 0.22), value: store.isOffline)
-            .animation(.easeInOut(duration: 0.2), value: isBusy)
+            .animation(.easeInOut(duration: 0.2), value: busyVisible)
             .animation(.easeInOut(duration: 0.22), value: store.lastSyncError)
 
             // Dünne Linie am oberen Rand des Inhalts, solange etwas läuft.
@@ -223,7 +225,7 @@ struct MainDocView: View {
             // verschieben — anders als die frühere Statuszeile, die als eigene Zeile im
             // Stack stand. Die Systemanzeige statt einer eigenen Animation, weil sie
             // „Bewegung reduzieren" respektiert und im Ruhezustand nichts rechnet.
-            if isBusy {
+            if busyVisible {
                 Group {
                     if let progress = store.activityProgress {
                         // Bezifferbarer Fortschritt: Der Balken füllt sich tatsächlich.
@@ -343,7 +345,7 @@ struct MainDocView: View {
             }
         }
         .navigationTitle(usesSplitLayout
-                         ? Text(isBusy ? busyLabel : "\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
+                         ? Text(busyVisible ? busyLabel : "\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
                          : Text(""))
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText)
@@ -480,6 +482,15 @@ struct MainDocView: View {
         // `onAppear` läuft auch bei jeder Rückkehr aus der Detailansicht. Ein voller Sync
         // pro Zurück-Tippen ist verschwendete Arbeit und sichtbares Zucken in der Liste.
         .onAppear { applyFilters(); store.syncIfStale() }
+        .task(id: isBusy) {
+            if isBusy {
+                busyVisible = true
+                return
+            }
+            try? await Task.sleep(nanoseconds: Self.activityTail)
+            guard !Task.isCancelled else { return }
+            busyVisible = false
+        }
         .onChange(of: store.pendingSearch) { q in
             guard let q else { return }
             store.pendingSearch = nil
@@ -656,6 +667,14 @@ struct MainDocView: View {
     /// Läuft gerade etwas, das der Nutzer sehen sollte?
     private var isBusy: Bool { store.isActivityRunning }
 
+    /// Wie lange die Anzeige mindestens stehen bleibt, nachdem die Arbeit fertig ist.
+    ///
+    /// Ein Sync, der nach 150 ms durch ist, lässt Linie und Text nur aufblitzen — für das
+    /// Auge passiert nichts, und der Nutzer schließt daraus, die App habe gar nicht
+    /// nachgesehen. Ein kurzer Nachlauf macht auch schnelle Vorgänge sichtbar, ohne
+    /// irgendetwas künstlich zu verzögern: Die Daten sind längst da.
+    private static let activityTail: UInt64 = 450_000_000
+
     /// Beschriftung samt Prozentwert, wo es einen gibt.
     private var busyLabel: String {
         let base = store.activityLabel
@@ -671,7 +690,7 @@ struct MainDocView: View {
     /// „Postfach wird abgerufen".
     @ViewBuilder
     private var navigationStatus: some View {
-        if isBusy {
+        if busyVisible {
             HStack(spacing: 6) {
                 ProgressView().controlSize(.mini)
                 Text(busyLabel).font(.caption).foregroundColor(.secondary)
@@ -1081,7 +1100,7 @@ struct MainDocView: View {
         if !usesSplitLayout {
             ToolbarItem(placement: .principal) {
                 navigationStatus
-                    .animation(.easeInOut(duration: 0.2), value: isBusy)
+                    .animation(.easeInOut(duration: 0.2), value: busyVisible)
             }
         }
         ToolbarItem(placement: .navigationBarLeading) {
