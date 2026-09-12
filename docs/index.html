@@ -29,6 +29,11 @@
     .release .ver strong { font-size: 1.05rem; color: #3f51b5; }
     .release .ver span { font-size: 0.85rem; color: #6e6e73; }
     .release ul { padding-left: 20px; color: #3d3d3d; line-height: 1.7; font-size: 0.92rem; }
+    .older { margin-top: 8px; }
+    .older summary { cursor: pointer; text-align: center; color: #3f51b5; font-size: 0.92rem; font-weight: 500; padding: 12px; list-style: none; }
+    .older summary::-webkit-details-marker { display: none; }
+    .older summary:hover { text-decoration: underline; }
+    .older[open] summary { margin-bottom: 16px; }
     footer { text-align: center; padding: 40px 20px; color: #6e6e73; font-size: 0.85rem; }
     footer a { color: #3f51b5; text-decoration: none; }
     footer a:hover { text-decoration: underline; }
@@ -72,41 +77,191 @@
     <div class="changelog">
       <h2>Was ist neu</h2>
       <div class="release">
-        <div class="ver"><strong>Version 1.4.2</strong><span>31.05.2026</span></div>
+        <div class="ver"><strong>Version 2.1.3</strong><span>10.08.2026</span></div>
         <ul>
-          <li>Neu: Frisches App-Icon im modernen Look — mit eigener Dark- und getönter Variante</li>
+          <li>Behoben: Teilen aus anderen Apps funktioniert wieder — PDF oder Foto über das Teilen-Menü an Paperless 24 geben, die App öffnet sich und übernimmt die Datei. Klappt der Wechsel einmal nicht, geht nichts verloren: die Datei wird beim nächsten Start übernommen.</li>
+          <li>Behoben: Die Systemsuche (Spotlight) findet wieder Dokumente — und jetzt das ganze Archiv statt nur der zuletzt geladenen Seite.</li>
+          <li>Neu: Spotlight-Treffer zeigen die Vorschau des Dokuments statt des App-Symbols.</li>
+          <li>Behoben: Mehrere Konten bleiben in der Systemsuche sauber getrennt — ein Treffer öffnet nie ein Dokument aus einem anderen Archiv.</li>
+          <li>Verbessert: „Spotlight-Index neu erstellen“ meldet jetzt, wie viele Dokumente im Index gelandet sind.</li>
         </ul>
       </div>
       <div class="release">
-        <div class="ver"><strong>Version 1.4.1</strong><span>26.05.2026</span></div>
+        <div class="ver"><strong>Version 2.1.2</strong><span>10.08.2026</span></div>
         <ul>
-          <li>Fix: Login mit aktivierter Zwei-Faktor-Authentifizierung (TOTP) funktioniert jetzt korrekt</li>
+          <li>Behoben: Beim Bearbeiten eines Dokuments wurde das Erstelldatum überschrieben – gespeichert wurde der heutige Tag statt des tatsächlichen Datums. Je nach Server konnte es außerdem um einen Tag zurückspringen.</li>
+          <li>Behoben: Beim Import konnte dasselbe Dokument zweimal hochgeladen werden und lag danach doppelt im Archiv.</li>
+          <li>Behoben: Ließ sich ein Dokument nicht löschen – etwa ohne Verbindung oder ohne Berechtigung –, verschwand es trotzdem aus der Liste und tauchte beim nächsten Abgleich wieder auf. Jetzt bleibt es stehen und die App nennt den Grund.</li>
+          <li>Behoben: Suchbegriffe mit „&amp;“ oder „+“ lieferten keine oder falsche Treffer.</li>
+          <li>Behoben: Nach einem Kontowechsel konnten die Miniaturansichten des vorherigen Kontos in der Liste stehen bleiben.</li>
+          <li>Behoben: In „Darstellung“ blieben die Vorschauen der App-Symbole leer – dort waren nur graue Kacheln zu sehen.</li>
+          <li>Behoben: Wurden mehrere Dokumente mit gleichem Titel auf einmal geteilt, überschrieben sie sich gegenseitig. Die Zwischenkopien werden jetzt auch wieder aufgeräumt.</li>
+          <li>Behoben: Unter ungünstigen Umständen konnte die Warteschlange mit noch nicht übertragenen Änderungen verloren gehen.</li>
+          <li>Behoben: Telefonnummern und Links im erkannten Text waren an der falschen Stelle antippbar, wenn sie mehrfach im Dokument vorkamen.</li>
+          <li>Sicherheit: Der Anmeldeschlüssel liegt strenger geschützt im Schlüsselbund und wandert nicht mehr in Backups auf andere Geräte.</li>
+          <li>Sicherheit: Die App-Sperre fragt jetzt nach dem Gerätecode, wenn Face ID nicht verfügbar oder gesperrt ist. Vorher öffnete sich die App in diesem Fall ungeprüft. Nach einem Abbruch bleibt sie gesperrt und lässt sich über „Entsperren“ erneut öffnen.</li>
+          <li>Sicherheit: Die Dokumentauswahl für Vermietoo nimmt keine Web-Adressen mehr als Rückrufziel an.</li>
+          <li>Schneller: Die Dokumentliste scrollt flüssiger, die PDF-Ansicht ruckelt nicht mehr beim Blättern, und die App startet zügiger.</li>
+          <li>Schneller: Texterkennung und „Archiv fragen“ blockieren die Bedienung nicht mehr, während sie rechnen.</li>
+          <li>Verbessert: Antwortet der Server nicht, bricht die App nach 30 Sekunden ab, statt lange zu warten.</li>
         </ul>
       </div>
       <div class="release">
-        <div class="ver"><strong>Version 1.4.0</strong><span>24.05.2026</span></div>
+        <div class="ver"><strong>Version 2.1.1</strong><span>10.08.2026</span></div>
         <ul>
-          <li>Neu: Dokument-Auswahl für Vermietoo — Dokument direkt an Vermietoo übergeben</li>
-          <li>Neu: Picker-Modus mit lila Banner zeigt aktive Auswahl-Sitzung an</li>
+          <li>Behoben: In Englisch, Französisch, Spanisch und Italienisch blieben einzelne Texte auf Deutsch stehen – darunter die Kacheln auf der Startseite, der Netzwerkscanner, die Archiv-Frage und die Auswahllisten für Filter, Tags und Sender. Alle vier Sprachen sind jetzt vollständig übersetzt.</li>
+          <li>Behoben: Werte in eigenen Feldern werden jetzt passend zum Feldtyp angezeigt – Datumsangaben im Format der Gerätesprache, Beträge mit Währung, Ja/Nein statt „true“/„false“ und bei Auswahlfeldern die Bezeichnung statt der internen Kennung. Verknüpfte Dokumente erscheinen mit ihrem Titel.</li>
         </ul>
       </div>
-      <div class="release">
-        <div class="ver"><strong>Version 1.3.0</strong><span>20.05.2026</span></div>
-        <ul>
-          <li>Neu: App in 5 Sprachen verfügbar (DE, EN, FR, ES, IT)</li>
-          <li>Neu: Sprachauswahl direkt in den Einstellungen</li>
-        </ul>
-      </div>
+      <details class="older">
+        <summary>Ältere Versionen (15)</summary>
+        <div class="release">
+          <div class="ver"><strong>Version 2.1.0</strong><span>10.08.2026</span></div>
+          <ul>
+            <li>Neu: Das Design lässt sich jetzt mit diversen Farben anpassen – Indigo, Ozean, Wald, Sonnenuntergang, Graphit und Kontrast stehen als fertige Farbthemen bereit.</li>
+            <li>Mit „Eigene Farbe“ wählst du deine Akzentfarbe frei über den Farbwähler.</li>
+            <li>Ein Farbthema färbt nicht nur Knöpfe, sondern auch Verläufe und Chips – die App wirkt aus einem Guss. Tag-Farben kommen weiterhin vom Server und bleiben unverändert.</li>
+            <li>Alle Farben gibt es in einer hellen und einer dunklen Variante, damit sie in beiden Erscheinungsbildern gut lesbar bleiben.</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 2.0.0</strong><span>28.07.2026</span></div>
+          <ul>
+            <li>Unterstützt paperless-ngx 3.0 und neuer. Mit 3.0 hat der Server das Format seiner Antworten umgestellt – Dokumente, Notizen und Auswahlfelder kamen danach anders an, als die App sie erwartet hat.</li>
+            <li>Die App einigt sich beim ersten Kontakt mit dem Server auf ein gemeinsames Datenformat. Ältere Installationen ab paperless-ngx 2.x funktionieren unverändert weiter, es ist nichts einzustellen.</li>
+            <li>Nach einem Server-Update genügt ein Start der App – sie erkennt die neue Version von selbst.</li>
+            <li>Behoben: Nach dem Server-Update konnte dasselbe Dokument mehrfach in der Übersicht landen. Dadurch ließen sich Dokumente nicht mehr per Tipp öffnen, und das Kontextmenü ging auf der falschen Kachel auf.</li>
+            <li>iPhone: Dokumente und Posteingang lassen sich wieder per Tipp öffnen</li>
+            <li>iPad: Dokumente lassen sich in der Übersicht wieder per Tipp öffnen</li>
+            <li>iPad: Neue Dreispalten-Ansicht – Filter links, Dokumente in der Mitte, Vorschau rechts</li>
+            <li>iPad: Filter, Tags, Sender, Typen und gespeicherte Ansichten jetzt in einer eigenen Seitenleiste statt in der schmalen Chip-Leiste</li>
+            <li>iPad: Dialoge wie Import, Bearbeiten, Netzwerkscanner und Archiv fragen werden nicht mehr halb leer dargestellt</li>
+            <li>iPad: Doppelte Navigationsleiste in den Einstellungen entfernt</li>
+            <li>Suchfeld sitzt jetzt fest in der Navigationsleiste und springt beim Umschalten von Raster und Liste nicht mehr</li>
+            <li>Lädt eine Vorschau nicht, zeigt die App den Grund an und bietet einen erneuten Versuch – statt eines endlosen Ladekreises</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.8.1</strong><span>14.06.2026</span></div>
+          <ul>
+            <li>Du kannst die App jetzt direkt aus den Einstellungen heraus bewerten.</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.8.0</strong><span>08.06.2026</span></div>
+          <ul>
+            <li>Sender, Typ und Tags lassen sich bei Import und Bearbeiten jetzt durchsuchen – Suchfeld statt langer Liste</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.7.0</strong><span>02.06.2026</span></div>
+          <ul>
+            <li>Neu: Stapel scannen – einen Stapel am Stück scannen, die KI trennt automatisch in einzelne Dokumente</li>
+            <li>Neu: Dokumente übersetzen (on-device)</li>
+            <li>Einstellungen: Stapel-Trennung und Übersetzen einzeln an-/abschaltbar</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.6.0</strong><span>02.06.2026</span></div>
+          <ul>
+            <li>Neu: Apple Intelligence – Dokumente on-device zusammenfassen und das Archiv per Frage durchsuchen (semantische Suche &amp; Antworten)</li>
+            <li>Neu: Intelligenteres Auto-Tagging mit Apple Intelligence (schlägt auch neue Tags/Sender vor)</li>
+            <li>Neu: Siri &amp; Kurzbefehle – Scannen, Posteingang, Suche und Archiv-Frage per Sprachbefehl</li>
+            <li>Neu: Benachrichtigungen über neue Dokumente im Posteingang</li>
+            <li>Neu: Netzwerkscanner (AirScan) direkt in der App</li>
+            <li>Neu: Dokumente per Drag &amp; Drop in andere Apps ziehen</li>
+            <li>Neu: Anklickbare Telefonnummern, Links und Adressen im OCR-Text</li>
+            <li>Neu: Zwei-Spalten-Ansicht auf iPad und Mac</li>
+            <li>Neu: Einstellbare Kachelgröße</li>
+            <li>Neu: Einstellungen werden über iCloud zwischen Geräten synchronisiert</li>
+            <li>Neu: Mehrere Dokumente gleichzeitig an Vermietoo übergeben</li>
+            <li>Neu: Suchfeld in der Tags-, Sender- und Typen-Verwaltung</li>
+            <li>Neu: Mehr Lade-Optionen – 1000, 2000 und Alles</li>
+            <li>Verbessert: Archiv-Fragen zeigt jetzt einen Ladeindikator mit Statustext</li>
+            <li>Verbessert: Zwei-Spalten-Ansicht auf iPad/Mac wechselt die Vorschau jetzt zuverlässig</li>
+            <li>Verbessert: Klare Hinweise, wenn Apple Intelligence noch nicht bereit ist</li>
+            <li>Einstellungen: KI-Funktionen lassen sich an- und abschalten</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.5.0</strong><span>02.06.2026</span></div>
+          <ul>
+            <li>Neu: Eigene Felder (Custom Fields) – alle Typen anzeigen und bearbeiten, inkl. Auswahllisten und Dokument-Verknüpfungen</li>
+            <li>Neu: Info-Tab in der Dokumentansicht zeigt Metadaten und eigene Felder auf einen Blick</li>
+            <li>Neu: Papierkorb – gelöschte Dokumente wiederherstellen oder endgültig entfernen</li>
+            <li>Neu: Freigabe-Links erstellen, kopieren und widerrufen – mit optionalem Ablaufdatum</li>
+            <li>Neu: Gespeicherte Ansichten vom Server werden synchronisiert; bestehende lokale Filter werden automatisch übernommen</li>
+            <li>Neu: Verschachtelte Tags (Unter-Tags) werden hierarchisch dargestellt</li>
+            <li>Neu: Nach eigenen Feldern filtern</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.4.3</strong><span>02.06.2026</span></div>
+          <ul>
+            <li>Fix: Im Auswahl-Modus für Vermietoo öffnete ein Tipp auf ein Dokument nur die Detailansicht, statt es auszuwählen — die Auswahl klappt jetzt direkt</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.4.2</strong><span>31.05.2026</span></div>
+          <ul>
+            <li>Neu: Frisches App-Icon im modernen Look — mit eigener Dark- und getönter Variante</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.4.1</strong><span>26.05.2026</span></div>
+          <ul>
+            <li>Fix: Login mit aktivierter 2-Faktor-Authentifizierung (TOTP) funktioniert jetzt korrekt</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.4.0</strong><span>24.05.2026</span></div>
+          <ul>
+            <li>Neu: Dokument-Auswahl für Vermietoo — Dokument direkt an Vermietoo übergeben</li>
+            <li>Neu: Picker-Modus mit lila Banner zeigt aktive Auswahl-Sitzung an</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.3.0</strong><span>20.05.2026</span></div>
+          <ul>
+            <li>Neu: App in 5 Sprachen verfügbar (DE, EN, FR, ES, IT)</li>
+            <li>Neu: Sprachauswahl direkt in den Einstellungen</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.2.0</strong><span>10.05.2026</span></div>
+          <ul>
+            <li>Sicherheit: Login-Token wird im iOS Keychain gespeichert</li>
+            <li>Neu: Infinite Scroll statt Komplettladen</li>
+            <li>Performance: Dokumentenliste wird gecacht</li>
+            <li>Code aufgeteilt in modulare Dateien</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.1.0</strong><span>15.02.2026</span></div>
+          <ul>
+            <li>Fix für Apple Review (iPad Layout)</li>
+            <li>Fix: FaceID Loop</li>
+            <li>Fix: Scanner &amp; Import</li>
+          </ul>
+        </div>
+        <div class="release">
+          <div class="ver"><strong>Version 1.0.0</strong><span>06.02.2026</span></div>
+          <ul>
+            <li>Initialer Release</li>
+          </ul>
+        </div>
+      </details>
     </div>
 
     <div class="links">
       <a class="primary" href="support.html">Support</a>
       <a class="secondary" href="privacy.html">Datenschutz</a>
+      <a class="secondary" href="impressum.html">Impressum</a>
     </div>
   </main>
 
   <footer>
-    <p>&copy; 2026 Thomas Dillmann &nbsp;·&nbsp; <a href="privacy.html">Datenschutzerklärung</a> &nbsp;·&nbsp; <a href="support.html">Support</a></p>
+    <p>&copy; 2026 Thomas Dillmann &nbsp;·&nbsp; <a href="impressum.html">Impressum</a> &nbsp;·&nbsp; <a href="privacy.html">Datenschutzerklärung</a> &nbsp;·&nbsp; <a href="support.html">Support</a></p>
   </footer>
 </body>
 </html>
