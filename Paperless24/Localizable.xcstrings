@@ -1363,7 +1363,11 @@
     "Dokumente suchen" : {
 
     },
+    "Dokumente werden geladen" : {
+
+    },
     "Dokumente werden geladen..." : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4816,6 +4820,9 @@
 
     },
     "Wird als Datum im Feld „Fälligkeit“ gespeichert." : {
+
+    },
+    "Wird übertragen…" : {
 
     },
     "wrong_otp_code" : {

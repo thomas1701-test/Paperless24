@@ -26,6 +26,8 @@ struct AuthImage: View {
                     .overlay(Image(systemName: "doc.text").foregroundColor(.gray))
             }
         }
+        // Das fertige Bild blendet sich ein, statt den Platzhalter hart zu ersetzen.
+        .animation(.easeOut(duration: 0.2), value: image != nil)
         .onAppear {
             if let cached = ImageCache.shared.getImage(for: docId) {
                 image = cached

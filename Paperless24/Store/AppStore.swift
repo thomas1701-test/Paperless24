@@ -1515,6 +1515,53 @@ class AppStore: ObservableObject {
         }
     }
 
+    // MARK: - Uploads, die noch unterwegs sind
+
+    /// Ein Upload zwischen „abgeschickt" und „im Archiv".
+    ///
+    /// Fasst beide Zwischenstufen zusammen: die eigene Warteschlange (noch nicht beim Server)
+    /// und die Verarbeitung auf dem Server. Für den Nutzer ist das derselbe Zustand — das
+    /// Dokument ist unterwegs — und gehört deshalb an dieselbe Stelle in der Liste.
+    struct InFlightUpload: Identifiable, Equatable {
+        enum Phase: Equatable { case queued, processing, failed, duplicate }
+        let id: String
+        let title: String
+        var phase: Phase
+        var detail: String?
+
+        var isProblem: Bool { phase == .failed || phase == .duplicate }
+    }
+
+    /// Was gerade unterwegs ist — in der Reihenfolge, in der es angestoßen wurde.
+    var inFlightUploads: [InFlightUpload] {
+        let queued = pendingUploads.map {
+            InFlightUpload(id: "queued-\($0.id.uuidString)", title: $0.title, phase: .queued)
+        }
+        let onServer = uploadTaskStatuses.compactMap { status -> InFlightUpload? in
+            switch status.state {
+            case .waiting, .running:
+                return InFlightUpload(id: status.id, title: status.title,
+                                      phase: .processing, detail: status.message)
+            case .failed:
+                return InFlightUpload(id: status.id, title: status.title,
+                                      phase: .failed, detail: status.message)
+            case .duplicate:
+                return InFlightUpload(id: status.id, title: status.title,
+                                      phase: .duplicate, detail: status.message)
+            case .succeeded, .unknown:
+                // Erledigt: Das echte Dokument steht jetzt in der Liste, der Platzhalter hat
+                // seinen Zweck erfüllt.
+                return nil
+            }
+        }
+        return queued + onServer
+    }
+
+    /// Nimmt einen einzelnen Eintrag aus der Anzeige (Fehler oder Dublette bestätigen).
+    func dismissInFlight(_ id: String) {
+        uploadTaskStatuses.removeAll { $0.id == id }
+    }
+
     // MARK: - Verarbeitungsstatus
 
     /// Läufe, die die App gerade verfolgt. Sichtbar in `PendingQueueView`.

@@ -225,22 +225,6 @@ struct MainDocView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(3)
             }
-            if !store.pendingUploads.isEmpty {
-                VStack {
-                    Spacer()
-                    HStack {
-                        ProgressView().scaleEffect(0.8)
-                        Text("\(store.pendingUploads.count) Upload\(store.pendingUploads.count > 1 ? "s" : "") \(String(localized: "uploads_ausstehend", locale: locale))")
-                            .font(.caption)
-                    }
-                    .padding(10)
-                    .frame(maxWidth: .infinity)
-                    .background(Material.thickMaterial)
-                    .shadow(radius: 3)
-                }
-                .zIndex(2)
-                .ignoresSafeArea(edges: .bottom)
-            }
             if isSelectionMode {
                 VStack {
                     Spacer()
@@ -670,6 +654,9 @@ struct MainDocView: View {
             Text("\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
                 .font(.caption)
                 .foregroundColor(.secondary)
+                // Die Zahl zählt hoch, statt umzuspringen — beim Nachladen sieht man so,
+                // dass etwas dazugekommen ist.
+                .contentTransition(.numericText())
                 .transition(.opacity)
         }
     }
@@ -887,6 +874,12 @@ struct MainDocView: View {
     var documentGrid: some View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: gridItemSize), spacing: 10)], spacing: 10) {
+                // Was noch unterwegs ist, steht vorn — dort, wo es gleich als fertiges
+                // Dokument stehen wird.
+                ForEach(store.inFlightUploads) { item in
+                    InFlightUploadCard(item: item) { store.dismissInFlight(item.id) }
+                        .transition(.scale(scale: 0.96).combined(with: .opacity))
+                }
                 ForEach(store.filteredDocs) { doc in
                     if isSelectionMode {
                         DocumentCard(
@@ -939,15 +932,7 @@ struct MainDocView: View {
                                         .contextMenu { docContextMenu(doc) }
                                 }
                             }
-                            .onAppear {
-                                if doc.id == store.filteredDocs.last?.id {
-                                    if store.isQueryActive {
-                                        Task { await store.loadNextSearchPage() }
-                                    } else {
-                                        Task { await store.loadNextPage() }
-                                    }
-                                }
-                            }
+                            .onAppear { prefetchIfNeeded(doc) }
 
                             if store.pickerCallbackURL != nil {
                                 Text("Auswählen")
@@ -966,6 +951,8 @@ struct MainDocView: View {
                 if store.isLoadingMore { ProgressView().padding() }
             }
             .padding(10)
+            .animation(.easeInOut(duration: 0.25), value: store.filteredDocs.count)
+            .animation(.easeInOut(duration: 0.25), value: store.inFlightUploads.count)
         }
         .refreshable { await store.refreshList() }
     }
@@ -974,6 +961,10 @@ struct MainDocView: View {
 
     var documentList: some View {
         List {
+            ForEach(store.inFlightUploads) { item in
+                InFlightUploadRow(item: item) { store.dismissInFlight(item.id) }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
             ForEach(store.filteredDocs) { doc in
                 ZStack(alignment: .trailing) {
                     Group {
@@ -1026,15 +1017,7 @@ struct MainDocView: View {
                             .contextMenu { docContextMenu(doc) }
                         }
                     }
-                    .onAppear {
-                        if doc.id == store.filteredDocs.last?.id {
-                            if store.isQueryActive {
-                                Task { await store.loadNextSearchPage() }
-                            } else {
-                                Task { await store.loadNextPage() }
-                            }
-                        }
-                    }
+                    .onAppear { prefetchIfNeeded(doc) }
 
                     if store.pickerCallbackURL != nil {
                         Text("Auswählen")
@@ -1056,6 +1039,8 @@ struct MainDocView: View {
             }
         }
         .listStyle(.plain)
+        .animation(.easeInOut(duration: 0.25), value: store.filteredDocs.count)
+        .animation(.easeInOut(duration: 0.25), value: store.inFlightUploads.count)
         .themedSurface(palette)
         .refreshable { await store.refreshList() }
     }
@@ -1119,6 +1104,24 @@ struct MainDocView: View {
         Button { documentToEdit = doc } label: { Label("Bearbeiten", systemImage: "pencil") }
         Button { quickLookDoc = doc } label: { Label("Vorschau", systemImage: "eye") }
         Button(role: .destructive) { store.deleteDocument(id: doc.id) } label: { Label("Löschen", systemImage: "trash") }
+    }
+
+    /// IDs der letzten Einträge — sie lösen das Nachladen aus.
+    ///
+    /// Früher hing das am *letzten* Dokument: Das Nachladen begann erst, wenn der Nutzer schon
+    /// am Ende stand, und er sah jedes Mal den Ladekreis. Ein paar Zeilen Vorlauf genügen,
+    /// damit die nächste Seite meist schon da ist, bevor er sie braucht.
+    private var prefetchTriggerIDs: Set<Int> {
+        Set(store.filteredDocs.suffix(5).map(\.id))
+    }
+
+    private func prefetchIfNeeded(_ doc: Document) {
+        guard prefetchTriggerIDs.contains(doc.id) else { return }
+        if store.isQueryActive {
+            Task { await store.loadNextSearchPage() }
+        } else {
+            Task { await store.loadNextPage() }
+        }
     }
 
     private func dragProvider(for doc: Document) -> NSItemProvider {
