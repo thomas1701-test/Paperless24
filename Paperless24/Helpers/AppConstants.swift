@@ -2,7 +2,13 @@ import Foundation
 
 enum AppConstants {
     static let appGroupId = "group.com.Thomas.paperless"
-    static let appVersion = "2.1.2"
+    /// Die Version aus dem Bundle statt einer zweiten, von Hand gepflegten Zahl.
+    ///
+    /// Sie stand zuletzt auf 2.1.2, während die App als 2.1.4 auslieferte. Das war nicht nur
+    /// eine falsche Anzeige in den Einstellungen: `ReviewRequestService` entscheidet anhand
+    /// dieser Zahl, ob seit der letzten Bewertungsfrage eine neue Version erschienen ist —
+    /// und hielt die App deshalb für unverändert.
+    static let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "2.2.0"
     static let urlScheme = "paperless24"
     static let appStoreId = "6770317210"
 
@@ -24,6 +30,36 @@ enum AppConstants {
     }
 
     static let appChangelog: [ChangelogEntry] = [
+        ChangelogEntry(version: "2.2.0", date: "12.09.2026", changes: [
+            "Behoben: Filter wirkten nur auf die gerade geladenen Dokumente. Wer bei 3.000 Dokumenten auf einen Tag tippte, durchsuchte davon 25 – die Liste zeigte ein zufälliges Teilergebnis und nannte es vollständig. Jetzt filtert der Server, die Trefferzahl stimmt, und innerhalb eines Filters lässt sich weiterblättern.",
+            "Neu: Mehrere Tags, Sender oder Typen gleichzeitig auswählen – und Tags ausschließen („alles außer Werbung“). Über „Mehr“ in der Filterleiste.",
+            "Neu: Posteingang abarbeiten. Nach rechts wischen nimmt ein Dokument aus dem Posteingang, im Auswahlmodus geht das für viele auf einmal. Vorher musste man dafür jedes Dokument öffnen und den Posteingangs-Tag von Hand abwählen.",
+            "Neu: „Durchwischen“ – ein Vollbild für den Posteingang. Vorschau oben, darunter Sender, Typ und Tags, vorbelegt mit den Vorschlägen deines Servers. Bestätigen, weiter zum nächsten.",
+            "Neu: Die App nutzt jetzt die Vorschläge von paperless-ngx für Sender, Typ und Tags. Die funktionieren auf jedem iPhone, auch ohne Apple Intelligence.",
+            "Neu: Nach dem Hochladen siehst du, was der Server daraus gemacht hat. Bisher meldete die App „Fertig“, sobald die Datei angekommen war – ob sie verarbeitet oder als Duplikat abgelehnt wurde, blieb unsichtbar.",
+            "Neu: Fristen-Radar. Erkennt Zahlungsziele, Kündigungs- und Garantiefristen im Text und schlägt sie mit der gefundenen Textstelle vor. Gespeichert wird nur, was du bestätigst. Dazu eine „Was steht an“-Liste, Erinnerungen mit Vorlauf und Benachrichtigungen. In den Einstellungen zuzuschalten.",
+            "Neu: Dublettenprüfung vor dem Hochladen. Vergleicht Belegnummer, Betrag und Datum mit deinem Archiv – nicht den Text, denn zwei Stromrechnungen aus Januar und Februar sind fast derselbe Text.",
+            "Neu: „Regelmäßiges“ zeigt wiederkehrende Dokumente und meldet, wenn ein Monat fehlt.",
+            "Neu: „Archiv fragen“ durchsucht jetzt das ganze Archiv. Bisher sah die Frage nur die geladene Seite – bei Standardeinstellung also 25 Dokumente. Den Index baust du in den Einstellungen einmal auf, danach hält er sich selbst aktuell.",
+            "Neu: In der Detailansicht zum nächsten Dokument wischen.",
+            "Neu: Suchtreffer zeigen die Textstelle mit dem Suchbegriff statt nur Titel und Datum.",
+            "Neu: Du bestimmst, was in der Listenansicht steht – Sender, Typ, Belegdatum, Hinzugefügt-Datum, ASN.",
+            "Neu: Import-Regeln. Was über die Banking-App kommt, wird automatisch „Kontoauszug“ – Sender, Typ, Tags und Titel je nach Dateiname vorbelegt.",
+            "Neu: Seiten vor dem Hochladen drehen, löschen und umsortieren.",
+            "Neu: ASN-Barcode scannen – Kamera auf den Aufkleber halten, das Dokument öffnet sich. Beim Bearbeiten schlägt die App die nächste freie Nummer vor.",
+            "Neu: Eigene Felder lassen sich jetzt in der App anlegen, umbenennen und löschen.",
+            "Neu: Besitzer, Berechtigungen und Speicherpfade setzen – für alle, die sich eine Instanz teilen.",
+            "Neu: Serverzugang mit Client-Zertifikat (mTLS) und eigenen HTTP-Kopfzeilen. Damit läuft die App auch hinter Cloudflare Access, Authelia oder einem Proxy – vorher kam sie dort nicht einmal bis zum Anmeldebildschirm.",
+            "Neu: Widget für den Sperrbildschirm, Knöpfe im Control Center für Scannen und Posteingang, Scan-Knopf direkt im großen Widget.",
+            "Neu: Kurzbefehle, die etwas zurückgeben – „Dokumente finden“ liefert die Treffer, „Posteingang zählen“ die Zahl, „Dokument hochladen“ nimmt eine Datei entgegen. Damit lassen sich endlich Automationen bauen.",
+            "Neu: Ähnliche Dokumente im Info-Reiter, vom Server ermittelt.",
+            "Neu: Statistik – Dokumente pro Monat, häufigste Sender, Speicherverbrauch.",
+            "Neu: Diagnose-Ansicht mit Serverdaten, ausgehandelter API-Version und Verbindungstest. Der Bericht lässt sich für eine Supportanfrage kopieren; er enthält kein Passwort und keine Dokumentinhalte.",
+            "Schneller: Laden und Aktualisieren ruckeln nicht mehr. Die Fortschrittsanzeige verschob nicht länger die ganze Liste, das Sichern blockiert die Bedienung nicht mehr, und beim Aktualisieren klappt die Liste nicht mehr auf die erste Seite zusammen, wenn du schon nachgeladen hattest.",
+            "Schneller: Beim Zurückkehren aus einem Dokument lädt die App nicht mehr jedes Mal alles neu.",
+            "Sammelaktionen laufen jetzt in einem einzigen Serveraufruf statt in einer Anfrage pro Dokument – und können Tags auch entfernen.",
+            "Die App läuft jetzt ab iOS 18 statt erst ab iOS 26. Die KI-Funktionen brauchen weiterhin ein Gerät mit Apple Intelligence.",
+        ]),
         ChangelogEntry(version: "2.1.4", date: "12.09.2026", changes: [
             "Behoben: Der Posteingang zählte viel zu viele Dokumente. Die App hat jeden Eintrag ohne Sender als unbearbeitet gewertet – in einem gepflegten Archiv sind das hunderte längst erledigte Dokumente, und das Abzeichen am Tab zeigte eine ganz andere Zahl als die Übersicht in den Einstellungen.",
             "Der Posteingang richtet sich jetzt nach demselben Merkmal wie die Weboberfläche: nach den Tags, die auf dem Server als Posteingang markiert sind. Ist dort kein Tag so markiert, bleibt der Posteingang leer und sagt das auch.",
