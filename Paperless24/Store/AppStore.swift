@@ -580,9 +580,28 @@ class AppStore: ObservableObject {
     /// Trefferliste. Ohne den zweiten Schritt bliebe die sichtbare Liste beim Ziehen
     /// unverändert, weil sie dann aus der Server-Antwort und nicht aus `documents` kommt.
     func refreshList() async {
+        await reloadVisible()
+    }
+
+    /// Verwirft Drosselung und zuletzt gestellte Anfrage.
+    ///
+    /// Nach einer Änderung am Bestand darf weder der Mindestabstand zwischen zwei Syncs noch
+    /// die Prüfung „gleiche Anfrage wie eben" ein Nachladen verhindern.
+    func invalidateLoadState() {
+        lastSuccessfulSync = nil
+        lastAppliedQuery = nil
+    }
+
+    /// Lädt genau das neu, was gerade sichtbar ist.
+    ///
+    /// `loadFirstPage()` allein genügt nicht: Es füllt `documents`, angezeigt wird bei aktivem
+    /// Filter oder aktiver Suche aber `filteredDocs` — die Antwort des Servers. Wer nach einem
+    /// Upload nur die Gesamtliste nachlud, sah die Trefferliste unverändert stehen und hielt
+    /// das Laden zu Recht für unzuverlässig.
+    func reloadVisible() async {
+        invalidateLoadState()
         await loadFirstPage()
         guard isQueryActive else { return }
-        lastAppliedQuery = nil
         await runQuery(addingToRecents: nil)
     }
 
@@ -799,6 +818,7 @@ class AppStore: ObservableObject {
             do {
                 try await api.bulkModifyTags(ids: ids, add: add, remove: remove)
                 applyTagChangeLocally(add: add, remove: remove, in: docIds)
+                invalidateLoadState()
                 bulkResultMessage = "\(ids.count) Dokument(e) geändert"
             } catch {
                 // Nicht verloren geben: als Einzeländerungen in die Warteschlange, die sie
@@ -996,7 +1016,7 @@ class AppStore: ObservableObject {
             do {
                 try await api.bulkSetStoragePath(ids: Array(docIds), storagePath: pathId)
                 bulkResultMessage = "\(docIds.count) Dokument(e) verschoben"
-                await loadFirstPage()
+                await reloadVisible()
             } catch {
                 bulkResultMessage = error.localizedDescription
             }
@@ -1425,6 +1445,10 @@ class AppStore: ObservableObject {
         }
         pendingEdits.removeAll { processed.contains($0.id) }
         saveToDisk()
+        // Der Server kann beim Übernehmen mehr geändert haben als die App lokal eingepflegt
+        // hat (Regeln, Workflows). Bei aktivem Filter muss die Trefferliste deshalb neu
+        // gestellt werden — sonst steht dort ein Stand von vor der Änderung.
+        if !processed.isEmpty { invalidateLoadState() }
     }
 
     func removePendingEdit(at offsets: IndexSet) { pendingEdits.remove(atOffsets: offsets); saveToDisk() }
@@ -1485,7 +1509,7 @@ class AppStore: ObservableObject {
         }
         pendingUploads.removeAll { processed.contains($0.id) }
         saveToDisk()
-        if !processed.isEmpty { await loadFirstPage() }
+        if !processed.isEmpty { await reloadVisible() }
         for (taskId, title) in newTasks {
             Task { await followUp(taskId: taskId, title: title) }
         }
@@ -1558,7 +1582,7 @@ class AppStore: ObservableObject {
                 $0.documentId = task.relatedDocument
             }
             showSuccessToast("Verarbeitet: \(title)")
-            Task { await loadFirstPage() }
+            Task { await reloadVisible() }
             // Erledigte Einträge nach kurzer Zeit aus der Liste nehmen.
             Task {
                 try? await Task.sleep(nanoseconds: 20_000_000_000)
@@ -2194,7 +2218,7 @@ class AppStore: ObservableObject {
             guard let api = api else { return }
             try? await api.restoreFromTrash(ids: ids)
             await loadTrash()
-            await loadFirstPage()
+            await reloadVisible()
             showSuccessToast("Wiederhergestellt")
             registerReviewEvent()
         }

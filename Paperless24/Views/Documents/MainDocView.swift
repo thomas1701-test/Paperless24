@@ -25,6 +25,7 @@ struct MainDocView: View {
     @State private var showAdvancedFilter = false
     @State private var showASNScanner = false
     @State private var showPermissions = false
+    @State private var skeletonPulse = false
     @State private var filterCustomField: Int? = nil
     @State private var filterCustomText = ""
     @State private var showCustomFieldSheet = false
@@ -150,6 +151,7 @@ struct MainDocView: View {
                     }
                     .padding(.horizontal).padding(.vertical, 8)
                     .background(Color.red)
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 if store.isOffline {
                     HStack {
@@ -158,13 +160,8 @@ struct MainDocView: View {
                             .font(.caption)
                     }
                     .frame(maxWidth: .infinity).padding(6).background(Color.orange).foregroundColor(.white)
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
-                // Eine Zeile mit fester Höhe für Suche *und* Sync. Vorher waren das zwei
-                // Bausteine, die im Stack auftauchten und verschwanden — jedes Mal rutschte
-                // die ganze Liste um ihre Höhe nach unten und wieder zurück. Genau das ließ
-                // Laden und Aktualisieren holprig wirken.
-                activityStrip
-
                 if store.pickerCallbackURL != nil {
                     HStack {
                         Image(systemName: "doc.badge.plus")
@@ -186,15 +183,17 @@ struct MainDocView: View {
                     .background(Color.purple)
                 }
 
+                // Die Filterleiste steht immer, auch während des ersten Ladens. Erschien sie
+                // erst mit den Daten, schob sie die halb aufgebaute Liste ein zweites Mal
+                // nach unten.
+                if !usesSplitLayout { filterBar.zIndex(1) }
+
                 if store.documents.isEmpty && store.isSyncing {
-                    Spacer()
-                    VStack(spacing: 16) {
-                        ProgressView().scaleEffect(1.5)
-                        Text("Dokumente werden geladen...").foregroundColor(.gray)
-                    }
-                    Spacer()
+                    // Platzhalter statt Spinner: Die Liste steht schon da, wo sie gleich
+                    // stehen wird. Ein zentrierter Spinner, der von einer vollen Liste
+                    // abgelöst wird, ist der größte Sprung im ganzen Ablauf.
+                    skeletonList
                 } else {
-                    if !usesSplitLayout { filterBar.zIndex(1) }
                     if store.filteredDocs.isEmpty && !store.isSyncing {
                         Spacer()
                         VStack(spacing: 20) {
@@ -211,10 +210,20 @@ struct MainDocView: View {
                 }
             }
             .zIndex(0)
+            .animation(.easeInOut(duration: 0.22), value: store.isOffline)
+            .animation(.easeInOut(duration: 0.22), value: store.lastSyncError)
 
             if let msg = store.uploadSuccessMessage {
-                Text(msg).padding().background(Color.green).foregroundColor(.white)
-                    .cornerRadius(10).shadow(radius: 5).padding(.top, 10).zIndex(1)
+                // Schwebt über dem Inhalt, statt ihn zu verschieben.
+                Label(msg, systemImage: "checkmark.circle.fill")
+                    .font(.callout.weight(.medium))
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(Capsule().fill(Color.green.opacity(0.95)))
+                    .foregroundColor(.white)
+                    .shadow(color: .black.opacity(0.15), radius: 6, y: 2)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(3)
             }
             if !store.pendingUploads.isEmpty {
                 VStack {
@@ -322,7 +331,7 @@ struct MainDocView: View {
             }
         }
         .navigationTitle(usesSplitLayout
-                         ? Text("\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
+                         ? Text(isBusy ? busyLabel : "\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
                          : Text(""))
         .navigationBarTitleDisplayMode(.inline)
         .searchable(text: $searchText)
@@ -632,24 +641,75 @@ struct MainDocView: View {
         .navigationTitle("Filter")
     }
 
-    /// Statuszeile mit gleichbleibender Höhe.
+    /// Läuft gerade etwas, das der Nutzer sehen sollte?
+    private var isBusy: Bool {
+        store.isSearching || store.isSyncing || store.isBulkEditing
+    }
+
+    private var busyLabel: String {
+        if store.isSearching { return String(localized: "Suche…", locale: locale) }
+        if store.isBulkEditing { return String(localized: "Wird übertragen…", locale: locale) }
+        return String(localized: "Aktualisieren…", locale: locale)
+    }
+
+    /// Status in der Navigationsleiste statt im Inhalt.
     ///
-    /// Sie ist immer im Layout, nur ihr Inhalt wechselt. Ein- und ausgeblendete Zeilen
-    /// verschieben sonst den gesamten Inhalt darunter.
+    /// Vorher stand er als eigene Zeile über der Liste — jedes Auftauchen schob den ganzen
+    /// Inhalt nach unten und jedes Verschwinden wieder zurück. Die Navigationsleiste hat
+    /// ihren Platz ohnehin schon; dort kann nichts verrutschen. Denselben Weg geht Mail für
+    /// „Postfach wird abgerufen".
     @ViewBuilder
-    private var activityStrip: some View {
-        let active = store.isSearching || (store.isSyncing && !store.documents.isEmpty)
-        HStack(spacing: 6) {
-            if active {
-                ProgressView().controlSize(.small)
-                Text(store.isSearching ? "Suche…" : "Aktualisieren…")
-                    .font(.caption2).foregroundColor(.secondary)
+    private var navigationStatus: some View {
+        if isBusy {
+            HStack(spacing: 6) {
+                ProgressView().controlSize(.mini)
+                Text(busyLabel).font(.caption).foregroundColor(.secondary)
             }
+            .transition(.opacity)
+        } else {
+            Text("\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .transition(.opacity)
         }
-        .frame(height: 18)
-        .frame(maxWidth: .infinity)
-        .background(active ? palette.accent.opacity(0.07) : Color.clear)
-        .animation(.easeInOut(duration: 0.15), value: active)
+    }
+
+    /// Platzhalterzeilen für das erste Laden.
+    ///
+    /// Sie haben dieselbe Form wie die späteren Zeilen: Wenn die Daten ankommen, wächst nichts
+    /// und springt nichts, die grauen Flächen füllen sich einfach mit Inhalt.
+    private var skeletonList: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                ForEach(0..<8, id: \.self) { _ in
+                    HStack(spacing: 10) {
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color(.systemGray5))
+                            .frame(width: 44, height: 56)
+                        VStack(alignment: .leading, spacing: 6) {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(.systemGray5))
+                                .frame(height: 12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color(.systemGray6))
+                                .frame(width: 140, height: 10)
+                        }
+                        Spacer()
+                    }
+                    .padding(.horizontal).padding(.vertical, 10)
+                    Divider().padding(.leading, 66)
+                }
+            }
+            // Leichtes Pulsieren, damit erkennbar bleibt: hier lädt etwas, es hängt nicht.
+            .opacity(skeletonPulse ? 0.55 : 1)
+            .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true),
+                       value: skeletonPulse)
+            .onAppear { skeletonPulse = true }
+            .onDisappear { skeletonPulse = false }
+        }
+        .allowsHitTesting(false)
+        .accessibilityLabel(Text("Dokumente werden geladen"))
     }
 
     // MARK: - Filter Bar
@@ -1006,9 +1066,8 @@ struct MainDocView: View {
     var toolbarContent: some ToolbarContent {
         if !usesSplitLayout {
             ToolbarItem(placement: .principal) {
-                Text("\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                navigationStatus
+                    .animation(.easeInOut(duration: 0.2), value: isBusy)
             }
         }
         ToolbarItem(placement: .navigationBarLeading) {
