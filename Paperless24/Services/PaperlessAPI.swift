@@ -329,7 +329,13 @@ struct PaperlessAPI {
         }
     }
 
-    func uploadDocument(_ item: PendingUpload) async throws {
+    /// Lädt ein Dokument hoch und gibt die Auftrags-ID des Servers zurück.
+    ///
+    /// `post_document` antwortet mit der Celery-Task-ID als JSON-String. Mit ihr lässt sich
+    /// über `/api/tasks/` verfolgen, was aus der Datei geworden ist. Ältere Server antworten
+    /// mit `"OK"` — dann gibt es nichts zu verfolgen und die Methode liefert `nil`.
+    @discardableResult
+    func uploadDocument(_ item: PendingUpload) async throws -> String? {
         let url = try url("documents/post_document/")
         var req = makeRequest(url)
         req.httpMethod = "POST"
@@ -352,8 +358,34 @@ struct PaperlessAPI {
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
         req.httpBody = body
 
-        let (_, response) = try await send(req)
+        let (data, response) = try await send(req)
         try validateResponse(response)
+
+        // Die Antwort ist ein JSON-String: "8f3c…". Alles andere (etwa "OK") ist keine
+        // Auftrags-ID und wird verworfen.
+        guard let raw = try? JSONSerialization.jsonObject(with: data) as? String else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.count >= 8 && trimmed.uppercased() != "OK" ? trimmed : nil
+    }
+
+    // MARK: - Verarbeitungsstatus
+
+    /// Fragt einen Verarbeitungsauftrag ab (`/api/tasks/?task_id=…`).
+    ///
+    /// Ältere Server kennen den Endpunkt nicht oder erlauben ihn nur Administratoren — dann
+    /// wirft der Aufruf, und die Oberfläche verzichtet still auf die Statusanzeige.
+    func fetchTask(taskId: String) async throws -> ConsumptionTask? {
+        let url = try url("tasks/", query: [URLQueryItem(name: "task_id", value: taskId)])
+        let (data, response) = try await send(makeRequest(url))
+        try validateResponse(response)
+        let decoder = JSONDecoder()
+        // Je Version ein nacktes Array oder eine paginierte Hülle.
+        if let list = try? decoder.decode([ConsumptionTask].self, from: data) {
+            return list.first { $0.taskId == taskId } ?? list.first
+        }
+        struct Wrapper: Decodable { let results: [ConsumptionTask] }
+        let wrapper = try decoder.decode(Wrapper.self, from: data)
+        return wrapper.results.first { $0.taskId == taskId } ?? wrapper.results.first
     }
 
     func patchDocument(id: Int, title: String, created: String, correspondent: Int?, documentType: Int?, archiveSerialNumber: Int?, tags: [Int], customFields: [CustomFieldEdit] = []) async throws {

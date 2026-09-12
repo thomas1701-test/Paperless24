@@ -1253,18 +1253,117 @@ class AppStore: ObservableObject {
         defer { isProcessingUploads = false }
 
         var processed: [UUID] = []
+        var newTasks: [(String, String)] = []
         for item in pendingUploads {
             guard let api = api else { break }
             do {
-                try await api.uploadDocument(item)
+                let taskId = try await api.uploadDocument(item)
                 processed.append(item.id)
-                showSuccessToast("Fertig: \(item.title)")
+                if let taskId {
+                    // Der Server hat die Datei angenommen — verarbeitet ist sie damit noch
+                    // nicht. Die Rückmeldung kommt aus `/api/tasks/`.
+                    uploadTaskStatuses.insert(
+                        UploadTaskStatus(id: taskId, title: item.title, state: .waiting), at: 0
+                    )
+                    newTasks.append((taskId, item.title))
+                } else {
+                    showSuccessToast("Fertig: \(item.title)")
+                }
                 registerReviewEvent()
             } catch { isOffline = true; break }
         }
         pendingUploads.removeAll { processed.contains($0.id) }
         saveToDisk()
         if !processed.isEmpty { await loadFirstPage() }
+        for (taskId, title) in newTasks {
+            Task { await followUp(taskId: taskId, title: title) }
+        }
+    }
+
+    // MARK: - Verarbeitungsstatus
+
+    /// Läufe, die die App gerade verfolgt. Sichtbar in `PendingQueueView`.
+    @Published var uploadTaskStatuses: [UploadTaskStatus] = []
+
+    /// Wie lange auf den Consumer gewartet wird, bevor die App den Auftrag nur noch als
+    /// „wird verarbeitet" führt.
+    private static let taskPollAttempts = 20
+    private static let taskPollInterval: UInt64 = 3_000_000_000
+
+    /// Verfolgt einen Verarbeitungsauftrag und meldet das Ergebnis.
+    func followUp(taskId: String, title: String) async {
+        guard let api = api else { return }
+        for attempt in 1...Self.taskPollAttempts {
+            // Erst warten: unmittelbar nach dem Upload steht der Auftrag noch auf PENDING.
+            try? await Task.sleep(nanoseconds: Self.taskPollInterval)
+            guard !Task.isCancelled else { return }
+
+            let task: ConsumptionTask?
+            do {
+                task = try await api.fetchTask(taskId: taskId)
+            } catch {
+                // Endpunkt nicht erreichbar oder nicht erlaubt: Status aufgeben, aber den
+                // Upload nicht als Fehler darstellen — angenommen wurde er ja.
+                updateTask(taskId) { $0.state = .unknown; $0.message = nil }
+                return
+            }
+            guard let task else {
+                if attempt == Self.taskPollAttempts {
+                    updateTask(taskId) { $0.state = .unknown }
+                }
+                continue
+            }
+
+            if task.isFinished {
+                finish(task: task, taskId: taskId, title: title)
+                return
+            }
+            updateTask(taskId) { $0.state = .running; $0.message = task.displayMessage }
+        }
+        // Zeit abgelaufen, ohne Ergebnis.
+        updateTask(taskId) { $0.state = .running }
+    }
+
+    private func finish(task: ConsumptionTask, taskId: String, title: String) {
+        if task.didFail {
+            let duplicate = task.isDuplicate
+            updateTask(taskId) {
+                $0.state = duplicate ? .duplicate : .failed
+                $0.message = task.displayMessage
+            }
+            // Ein stiller Fehlschlag ist das schlechteste Ergebnis: Der Nutzer glaubt, das
+            // Dokument sei im Archiv.
+            // Anführungszeichen als eigene Zeichen, nicht im Literal: ein gerades " würde
+            // den String beenden.
+            let label = "\u{201E}" + title + "\u{201C}"
+            importErrorMessage = duplicate
+                ? "\(label) wurde nicht übernommen: \(task.displayMessage)"
+                : "\(label) konnte nicht verarbeitet werden: \(task.displayMessage)"
+            haptic(.heavy)
+        } else {
+            updateTask(taskId) {
+                $0.state = .succeeded
+                $0.message = nil
+                $0.documentId = task.relatedDocument
+            }
+            showSuccessToast("Verarbeitet: \(title)")
+            Task { await loadFirstPage() }
+            // Erledigte Einträge nach kurzer Zeit aus der Liste nehmen.
+            Task {
+                try? await Task.sleep(nanoseconds: 20_000_000_000)
+                uploadTaskStatuses.removeAll { $0.id == taskId && $0.state == .succeeded }
+            }
+        }
+    }
+
+    private func updateTask(_ taskId: String, _ change: (inout UploadTaskStatus) -> Void) {
+        guard let idx = uploadTaskStatuses.firstIndex(where: { $0.id == taskId }) else { return }
+        change(&uploadTaskStatuses[idx])
+    }
+
+    /// Räumt beendete Statusmeldungen weg (Knopf in `PendingQueueView`).
+    func clearFinishedTaskStatuses() {
+        uploadTaskStatuses.removeAll { $0.isFinished }
     }
 
     func removePendingUpload(at offsets: IndexSet) { pendingUploads.remove(atOffsets: offsets); saveToDisk() }
