@@ -1,7 +1,7 @@
 # Fix-Fortschritt zur Codeprüfung 12.09.2026
 
 Arbeitsliste zu `docs/AUDIT-2026-09-12.md`. Wird nach **jedem** Fix aktualisiert, damit ein abgebrochener
-Lauf nahtlos weitergeht. Nichts davon ist committet. Branch `feature/android-port`, Basis `fd10e25`.
+Lauf nahtlos weitergeht. Nichts davon ist committet. Branch `release/2.2.0` (früher `feature/android-port`), Basis `fd10e25`.
 
 **Wiederaufnahme:** `git status` / `git diff` zeigen den Stand. Tests:
 `xcodebuild test -project "Paperless 24.xcodeproj" -scheme Paperless24 -destination 'platform=iOS Simulator,id=D86B4B7C-0B7E-4032-B6A7-9140ABBB8222' -only-testing:Paperless24Tests -derivedDataPath .claude/audit/build/dd`
@@ -138,3 +138,7 @@ Tests ab jetzt NUR auf `0B2A7927-ECC0-4481-BA6D-AA1F468A7AE3` (iPhone 17, 26.5):
 - Archiv `.claude/audit/release/Paperless24-2.2.0-5.xcarchive` (Log `archive.log`), Upload per `xcodebuild -exportArchive` mit `.claude/audit/release/ExportOptions.plist` (Log `export.log`).
 - Upload per Kommandozeile gescheitert: „Failed to find an account with App Store Connect access for team RVXL7PUD42" (xcodebuild sieht die Xcode-Anmeldung nicht). Archiv nach `~/Library/Developer/Xcode/Archives/2026-09-12/Paperless24 2.2.0 (5) 13.09.26.xcarchive` kopiert und im Organizer geöffnet; Upload macht der Nutzer über „Distribute App".
 - Nutzer hat über den Organizer hochgeladen; der Organizer hat die Build-Nummer selbst auf 7 gesetzt (Upload per API-Schlüssel danach abgelehnt: „must be higher than 7"). Projekt auf `CURRENT_PROJECT_VERSION = 7` gezogen. Nächster Upload: 8. Upload per App-Store-Connect-API-Schlüssel funktioniert (Zugangsdaten nur lokal, nicht im Repo).
+
+### Git-Aufräumen (13.09.2026)
+- Commits `f20302f` (alle Fixes), `75fde5a` (geteilte Schemes), Merge `a04fb5c` (xcode/main eingeführt, docs/index.html in 2.2.0-Fassung). Branch `feature/android-port` → `release/2.2.0`, gepusht, PR https://github.com/thomas1701-test/Paperless24/pull/2 — erst nach App-Store-Freigabe mergen (docs/ = GitHub Pages).
+- Worktrees entfernt; nicht committete Stände vorher als wip-Commits gesichert: `archiv/wip-customfield-formatter`, `archiv/wip-ui-texte-2026-07`, `archiv/wip-sharestaging-test`. Unmerged behalten und umbenannt: `archiv/korrespondenten-punkt`, `archiv/macos-design-spec`. Gelöscht (vollständig in release enthalten): 7 claude/*-Branches, `feature/ngx-parity`, `feature/unterstuetzung-paypal`. Remote-Branches von anderen Sitzungen (claude/paperless-ngx-app-icon-…, claude/remove-email-github-page-…) nicht angefasst.
