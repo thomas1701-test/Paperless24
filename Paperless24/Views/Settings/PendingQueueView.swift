@@ -9,12 +9,8 @@ struct PendingQueueView: View {
             Section(header: Text("Uploads")) {
                 if store.pendingUploads.isEmpty { Text("Leer").foregroundColor(.secondary) }
                 ForEach(store.pendingUploads) { item in
-                    HStack {
-                        Image(systemName: "doc")
-                        Text(item.title)
-                        Spacer()
-                        Image(systemName: "clock").foregroundColor(.orange)
-                    }
+                    queueRow(title: item.title, symbol: "doc", failureReason: item.failureReason,
+                             waitingColor: .orange)
                 }
                 .onDelete(perform: store.removePendingUpload)
             }
@@ -50,18 +46,46 @@ struct PendingQueueView: View {
             Section(header: Text("Bearbeitungen")) {
                 if store.pendingEdits.isEmpty { Text("Leer").foregroundColor(.secondary) }
                 ForEach(store.pendingEdits) { item in
-                    HStack {
-                        Image(systemName: "pencil")
-                        Text(item.title)
-                        Spacer()
-                        Image(systemName: "clock").foregroundColor(.blue)
-                    }
+                    queueRow(title: item.title, symbol: "pencil", failureReason: item.failureReason,
+                             waitingColor: .blue)
                 }
                 .onDelete(perform: store.removePendingEdit)
+            }
+
+            if hasRejected {
+                Section {
+                    Button("Abgelehnte erneut versuchen") { store.retryRejectedQueueItems() }
+                } footer: {
+                    Text("Der Server hat diese Einträge abgelehnt. Die übrigen werden trotzdem übertragen. Zum Verwerfen nach links wischen.")
+                }
             }
         }
         .themedSurface(palette)
         .navigationTitle("Warteschlange")
+    }
+
+    private var hasRejected: Bool {
+        store.pendingUploads.contains { $0.failureReason != nil }
+            || store.pendingEdits.contains { $0.failureReason != nil }
+    }
+
+    private func queueRow(title: String, symbol: String, failureReason: String?,
+                          waitingColor: Color) -> some View {
+        HStack(alignment: .top) {
+            Image(systemName: symbol)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                if let failureReason {
+                    Text(failureReason).font(.caption).foregroundColor(.red)
+                }
+            }
+            Spacer()
+            if failureReason != nil {
+                Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.red)
+            } else {
+                Image(systemName: "clock").foregroundColor(waitingColor)
+            }
+        }
     }
 
     private func color(for state: UploadTaskStatus.State) -> Color {

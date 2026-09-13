@@ -7,6 +7,34 @@
     "—" : {
 
     },
+    "„%@“ wird auf dem Server gelöscht und von allen Dokumenten entfernt. Das lässt sich nicht rückgängig machen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” will be deleted on the server and removed from all documents. This cannot be undone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» se eliminará en el servidor y de todos los documentos. No se puede deshacer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "« %@ » sera supprimé sur le serveur et retiré de tous les documents. Cette action est irréversible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«%@» verrà eliminato sul server e rimosso da tutti i documenti. L'operazione non può essere annullata."
+          }
+        }
+      }
+    },
     "„Alle diese Tags“ verlangt jeden ausgewählten Tag am Dokument, nicht irgendeinen." : {
 
     },
@@ -92,6 +120,34 @@
     },
     "%lld Dokument(e) können nicht wiederhergestellt werden." : {
 
+    },
+    "%lld Dokument(e) löschen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld document(s)?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Eliminar %lld documento(s)?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supprimer %lld document(s) ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eliminare %lld documento/i?"
+          }
+        }
+      }
     },
     "%lld Dokumente" : {
 
@@ -254,6 +310,34 @@
         }
       }
     },
+    "Abgelehnte erneut versuchen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry rejected items"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintentar los rechazados"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer les éléments refusés"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riprova quelli rifiutati"
+          }
+        }
+      }
+    },
     "Ablaufdatum" : {
 
     },
@@ -281,6 +365,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esci"
+          }
+        }
+      }
+    },
+    "Abmelden?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Cerrar sesión?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se déconnecter ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uscire?"
           }
         }
       }
@@ -323,9 +435,6 @@
 
     },
     "Aktiv" : {
-
-    },
-    "Aktualisieren…" : {
 
     },
     "Alle" : {
@@ -411,6 +520,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tutti i documenti sono stati elaborati."
+          }
+        }
+      }
+    },
+    "Alle Konten werden samt Offline-Dateien und Zugangsdaten vom Gerät entfernt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All accounts, offline files and credentials will be removed from this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas las cuentas, los archivos sin conexión y las credenciales se eliminarán del dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tous les comptes, fichiers hors ligne et identifiants seront supprimés de l'appareil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutti gli account, i file offline e le credenziali verranno rimossi dal dispositivo."
+          }
+        }
+      }
+    },
+    "Alle Konten werden samt Offline-Dateien und Zugangsdaten vom Gerät entfernt. Noch nicht übertragene Uploads und Änderungen gehen verloren." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All accounts, offline files and credentials will be removed from this device. Uploads and changes not yet sent will be lost."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas las cuentas, los archivos sin conexión y las credenciales se eliminarán del dispositivo. Las subidas y cambios aún no enviados se perderán."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tous les comptes, fichiers hors ligne et identifiants seront supprimés de l'appareil. Les envois et modifications non transmis seront perdus."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutti gli account, i file offline e le credenziali verranno rimossi dal dispositivo. I caricamenti e le modifiche non ancora inviati andranno persi."
           }
         }
       }
@@ -511,7 +676,32 @@
       }
     },
     "App bewerten" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate the app"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valorar la app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noter l'app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valuta l'app"
+          }
+        }
+      }
     },
     "App Speicher" : {
       "localizations" : {
@@ -537,6 +727,118 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Archiviazione app"
+          }
+        }
+      }
+    },
+    "App weiterempfehlen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommend the app"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recomendar la app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommander l'app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consiglia l'app"
+          }
+        }
+      }
+    },
+    "App-Sperre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App lock"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueo de la app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verrouillage de l'app"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocco app"
+          }
+        }
+      }
+    },
+    "App-Sperre (Face ID / Code)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App lock (Face ID / passcode)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueo de la app (Face ID / código)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verrouillage de l'app (Face ID / code)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocco app (Face ID / codice)"
+          }
+        }
+      }
+    },
+    "App-Sperre, Systemsuche" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App lock, system search"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bloqueo de la app, búsqueda del sistema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verrouillage de l'app, recherche système"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocco app, ricerca di sistema"
           }
         }
       }
@@ -572,8 +874,64 @@
     "Apple Intelligence ist auf diesem Gerät nicht verfügbar. Auto-Tagging nutzt weiterhin die Texterkennung." : {
 
     },
+    "Apple Intelligence, Import-Regeln, Fristen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence, import rules, deadlines"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence, reglas de importación, plazos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence, règles d'import, échéances"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Intelligence, regole di importazione, scadenze"
+          }
+        }
+      }
+    },
     "Archiv fragen" : {
 
+    },
+    "Archiv verwalten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage archive"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestionar archivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gérer l'archive"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestisci archivio"
+          }
+        }
+      }
     },
     "Archiviert" : {
 
@@ -640,6 +998,62 @@
         }
       }
     },
+    "Auf diesem Gerät ist kein Code eingerichtet. Ohne Gerätecode gibt es keine App-Sperre." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No passcode is set up on this device. App lock requires a device passcode."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este dispositivo no tiene código. El bloqueo de la app requiere un código."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun code n'est configuré sur cet appareil. Le verrouillage de l'app nécessite un code."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su questo dispositivo non è impostato alcun codice. Il blocco app richiede un codice."
+          }
+        }
+      }
+    },
+    "Auf Servern mit Papierkorb (paperless-ngx ab 2.0) lassen sie sich dort wiederherstellen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On servers with a trash (paperless-ngx 2.0 and later) they can be restored from there."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En servidores con papelera (paperless-ngx 2.0 o posterior) se pueden restaurar desde allí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sur les serveurs disposant d'une corbeille (paperless-ngx 2.0 ou ultérieur), ils peuvent y être restaurés."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sui server con cestino (paperless-ngx 2.0 o successivo) possono essere ripristinati da lì."
+          }
+        }
+      }
+    },
     "Auffällig" : {
 
     },
@@ -657,6 +1071,34 @@
     },
     "Auswählen" : {
 
+    },
+    "Auswertungen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insights"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Análisis"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyses"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analisi"
+          }
+        }
+      }
     },
     "Auto" : {
       "localizations" : {
@@ -747,6 +1189,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Modifiche"
+          }
+        }
+      }
+    },
+    "Bei aktiver App-Sperre stehen nur Titel, Sender und Tags in Spotlight — der erkannte Text bleibt in der App." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With app lock on, Spotlight only contains title, correspondent and tags — the recognised text stays in the app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con el bloqueo activo, Spotlight solo contiene título, remitente y etiquetas; el texto reconocido se queda en la app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avec le verrouillage actif, Spotlight ne contient que titre, correspondant et tags — le texte reconnu reste dans l'app."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con il blocco attivo, Spotlight contiene solo titolo, corrispondente e tag: il testo riconosciuto resta nell'app."
           }
         }
       }
@@ -925,6 +1395,34 @@
         }
       }
     },
+    "Danke für deine Unterstützung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank you for your support"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gracias por tu apoyo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merci pour ton soutien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grazie per il tuo supporto"
+          }
+        }
+      }
+    },
     "Darstellung" : {
       "localizations" : {
         "en" : {
@@ -1017,6 +1515,34 @@
     },
     "Daten" : {
 
+    },
+    "Datenschutz & Spotlight" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy & Spotlight"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacidad y Spotlight"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confidentialité et Spotlight"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy e Spotlight"
+          }
+        }
+      }
     },
     "Datum" : {
       "localizations" : {
@@ -1164,11 +1690,123 @@
         }
       }
     },
+    "Der Link konnte nicht erstellt werden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The link could not be created."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo crear el enlace."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le lien n'a pas pu être créé."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile creare il link."
+          }
+        }
+      }
+    },
+    "Der Link wurde nicht widerrufen und ist weiterhin gültig." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The link was not revoked and is still valid."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El enlace no se revocó y sigue siendo válido."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le lien n'a pas été révoqué et reste valide."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il link non è stato revocato ed è ancora valido."
+          }
+        }
+      }
+    },
     "Der Posteingang ist leer." : {
 
     },
+    "Der Server ersetzt die bestehenden Rechte durch diese Auswahl — es ist keine Ergänzung. Wer niemanden auswählt, lässt nur den Besitzer (und Administratoren) an die Dokumente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server replaces the existing permissions with this selection — it does not add to them. Selecting no one leaves access to the owner (and administrators) only."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor sustituye los permisos existentes por esta selección; no los amplía. Si no seleccionas a nadie, solo el propietario (y los administradores) tendrán acceso."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur remplace les autorisations existantes par cette sélection ; il ne les complète pas. Sans sélection, seuls le propriétaire (et les administrateurs) ont accès aux documents."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server sostituisce i permessi esistenti con questa selezione, non li integra. Senza selezione, solo il proprietario (e gli amministratori) accedono ai documenti."
+          }
+        }
+      }
+    },
     "Der Server gibt sie nur Administratoren heraus." : {
 
+    },
+    "Der Server hat diese Einträge abgelehnt. Die übrigen werden trotzdem übertragen. Zum Verwerfen nach links wischen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The server rejected these items. The others will still be sent. Swipe left to discard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El servidor rechazó estos elementos. Los demás se enviarán igualmente. Desliza a la izquierda para descartarlos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le serveur a refusé ces éléments. Les autres seront tout de même envoyés. Balayez vers la gauche pour les supprimer."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il server ha rifiutato questi elementi. Gli altri verranno comunque inviati. Scorri a sinistra per scartarli."
+          }
+        }
+      }
     },
     "Design" : {
       "localizations" : {
@@ -1204,11 +1842,151 @@
     "Diagnose" : {
 
     },
+    "Diagnose, Changelog, Unterstützung" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostics, changelog, support"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnóstico, cambios, apoyo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostic, nouveautés, soutien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostica, novità, supporto"
+          }
+        }
+      }
+    },
+    "Die Adresse begann mit http://. Verbunden wird trotzdem verschlüsselt — für einen Server ohne HTTPS den Schalter einschalten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The address started with http://. The connection is still encrypted — turn on the switch for a server without HTTPS."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La dirección empezaba por http://. La conexión sigue cifrada; activa el interruptor para un servidor sin HTTPS."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'adresse commençait par http://. La connexion reste chiffrée — active l'interrupteur pour un serveur sans HTTPS."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'indirizzo iniziava con http://. La connessione resta cifrata: attiva l'interruttore per un server senza HTTPS."
+          }
+        }
+      }
+    },
     "Die Datei enthält keine Seiten." : {
 
     },
     "Die Datei konnte nicht übergeben werden." : {
 
+    },
+    "Die Dublettenprüfung vergleicht vor dem Hochladen Belegnummer, Betrag und Datum mit den geladenen Dokumenten. Warnt nur — hochladen lässt sich trotzdem." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The duplicate check compares receipt number, amount and date with the loaded documents before uploading. It only warns — you can still upload."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La comprobación de duplicados compara número de recibo, importe y fecha con los documentos cargados antes de subir. Solo avisa: puedes subirlo igualmente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La détection des doublons compare numéro de pièce, montant et date avec les documents chargés avant l'envoi. Simple avertissement — l'envoi reste possible."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il controllo duplicati confronta numero di documento, importo e data con i documenti caricati prima del caricamento. Avvisa soltanto: puoi caricare comunque."
+          }
+        }
+      }
+    },
+    "Die KI schlägt Einträge vor, die es auf dem Server noch nicht gibt. Nur die ausgewählten werden angelegt und dem Dokument zugeordnet." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The AI suggests entries that don't exist on the server yet. Only the selected ones are created and assigned to the document."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La IA sugiere entradas que aún no existen en el servidor. Solo se crean y asignan al documento las seleccionadas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'IA propose des entrées qui n'existent pas encore sur le serveur. Seules celles sélectionnées sont créées et attribuées au document."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'IA propone voci che non esistono ancora sul server. Solo quelle selezionate vengono create e assegnate al documento."
+          }
+        }
+      }
+    },
+    "Die Kopfzeilen konnten nicht im Schlüsselbund gespeichert werden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The headers could not be saved to the keychain."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudieron guardar los encabezados en el llavero."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les en-têtes n'ont pas pu être enregistrés dans le trousseau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile salvare le intestazioni nel portachiavi."
+          }
+        }
+      }
     },
     "Die Werte dieses Feldes verschwinden damit aus allen Dokumenten." : {
 
@@ -1350,6 +2128,34 @@
     "Dokumente finden" : {
 
     },
+    "Dokumente ohne Besitzer sieht jeder Benutzer dieser Instanz — unabhängig von der Auswahl unten." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Documents without an owner are visible to every user of this instance — regardless of the selection below."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los documentos sin propietario son visibles para todos los usuarios de esta instancia, independientemente de la selección de abajo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les documents sans propriétaire sont visibles par tous les utilisateurs de cette instance, quelle que soit la sélection ci-dessous."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I documenti senza proprietario sono visibili a tutti gli utenti di questa istanza, indipendentemente dalla selezione qui sotto."
+          }
+        }
+      }
+    },
     "Dokumente pro Monat" : {
 
     },
@@ -1387,9 +2193,6 @@
           }
         }
       }
-    },
-    "Du wirst dafür zu PayPal weitergeleitet. Vielen Dank für deine Unterstützung! 🙏" : {
-
     },
     "Dublettenprüfung beim Import" : {
 
@@ -1689,6 +2492,7 @@
       }
     },
     "Farbthema & Darstellung" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1712,6 +2516,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tema e aspetto"
+          }
+        }
+      }
+    },
+    "Farbthema, Liste, Sprache" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Theme, list, language"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema, lista, idioma"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thème, liste, langue"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema, elenco, lingua"
           }
         }
       }
@@ -1865,14 +2697,95 @@
     "Findet AirScan-/eSCL-fähige Scanner im lokalen Netzwerk. Funktioniert nicht mit jedem Modell." : {
 
     },
+    "Findet Zahlungsziele, Kündigungs- und Garantiefristen im Text — nur wenn ein eindeutiges Schlüsselwort daneben steht. Gespeichert wird erst, was du bestätigst; die Frist landet in einem Datumsfeld auf dem Server." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finds payment, cancellation and warranty deadlines in the text — only next to a clear keyword. Nothing is saved until you confirm; the deadline goes into a date field on the server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encuentra plazos de pago, cancelación y garantía en el texto, solo junto a una palabra clave clara. Nada se guarda hasta que lo confirmes; el plazo va a un campo de fecha en el servidor."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repère les échéances de paiement, de résiliation et de garantie dans le texte — uniquement à côté d'un mot-clé explicite. Rien n'est enregistré sans ta confirmation ; l'échéance va dans un champ date sur le serveur."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trova scadenze di pagamento, disdetta e garanzia nel testo, solo accanto a una parola chiave chiara. Nulla viene salvato finché non confermi; la scadenza finisce in un campo data sul server."
+          }
+        }
+      }
+    },
     "Foto" : {
 
     },
     "Frag dein Archiv …" : {
 
     },
+    "Fragt beim Öffnen und nach einer Minute im Hintergrund nach Face ID oder dem Gerätecode." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asks for Face ID or the device passcode when opening and after a minute in the background."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pide Face ID o el código del dispositivo al abrir y tras un minuto en segundo plano."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande Face ID ou le code de l'appareil à l'ouverture et après une minute en arrière-plan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiede Face ID o il codice del dispositivo all'apertura e dopo un minuto in background."
+          }
+        }
+      }
+    },
     "Freigabe-Links" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share links"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enlaces compartidos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liens de partage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link di condivisione"
+          }
+        }
+      }
     },
     "Frist erkannt" : {
 
@@ -1919,6 +2832,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Protetto"
+          }
+        }
+      }
+    },
+    "Gespeichert." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistré."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salvato."
           }
         }
       }
@@ -1994,6 +2935,34 @@
     "Gilt für %lld Dokument(e)." : {
 
     },
+    "Gilt für die Listenansicht. Bei einer Suche steht an dieser Stelle der Textausschnitt mit dem Suchbegriff." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to the list view. During a search, the text snippet with the search term is shown here instead."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se aplica a la vista de lista. Durante una búsqueda aparece aquí el fragmento con el término buscado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S'applique à la vue liste. Pendant une recherche, l'extrait contenant le terme recherché s'affiche ici."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vale per la vista elenco. Durante una ricerca qui compare l'estratto con il termine cercato."
+          }
+        }
+      }
+    },
     "Graphit" : {
       "localizations" : {
         "en" : {
@@ -2053,6 +3022,62 @@
         }
       }
     },
+    "Heruntergeladene Dokumente lassen sich auch ohne Verbindung zum Server öffnen." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloaded documents can be opened without a connection to the server."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los documentos descargados se pueden abrir sin conexión al servidor."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les documents téléchargés s'ouvrent aussi sans connexion au serveur."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I documenti scaricati si possono aprire anche senza connessione al server."
+          }
+        }
+      }
+    },
+    "Hilfe & Info" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help & info"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayuda e información"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aide et infos"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aiuto e info"
+          }
+        }
+      }
+    },
     "Hinweis" : {
 
     },
@@ -2066,9 +3091,6 @@
 
     },
     "https://" : {
-
-    },
-    "Ich entwickle Paperless 24 in meiner Freizeit und stelle die App kostenlos zur Verfügung. Wenn sie dir hilft, freue ich mich über ein kleines Trinkgeld – ganz freiwillig und in beliebiger Höhe." : {
 
     },
     "Im Index" : {
@@ -2107,6 +3129,34 @@
     },
     "Importieren" : {
 
+    },
+    "In Spotlight aufnehmen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show in Spotlight"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar en Spotlight"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher dans Spotlight"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostra in Spotlight"
+          }
+        }
+      }
     },
     "Index leeren" : {
 
@@ -2178,6 +3228,34 @@
     },
     "Kachelgröße" : {
 
+    },
+    "Kein Besitzer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No owner"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin propietario"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun propriétaire"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun proprietario"
+          }
+        }
+      }
     },
     "Kein Filter" : {
 
@@ -2398,6 +3476,34 @@
         }
       }
     },
+    "KI & Automatik" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI & automation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IA y automatización"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IA et automatisation"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IA e automazione"
+          }
+        }
+      }
+    },
     "KI denkt..." : {
       "localizations" : {
         "en" : {
@@ -2481,6 +3587,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gestisci account"
+          }
+        }
+      }
+    },
+    "Konto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuenta"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compte"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account"
           }
         }
       }
@@ -2994,8 +4128,89 @@
     "Mit Apple Intelligence zusammenfassen" : {
 
     },
-    "Mit PayPal ein Trinkgeld geben" : {
-
+    "Mit dem Kauf von Paperless 24 unterstützt du die Weiterentwicklung der App. Wenn sie dir gefällt, hilft eine Bewertung im App Store oder eine Empfehlung am meisten – so finden andere Paperless-Nutzer die App." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By buying Paperless 24 you support the app's further development. If you like it, a rating on the App Store or a recommendation helps most – that's how other Paperless users find the app."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al comprar Paperless 24 apoyas el desarrollo de la app. Si te gusta, lo que más ayuda es una valoración en el App Store o una recomendación: así otros usuarios de Paperless encuentran la app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En achetant Paperless 24, tu soutiens le développement de l'app. Si elle te plaît, une note sur l'App Store ou une recommandation aide le plus – c'est ainsi que d'autres utilisateurs de Paperless la trouvent."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acquistando Paperless 24 sostieni lo sviluppo dell'app. Se ti piace, una valutazione sull'App Store o un consiglio aiutano di più: così altri utenti Paperless trovano l'app."
+          }
+        }
+      }
+    },
+    "Mit Volltext findet die Systemsuche Dokumente auch über ihren Inhalt. Der Text ist dann für jeden sichtbar, der das Gerät entsperrt hat." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With full text, system search also finds documents by their content. The text is then visible to anyone who has unlocked the device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con texto completo, la búsqueda del sistema también encuentra documentos por su contenido. El texto será visible para quien tenga el dispositivo desbloqueado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avec le texte intégral, la recherche système trouve aussi les documents par leur contenu. Le texte est alors visible par toute personne ayant déverrouillé l'appareil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con il testo completo la ricerca di sistema trova i documenti anche dal contenuto. Il testo è quindi visibile a chiunque abbia sbloccato il dispositivo."
+          }
+        }
+      }
+    },
+    "Mitteilungen & Widget" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications & widget"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notificaciones y widget"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications et widget"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifiche e widget"
+          }
+        }
+      }
     },
     "Modus" : {
       "localizations" : {
@@ -3096,6 +4311,34 @@
     },
     "Netzwerkscanner" : {
 
+    },
+    "Neu anlegen?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create new?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Crear nuevos?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créer ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creare?"
+          }
+        }
+      }
     },
     "Neue Dokumente melden" : {
 
@@ -3221,11 +4464,95 @@
     "Neues Feld" : {
 
     },
+    "Nicht angelegt: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not created: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No creado: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non créé : %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non creato: %@"
+          }
+        }
+      }
+    },
+    "Nicht anlegen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't create"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No crear"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ne pas créer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non creare"
+          }
+        }
+      }
+    },
     "Nicht verarbeitet" : {
 
     },
     "Nichts zu tun" : {
 
+    },
+    "Noch nicht an den Server übertragen" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not yet sent to the server"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no enviado al servidor"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pas encore envoyé au serveur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non ancora inviato al server"
+          }
+        }
+      }
     },
     "Notizen" : {
       "localizations" : {
@@ -3283,6 +4610,34 @@
         }
       }
     },
+    "Offline & Laden" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline & loading"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin conexión y carga"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hors ligne et chargement"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline e caricamento"
+          }
+        }
+      }
+    },
     "Offline Dateien" : {
       "localizations" : {
         "en" : {
@@ -3311,8 +4666,92 @@
         }
       }
     },
+    "Offline-Betrieb" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline use"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso sin conexión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisation hors ligne"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso offline"
+          }
+        }
+      }
+    },
+    "Offline-Dateien, Download, Warteschlange" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline files, download, queue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos sin conexión, descarga, cola"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichiers hors ligne, téléchargement, file d'attente"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File offline, download, coda"
+          }
+        }
+      }
+    },
     "Öffnet den Scanner, um ein neues Dokument aufzunehmen." : {
 
+    },
+    "Ohne Index durchsucht die Frage nur die geladenen Dokumente. Der Aufbau liest einmal das ganze Archiv und hält sich danach von selbst aktuell." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without an index, questions only search the loaded documents. Building it reads the whole archive once and then keeps itself up to date."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin índice, la pregunta solo busca en los documentos cargados. Crearlo lee todo el archivo una vez y después se mantiene actualizado solo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sans index, la question ne porte que sur les documents chargés. La création lit une fois toute l'archive puis se met à jour d'elle-même."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senza indice la domanda cerca solo nei documenti caricati. La creazione legge una volta l'intero archivio e poi si aggiorna da sola."
+          }
+        }
+      }
     },
     "OK" : {
       "localizations" : {
@@ -3379,9 +4818,6 @@
     "Paperless 24" : {
 
     },
-    "Paperless 24 ist kostenlos" : {
-
-    },
     "Papierkorb" : {
       "localizations" : {
         "en" : {
@@ -3437,6 +4873,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Password"
+          }
+        }
+      }
+    },
+    "Passwort und Dokumente sind im Netzwerk mitlesbar. Nur im eigenen Netz verwenden." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password and documents can be read on the network. Only use on your own network."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La contraseña y los documentos se pueden leer en la red. Úsalo solo en tu propia red."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mot de passe et documents sont lisibles sur le réseau. À utiliser uniquement sur ton propre réseau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password e documenti sono leggibili in rete. Usalo solo nella tua rete."
           }
         }
       }
@@ -3537,6 +5001,34 @@
     "Posteingang zählen" : {
 
     },
+    "Proxy-Kopfzeilen, Client-Zertifikat" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proxy headers, client certificate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cabeceras de proxy, certificado de cliente"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En-têtes proxy, certificat client"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Header proxy, certificato client"
+          }
+        }
+      }
+    },
     "Raster" : {
       "localizations" : {
         "en" : {
@@ -3635,6 +5127,34 @@
     },
     "Scannen" : {
 
+    },
+    "Scannen & Importieren" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scanning & importing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escanear e importar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numérisation et import"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scansione e importazione"
+          }
+        }
+      }
     },
     "Scanner wird geöffnet …" : {
 
@@ -3871,6 +5391,34 @@
     "Serverzugang" : {
 
     },
+    "Serverzugang (Proxy, Zertifikat)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server access (proxy, certificate)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acceso al servidor (proxy, certificado)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès au serveur (proxy, certificat)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesso al server (proxy, certificato)"
+          }
+        }
+      }
+    },
     "Sichern" : {
 
     },
@@ -3998,6 +5546,34 @@
         }
       }
     },
+    "Stammdaten" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metadata"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datos maestros"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Données de base"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dati di base"
+          }
+        }
+      }
+    },
     "Stapel scannen" : {
 
     },
@@ -4061,9 +5637,6 @@
       }
     },
     "Statistik" : {
-
-    },
-    "Status" : {
 
     },
     "Stellt eine Frage an dein Dokumentenarchiv." : {
@@ -4132,9 +5705,6 @@
         }
       }
     },
-    "Suche…" : {
-
-    },
     "Suchen" : {
 
     },
@@ -4143,6 +5713,34 @@
     },
     "Sucht in Paperless nach Dokumenten." : {
 
+    },
+    "Systemsuche" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System search"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Búsqueda del sistema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherche système"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ricerca di sistema"
+          }
+        }
+      }
     },
     "Tag" : {
 
@@ -4233,6 +5831,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gestisci tag"
+          }
+        }
+      }
+    },
+    "Tags, Sender, Typen, Felder, Papierkorb" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tags, correspondents, types, fields, trash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Etiquetas, remitentes, tipos, campos, papelera"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tags, correspondants, types, champs, corbeille"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tag, corrispondenti, tipi, campi, cestino"
           }
         }
       }
@@ -4501,10 +6127,63 @@
 
     },
     "Unterstützung" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apoyo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soutien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Supporto"
+          }
+        }
+      }
     },
     "Unverändert lassen" : {
 
+    },
+    "Unverschlüsselt verbinden (http)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect unencrypted (http)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectar sin cifrar (http)"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connexion non chiffrée (http)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connessione non cifrata (http)"
+          }
+        }
+      }
     },
     "Upload" : {
       "localizations" : {
@@ -4558,6 +6237,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Caricamenti"
+          }
+        }
+      }
+    },
+    "Uploads und Änderungen ohne Verbindung warten hier und gehen raus, sobald der Server erreichbar ist." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uploads and changes made offline wait here and are sent once the server is reachable."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las subidas y cambios sin conexión esperan aquí y se envían cuando el servidor esté disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les envois et modifications hors ligne attendent ici et partent dès que le serveur est joignable."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caricamenti e modifiche offline attendono qui e vengono inviati quando il server è raggiungibile."
           }
         }
       }
@@ -4616,6 +6323,7 @@
 
     },
     "Verwaltung" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4645,6 +6353,34 @@
     },
     "Vollständig" : {
 
+    },
+    "Volltext durchsuchbar" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full text searchable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texto completo buscable"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texte intégral recherchable"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testo completo ricercabile"
+          }
+        }
+      }
     },
     "Vom Server ermittelt." : {
 
@@ -4779,6 +6515,34 @@
     "Was vorbelegt wird" : {
 
     },
+    "Weitere Dokumente lädt die Liste beim Scrollen nach." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The list loads more documents as you scroll."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La lista carga más documentos al desplazarse."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La liste charge d'autres documents au défilement."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'elenco carica altri documenti durante lo scorrimento."
+          }
+        }
+      }
+    },
     "Wert" : {
 
     },
@@ -4826,9 +6590,6 @@
 
     },
     "Wird hochgeladen …" : {
-
-    },
-    "Wird übertragen…" : {
 
     },
     "Wird verarbeitet …" : {

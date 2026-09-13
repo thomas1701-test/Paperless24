@@ -135,10 +135,11 @@ struct AskArchiveView: View {
     /// Sekunden lang.
     private func rankedDocuments(for query: String, limit: Int) async -> [Document] {
         let docs = store.documents
+        let account = store.activeAccountId
 
         // Zuerst der Index: Er kennt das ganze Archiv, nicht nur die geladene Seite. Was er
         // findet, muss aber auch als Dokument vorliegen — sonst fehlt der Text für die Antwort.
-        let indexed = await ArchiveIndex.shared.bestMatches(for: query, limit: limit * 3)
+        let indexed = await ArchiveIndex.shared.bestMatches(for: query, limit: limit * 3, account: account)
         if !indexed.isEmpty {
             let matched = indexed.compactMap { id in docs.first { $0.id == id } }
             if matched.count >= min(limit, 3) { return Array(matched.prefix(limit)) }

@@ -32,9 +32,10 @@ struct DocumentEntity: AppEntity, Identifiable {
 }
 
 struct DocumentEntityQuery: EntityQuery {
+    /// Die Dokumente zu diesen IDs — gezielt abgefragt. Vorher wurden die neuesten 200 geholt
+    /// und darin gesucht; ältere Dokumente ließen sich in einem Kurzbefehl nicht auflösen.
     func entities(for identifiers: [Int]) async throws -> [DocumentEntity] {
-        let found = try await IntentDataSource.search(query: "", limit: 200)
-        return found.filter { identifiers.contains($0.id) }
+        try await IntentDataSource.documents(ids: identifiers)
     }
 
     func suggestedEntities() async throws -> [DocumentEntity] {
@@ -52,6 +53,9 @@ struct FindDocumentsIntent: AppIntent {
     )
     /// Läuft ohne die App zu öffnen: Genau das macht den Intent für Automationen brauchbar.
     static var openAppWhenRun = false
+    /// Nur bei entsperrtem Gerät. Vorher lieferte Siri Dokumenttitel und Sender auch vom
+    /// Sperrbildschirm aus — an der Gerätesperre und an der App-Sperre vorbei.
+    static var authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
     @Parameter(title: "Suchbegriff")
     var query: String
@@ -77,6 +81,7 @@ struct InboxCountIntent: AppIntent {
         "Gibt zurück, wie viele Dokumente unbearbeitet sind."
     )
     static var openAppWhenRun = false
+    static var authenticationPolicy: IntentAuthenticationPolicy = .requiresAuthentication
 
     func perform() async throws -> some IntentResult & ReturnsValue<Int> & ProvidesDialog {
         // Aus der App Group: keine Anmeldung, kein Netz, sofortige Antwort. Der Wert stammt
@@ -180,21 +185,25 @@ enum IntentDataSource {
         }
     }
 
+    static func documents(ids: [Int]) async throws -> [DocumentEntity] {
+        guard !ids.isEmpty else { return [] }
+        guard let account = activeAccount(),
+              let token = KeychainService.loadToken(for: account.serverUrl, username: account.username)
+        else { throw IntentError.notLoggedIn }
+        let api = PaperlessAPI(serverUrl: account.serverUrl, token: token)
+        var result: [DocumentEntity] = []
+        for id in ids.prefix(50) {
+            guard let doc = try? await api.fetchDocumentDetail(id: id) else { continue }
+            result.append(DocumentEntity(id: doc.id, title: doc.title, created: doc.created, correspondent: nil))
+        }
+        return result
+    }
+
     /// Legt eine Datei so ab, wie es die Share-Erweiterung tut — die App holt sie beim
     /// nächsten Wechsel in den Vordergrund ab (`checkForSharedFile()`).
     static func stageForImport(data: Data, filename: String) -> Bool {
-        guard let defaults = UserDefaults(suiteName: AppConstants.appGroupId),
-              let container = FileManager.default.containerURL(
-                  forSecurityApplicationGroupIdentifier: AppConstants.appGroupId
-              ) else { return false }
-        let url = container.appendingPathComponent("shared_import.data")
-        do {
-            try data.write(to: url, options: [.atomic])
-            defaults.set(filename, forKey: "shared_filename")
-            return true
-        } catch {
-            return false
-        }
+        // Eigene Datei statt des einen gemeinsamen Platzes — und mit Dateischutz.
+        SharedImports.stage(data, filename: filename)
     }
 
     private static func activeAccount() -> Account? {

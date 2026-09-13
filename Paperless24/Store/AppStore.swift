@@ -109,11 +109,14 @@ class AppStore: ObservableObject {
             return
         }
         isLoadingInbox = true
+        let epoch = accountEpoch
         do {
             let page = try await api.fetchDocuments(tagIDs: Array(ids), page: 1)
+            guard isCurrent(epoch) else { return }
             inboxDocuments = page.documents.uniquedByID()
             inboxTotal = page.totalCount ?? inboxDocuments.count
         } catch {
+            guard isCurrent(epoch) else { return }
             let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
             if !isCancelled { inboxDocuments = cachedInboxDocs }
         }
@@ -145,7 +148,7 @@ class AppStore: ObservableObject {
     /// sonst taucht ein offline bearbeitetes Dokument dort wieder mit altem Stand auf.
     private func reApplyPendingEditsToInbox() {
         guard !pendingEdits.isEmpty else { return }
-        for edit in pendingEdits {
+        for edit in pendingEdits where edit.failureReason == nil {
             guard let idx = inboxDocuments.firstIndex(where: { $0.id == edit.docId }) else { continue }
             inboxDocuments[idx] = edit.applied(to: inboxDocuments[idx])
         }
@@ -196,6 +199,15 @@ class AppStore: ObservableObject {
     /// Zuletzt an den Server geschickte Anfrage — verhindert, dass `applyFilters()` bei jedem
     /// `onAppear` der Liste erneut lädt, obwohl sich nichts geändert hat.
     private var lastAppliedQuery: DocumentQuery? = nil
+    /// Sortierung, in der `lastAppliedQuery` beantwortet wurde. Die Sortierung gehört nicht
+    /// zur Anfrage — ohne diesen Wert galt ein Sortierwechsel als „gleiche Anfrage" und die
+    /// Trefferliste blieb, wie sie war.
+    private var lastAppliedQueryOrder: SortOrder? = nil
+    /// Sortierung, in der `documents` vom Server kam; `nil`, solange die Liste nur von der
+    /// Platte stammt. Weicht sie von `currentSortOrder` ab, muss neu geladen werden: Mit 25
+    /// geladenen Dokumenten sind die neuesten 25 nach „Hinzugefügt" andere als die 25
+    /// neuesten nach Belegdatum.
+    private var listSortOrder: SortOrder? = nil
 
     /// Alle Filter und die Suche als eine Server-Anfrage.
     var activeQuery: DocumentQuery {
@@ -274,8 +286,71 @@ class AppStore: ObservableObject {
     private var autoSyncTask: Task<Void, Never>? = nil
     private var downloadTask: Task<Void, Never>? = nil
     /// Sperren gegen mehrfach parallel laufende Warteschlangen — siehe `processUploadQueue()`.
-    private var isProcessingUploads = false
-    private var isProcessingEdits = false
+    /// Je Konto: Ein noch laufender Durchlauf des vorherigen Kontos hält den neuen nicht auf.
+    private var uploadQueueEpoch: Int? = nil
+    private var editQueueEpoch: Int? = nil
+    /// Einträge, die gerade übertragen werden — über Epochen hinweg. Wechselt man mitten in einem
+    /// Upload weg und gleich wieder zurück, liefe sonst ein zweiter Durchlauf desselben Kontos an
+    /// und schickte dieselbe Datei noch einmal.
+    private var queueItemsInFlight = Set<UUID>()
+
+    /// Das Laden des Plattenstands für das aktive Konto — `sync()` wartet darauf.
+    private var diskLoadTask: Task<Void, Never>? = nil
+    /// Für welches Konto der Plattenstand übernommen ist. `nil`, solange er noch lädt.
+    ///
+    /// Vorher schrieb `saveToDisk()` auch dann, wenn die Warteschlangen noch gar nicht gelesen
+    /// waren: Beim Start sah `MainDocView` eine leere Liste, stieß `sync()` an, und die leeren
+    /// Arrays überschrieben `pending.json` und `edits.json`, bevor der Snapshot sie las.
+    /// Offline gespeicherte Scans und Änderungen waren danach weg.
+    private var diskStateAccountId: UUID? = nil
+
+    // MARK: - Kontowechsel
+
+    /// Zählt jeden Wechsel des aktiven Kontos: Wechsel, Entfernen, Abmelden, Demo.
+    ///
+    /// Jeder Weg, der nach einem `await` Zustand schreibt, merkt sich die Epoche vorher und
+    /// prüft sie danach (`isCurrent`). Vorher liefen Sync, Suche, Spotlight und die
+    /// Warteschlangen nach einem Kontowechsel einfach weiter: Antworten von Konto A landeten in
+    /// Liste, Plattencache und Spotlight von Konto B, und die Warteschlangen schickten Dateien
+    /// und Änderungen von A an den Server von B — dort trafen sie Dokumente mit derselben ID.
+    private var accountEpoch = 0
+
+    private func isCurrent(_ epoch: Int) -> Bool { epoch == accountEpoch }
+
+    /// Spotlight-Lauf des aktiven Kontos — beim Wechsel abgebrochen.
+    ///
+    /// Der Sync wird bewusst *nicht* abgebrochen: Er enthält die Warteschlangen, und ein
+    /// gekappter Upload kann beim Server längst angekommen sein. Die Datei bliebe dann in der
+    /// Warteschlange und ginge später ein zweites Mal hinaus. Stattdessen läuft der alte Lauf
+    /// gegen seinen eigenen Server zu Ende, und `isCurrent` hält seine Ergebnisse vom neuen
+    /// Konto fern.
+    private var spotlightTask: Task<Void, Never>? = nil
+
+    /// Beendet alles, was zum bisherigen Konto gehört, und leert dessen flüchtigen Zustand.
+    /// Muss vor dem Umschalten von `activeAccountId` laufen.
+    private func beginNewAccountEpoch() {
+        accountEpoch += 1
+        searchTask?.cancel(); searchTask = nil
+        autoSyncTask?.cancel(); autoSyncTask = nil
+        downloadTask?.cancel(); downloadTask = nil
+        spotlightTask?.cancel(); spotlightTask = nil
+        runningSyncEpoch = nil
+        uploadQueueEpoch = nil
+        editQueueEpoch = nil
+
+        isSyncing = false; isSearching = false; isLoadingMore = false; isLoadingInbox = false
+        isBulkEditing = false; isDownloadingAll = false; isBuildingArchiveIndex = false
+        uploadProgress = nil; uploadTaskStatuses = []
+        isOffline = false; lastSyncError = nil
+        inboxDocuments = []; inboxTotal = nil
+        recentSearches = []; queryTotalCount = nil; hasNextPage = false
+        allStoragePaths = []; serverUsers = []; serverGroups = []
+        lastAppliedQuery = nil; lastSuccessfulSync = nil
+        lastAppliedQueryOrder = nil; listSortOrder = nil
+        lastSpotlightRun = nil; spotlightFullRunScheduled = false
+        archiveIndexStatus = nil; archiveIndexProgress = 0
+        lastSavedArchiveSignature = nil
+    }
 
     // MARK: - Init
 
@@ -322,7 +397,7 @@ class AppStore: ObservableObject {
             // Bewusst nicht synchron: das Dekodieren von `documents.json` dauert bei großen
             // Archiven leicht einige hundert Millisekunden und verzögerte bisher den ersten
             // Frame. Die Ansicht startet leer und füllt sich, sobald die Daten da sind.
-            Task { await loadFromDiskAsync(for: id) }
+            diskLoadTask = Task { await loadFromDiskAsync(for: id) }
             calculateStorage()
             startAutoSync()
         }
@@ -370,21 +445,28 @@ class AppStore: ObservableObject {
 
     func switchAccount(to id: UUID) {
         guard accounts.contains(where: { $0.id == id }) else { return }
+        beginNewAccountEpoch()
         activeAccountId = id
         AccountService.setActiveId(id)
         // Token und Miniaturansichten gehören zum Konto — beides muss mitwechseln, sonst
         // zeigt die Liste die Vorschauen des vorherigen Kontos.
         invalidateTokenCache()
         ImageCache.shared.setAccount(id)
+        loadUploadRules()
         // Die Systemsuche zeigt nur das aktive Konto. Sonst stünden die Dokumenttitel eines
         // Archivs weiter in Spotlight, während ein anderes Konto geöffnet ist.
         clearSpotlightIndex()
+        WidgetDataService.clearContent()
+        WidgetCenter.shared.reloadAllTimelines()
+        // Vor dem Leeren: Bis der Stand des neuen Kontos gelesen ist, darf nichts geschrieben
+        // werden — die leeren Arrays landeten sonst in dessen Dateien.
+        diskStateAccountId = nil
         documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
         pendingUploads = []; pendingEdits = []; savedFilters = []
         currentSearchText = ""; currentPage = 1; currentSearchPage = 1
-        autoSyncTask?.cancel()
+        diskLoadTask = nil
         if hasValidToken() {
-            Task { await loadFromDiskAsync(for: id) }
+            diskLoadTask = Task { await loadFromDiskAsync(for: id) }
             calculateStorage()
             startAutoSync()
         }
@@ -393,7 +475,17 @@ class AppStore: ObservableObject {
     func removeAccount(id: UUID) {
         guard accounts.count > 1 else { return }
         guard let account = accounts.first(where: { $0.id == id }) else { return }
+        // Laufende Arbeit zuerst beenden: Sie legte sonst den eben gelöschten Kontoordner
+        // wieder an.
+        if activeAccountId == id { beginNewAccountEpoch() }
         KeychainService.deleteToken(for: account.serverUrl, username: account.username)
+        UserDefaults.standard.removeObject(forKey: uploadRulesKey(id))
+        // Kopfzeilen und Zertifikat hängen am Server, nicht am Benutzer — nur entfernen, wenn
+        // kein anderes Konto denselben Server nutzt.
+        let server = PaperlessAPI.normalizedBase(account.serverUrl)
+        if !accounts.contains(where: { $0.id != id && PaperlessAPI.normalizedBase($0.serverUrl) == server }) {
+            ServerCredentials.removeAll(for: server)
+        }
         invalidateTokenCache()
         PersistenceService.deleteAccountFiles(accountId: id)
         ImageCache.shared.deleteAccount(id)
@@ -404,9 +496,12 @@ class AppStore: ObservableObject {
             if let first = accounts.first {
                 switchAccount(to: first.id)
             } else {
+                beginNewAccountEpoch()
                 activeAccountId = nil
                 AccountService.setActiveId(nil)
                 ImageCache.shared.setAccount(nil)
+                diskStateAccountId = nil
+                diskLoadTask = nil
                 documents = []; filteredDocs = []; allTags = []; allCorrespondents = []; allDocTypes = []; allCustomFields = []; trashedDocs = []; serverViews = []
                 pendingUploads = []; pendingEdits = []; savedFilters = []
                 autoSyncTask?.cancel()
@@ -426,22 +521,30 @@ class AppStore: ObservableObject {
     /// auf die Platte — bei jedem Zurück-Tippen.
     private static let autoSyncMinInterval: TimeInterval = 20
 
-    /// Läuft gerade ein Sync? Verhindert, dass sich zwei Läufe überlagern.
-    private var isSyncRunning = false
+    /// Epoche des laufenden Syncs. Verhindert, dass sich zwei Läufe desselben Kontos
+    /// überlagern — ein abgebrochener Lauf des vorherigen Kontos blockiert den neuen nicht.
+    private var runningSyncEpoch: Int? = nil
 
     func sync(silent: Bool = false) {
         guard !isDemoMode, !serverUrl.isEmpty else { return }
-        guard !isSyncRunning else { return }
+        let epoch = accountEpoch
+        guard runningSyncEpoch != epoch else { return }
         if !silent { isSyncing = true }
-        isSyncRunning = true
+        runningSyncEpoch = epoch
         Task {
-            await withTaskGroup(of: Void.self) { group in
-                group.addTask { await self.loadFirstPage(silent: silent) }
-                group.addTask { await self.syncMetadata() }
-                if !self.pendingUploads.isEmpty { group.addTask { await self.processUploadQueue() } }
-                await self.processEditQueue()
+            // Erst den Plattenstand abwarten: Sonst sieht der Lauf eine leere Warteschlange,
+            // lädt nichts hoch und schreibt den leeren Stand zurück.
+            await diskLoadTask?.value
+            if isCurrent(epoch) {
+                await withTaskGroup(of: Void.self) { group in
+                    group.addTask { await self.loadFirstPage(silent: silent) }
+                    group.addTask { await self.syncMetadata() }
+                    if !self.pendingUploads.isEmpty { group.addTask { await self.processUploadQueue() } }
+                    await self.processEditQueue()
+                }
             }
-            isSyncRunning = false
+            guard isCurrent(epoch) else { return }
+            runningSyncEpoch = nil
             if silent { isSyncing = false }
         }
     }
@@ -463,6 +566,7 @@ class AppStore: ObservableObject {
 
     private func syncMetadata() async {
         guard let api = api else { return }
+        let epoch = accountEpoch
         // Speicherpfade gehören zu den Stammdaten; Benutzer und Gruppen werden erst dann
         // geholt, wenn jemand die Rechte tatsächlich öffnet (dafür braucht es Adminrechte).
         //
@@ -476,19 +580,28 @@ class AppStore: ObservableObject {
         async let views = try? api.fetchSavedViews()
         async let stats = try? api.fetchStatistics()
 
-        if let p = await paths { allStoragePaths = p }
-        if let t = await tags { allTags = t }
-        if let c = await corrs { allCorrespondents = c }
-        if let tp = await types { allDocTypes = tp }
-        if let f = await fields { allCustomFields = f }
-        if let v = await views {
+        // Erst alles abwarten, dann in einem Zug übernehmen — und nur, wenn das Konto noch
+        // dasselbe ist.
+        let (p, t, c, tp, f, v, resolvedStats) = await (paths, tags, corrs, types, fields, views, stats)
+        guard isCurrent(epoch) else { return }
+        if let p { allStoragePaths = p }
+        if let t { allTags = t }
+        if let c { allCorrespondents = c }
+        if let tp { allDocTypes = tp }
+        if let f { allCustomFields = f }
+        if let v {
             serverViews = v
             migrateLocalFiltersToServer()
         }
         saveToDisk()
 
-        let resolvedStats = await stats
-        if let inbox = resolvedStats?.documentsInbox { inboxTotal = inbox }
+        if let inbox = resolvedStats?.documentsInbox {
+            inboxTotal = inbox
+            // Was die App gerade gesehen hat, muss der Hintergrundlauf nicht mehr melden — und
+            // nach dem Abarbeiten meldet er neue Dokumente wieder. Vorher blieb der Wert auf dem
+            // Höchststand stehen: Nach 5 gemeldeten und abgearbeiteten kam bei 3 neuen nichts.
+            UserDefaults.standard.set(inbox, forKey: BackgroundData.lastInboxKey)
+        }
         updateWidget(stats: resolvedStats)
         await loadInbox()
     }
@@ -509,29 +622,40 @@ class AppStore: ObservableObject {
             isSyncing = false
             return
         }
-        guard let api = api else {
+        guard let api = api, let account = activeAccount else {
             isSyncing = false
             needsReLogin = true
             return
         }
+        let epoch = accountEpoch
         // Ein stiller Sync darf die Anzeige nicht anfassen: Die Fortschrittsanzeige beim
         // Zurückkehren aus der Detailansicht war der Hauptgrund, warum das Laden ruckelig
         // wirkte — sie erschien und verschwand bei jedem Wechsel.
         if !silent { isSyncing = true }
+        let order = currentSortOrder
         for attempt in 1...2 {
             do {
-                let page = try await api.fetchDocuments(page: 1, ordering: orderingParam())
+                let page = try await api.fetchDocuments(page: 1, ordering: orderingParam(order))
+                guard isCurrent(epoch) else { return }
+                // Inzwischen umsortiert: Diese Antwort hat die alte Reihenfolge, die Anfrage in
+                // der neuen läuft schon (`reloadIfSortOrderChanged`).
+                guard order == currentSortOrder else {
+                    if !silent { isSyncing = false }
+                    return
+                }
                 // Hat der Nutzer schon nachgeladen, darf ein stiller Sync die Liste nicht auf
                 // die erste Seite zurückschneiden — sie würde unter dem Finger zusammenklappen
                 // und die Scrollposition verlieren. Dann wird die erste Seite eingepflegt und
-                // der Blätterstand bleibt, wie er ist.
-                if silent && documents.count > page.documents.count {
+                // der Blätterstand bleibt, wie er ist. Nur bei gleicher Sortierung: Sonst
+                // passt die erste Seite nicht vor den Rest.
+                if silent && documents.count > page.documents.count && listSortOrder == order {
                     mergeFirstPage(page.documents)
                 } else {
                     documents = page.documents.uniquedByID()
                     hasNextPage = page.hasNext
                     currentPage = 1
                 }
+                listSortOrder = order
                 isOffline = false
                 lastSyncError = nil
                 reApplyPendingEdits()
@@ -543,9 +667,10 @@ class AppStore: ObservableObject {
                 if !silent { isSyncing = false }
                 return
             } catch APIError.unauthorized {
-                if let account = activeAccount {
-                    KeychainService.deleteToken(for: account.serverUrl, username: account.username)
-                }
+                // Den Token des Kontos löschen, dessen Anfrage abgelehnt wurde — nicht den des
+                // inzwischen aktiven.
+                KeychainService.deleteToken(for: account.serverUrl, username: account.username)
+                guard isCurrent(epoch) else { return }
                 invalidateTokenCache()
                 lastSyncError = "Sitzung abgelaufen, bitte neu einloggen"
                 needsReLogin = true
@@ -555,6 +680,7 @@ class AppStore: ObservableObject {
                 // Abgebrochene Requests (z. B. bei Pull-to-Refresh, wenn SwiftUI den Task
                 // abbricht) sind kein echter Fehler – nicht in den Offline-Modus wechseln.
                 let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
+                guard isCurrent(epoch) else { return }
                 if isCancelled {
                     isSyncing = false
                     return
@@ -628,15 +754,22 @@ class AppStore: ObservableObject {
 
     func loadNextPage() async {
         guard !isLoadingMore, hasNextPage, let api = api else { return }
+        // Seite 2 einer anderen Sortierung passt nicht hinter Seite 1 — erst neu laden.
+        guard listSortOrder == nil || listSortOrder == currentSortOrder else { return }
         isLoadingMore = true
         let nextPage = currentPage + 1
+        let epoch = accountEpoch
+        let order = currentSortOrder
         do {
-            let page = try await api.fetchDocuments(page: nextPage, ordering: orderingParam())
+            let page = try await api.fetchDocuments(page: nextPage, ordering: orderingParam(order))
+            guard isCurrent(epoch) else { return }
+            guard order == currentSortOrder else { isLoadingMore = false; return }
             documents.appendUniqueByID(page.documents)
             hasNextPage = page.hasNext
             currentPage = nextPage
             updateFilteredDocs()
         } catch {
+            guard isCurrent(epoch) else { return }
             let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
             if !isCancelled { lastSyncError = error.localizedDescription }
         }
@@ -650,8 +783,8 @@ class AppStore: ObservableObject {
     /// eindeutiges Zweitkriterium ordnet die Datenbank gleichrangige Zeilen bei jeder Abfrage
     /// anders — Seite 2 liefert dann Dokumente erneut, die schon auf Seite 1 standen, und
     /// andere fallen ganz aus der Liste.
-    private func orderingParam() -> String {
-        switch currentSortOrder {
+    private func orderingParam(_ order: SortOrder? = nil) -> String {
+        switch order ?? currentSortOrder {
         case .dateDesc:  return "-created,-id"
         case .dateAsc:   return "created,id"
         case .titleAZ:   return "title,id"
@@ -681,6 +814,7 @@ class AppStore: ObservableObject {
             try? await Task.sleep(nanoseconds: 400_000_000)
             guard !Task.isCancelled else { return }
             await runQuery(addingToRecents: query)
+            guard !Task.isCancelled else { return }
             isSearching = false
         }
     }
@@ -694,12 +828,15 @@ class AppStore: ObservableObject {
 
         guard isServerFiltering, !query.isEmpty else {
             // Lokale Einschränkung der geladenen Dokumente (offline, Demo, alter Server)
-            // oder gar kein Filter — beides braucht keine Anfrage.
+            // oder gar kein Filter — beides braucht keine Anfrage. Außer die Sortierung wurde
+            // umgestellt: Dann gehört eine andere erste Seite vom Server in die Liste.
             lastAppliedQuery = nil
+            lastAppliedQueryOrder = nil
             updateFilteredDocs()
+            reloadIfSortOrderChanged()
             return
         }
-        guard query != lastAppliedQuery else {
+        guard query != lastAppliedQuery || currentSortOrder != lastAppliedQueryOrder else {
             // Gleiche Anfrage: nur die lokale Nachbearbeitung erneuern.
             refineQueryResult()
             return
@@ -713,8 +850,20 @@ class AppStore: ObservableObject {
                 guard !Task.isCancelled else { isSearching = false; return }
             }
             await runQuery(addingToRecents: nil)
+            guard !Task.isCancelled else { return }
             isSearching = false
         }
+    }
+
+    /// Sortierung umgestellt, die geladene Liste hat aber noch die alte Server-Reihenfolge.
+    ///
+    /// Vorher passierte beim Umstellen gar nichts: `updateFilteredDocs()` übernahm die Liste
+    /// unverändert, weil sie „schon sortiert vom Server" kam. `updateFilteredDocs()` hat die
+    /// geladenen Dokumente inzwischen lokal umsortiert (sofort sichtbar); die erste Seite in
+    /// der neuen Reihenfolge kommt jetzt vom Server.
+    private func reloadIfSortOrderChanged() {
+        guard hasLiveServer, let loaded = listSortOrder, loaded != currentSortOrder else { return }
+        Task { await loadFirstPage() }
     }
 
     /// Holt Seite 1 der gefilterten Liste vom Server.
@@ -733,19 +882,24 @@ class AppStore: ObservableObject {
             return
         }
 
+        let epoch = accountEpoch
+        let order = currentSortOrder
         do {
             let page = try await api.fetchDocuments(
-                query: query, page: 1, pageSize: Self.listPageSize, ordering: orderingParam()
+                query: query, page: 1, pageSize: Self.listPageSize, ordering: orderingParam(order)
             )
+            guard isCurrent(epoch), order == currentSortOrder else { return }
             filteredDocs = page.documents.uniquedByID()
             searchHasNextPage = page.hasNext
             currentSearchPage = 1
             queryTotalCount = page.totalCount
             lastAppliedQuery = query
+            lastAppliedQueryOrder = order
             reApplyPendingEditsToQueryResult()
             refineQueryResult()
             if let recent { addRecentSearch(recent) }
         } catch APIError.serverError(400) {
+            guard isCurrent(epoch) else { return }
             // Der Server kennt einen der Filterparameter nicht. Für diesen Server dauerhaft
             // auf lokale Filterung zurückfallen — eine leere Liste wäre das schlechtere
             // Ergebnis als ein unvollständiger Filter mit Hinweis.
@@ -753,6 +907,7 @@ class AppStore: ObservableObject {
             lastAppliedQuery = nil
             updateFilteredDocs()
         } catch {
+            guard isCurrent(epoch) else { return }
             let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
             if !isCancelled { lastSyncError = error.localizedDescription }
         }
@@ -775,26 +930,32 @@ class AppStore: ObservableObject {
     /// Noch nicht übertragene Änderungen auch auf die Trefferliste anwenden.
     private func reApplyPendingEditsToQueryResult() {
         guard !pendingEdits.isEmpty else { return }
-        for edit in pendingEdits {
+        for edit in pendingEdits where edit.failureReason == nil {
             guard let idx = filteredDocs.firstIndex(where: { $0.id == edit.docId }) else { continue }
             filteredDocs[idx] = edit.applied(to: filteredDocs[idx])
         }
     }
 
     func loadNextSearchPage() async {
-        guard !isSearching, searchHasNextPage, let api = api, isQueryActive else { return }
+        guard !isSearching, searchHasNextPage, let api = api, isQueryActive,
+              lastAppliedQueryOrder == currentSortOrder else { return }
         isSearching = true
         let nextPage = currentSearchPage + 1
+        let epoch = accountEpoch
+        let order = currentSortOrder
         do {
             let page = try await api.fetchDocuments(
                 query: activeQuery, page: nextPage,
-                pageSize: Self.listPageSize, ordering: orderingParam()
+                pageSize: Self.listPageSize, ordering: orderingParam(order)
             )
+            guard isCurrent(epoch) else { return }
+            guard order == currentSortOrder else { isSearching = false; return }
             filteredDocs.appendUniqueByID(page.documents)
             searchHasNextPage = page.hasNext
             currentSearchPage = nextPage
             reApplyPendingEditsToQueryResult()
         } catch {
+            guard isCurrent(epoch) else { return }
             let isCancelled = (error is CancellationError) || (error as? URLError)?.code == .cancelled
             if !isCancelled { lastSyncError = error.localizedDescription }
         }
@@ -808,8 +969,18 @@ class AppStore: ObservableObject {
         recentSearches = Array(searches.prefix(8))
     }
 
-    /// Rückmeldung der letzten Sammelaktion für die Oberfläche.
-    @Published var bulkResultMessage: String? = nil
+    /// Rückmeldung einer Sammelaktion.
+    ///
+    /// Vorher landete sie in `bulkResultMessage`, das keine Ansicht anzeigte: Scheiterte
+    /// „Tags zuweisen" oder „Rechte setzen", erfuhr der Nutzer nichts davon.
+    func reportBulkResult(_ message: String, failed: Bool) {
+        if failed {
+            lastSyncError = message
+            haptic(.heavy)
+        } else {
+            showSuccessToast(message)
+        }
+    }
     @Published var isBulkEditing = false
 
     /// Tags zuweisen.
@@ -834,18 +1005,23 @@ class AppStore: ObservableObject {
             queueTagChange(add: add, remove: remove, in: docIds)
             return
         }
+        let epoch = accountEpoch
         Task {
             isBulkEditing = true
             do {
                 try await api.bulkModifyTags(ids: ids, add: add, remove: remove)
+                guard isCurrent(epoch) else { return }
                 applyTagChangeLocally(add: add, remove: remove, in: docIds)
                 invalidateLoadState()
-                bulkResultMessage = "\(ids.count) Dokument(e) geändert"
+                reportBulkResult("\(ids.count) Dokument(e) geändert", failed: false)
             } catch {
+                // Die Warteschlange gehört inzwischen einem anderen Konto — dort hat die
+                // Änderung nichts verloren.
+                guard isCurrent(epoch) else { return }
                 // Nicht verloren geben: als Einzeländerungen in die Warteschlange, die sie
                 // später erneut versucht.
                 queueTagChange(add: add, remove: remove, in: docIds)
-                bulkResultMessage = "In Warteschlange — \(error.localizedDescription)"
+                reportBulkResult("Offline gespeichert – wird später übertragen", failed: false)
             }
             isBulkEditing = false
         }
@@ -863,14 +1039,16 @@ class AppStore: ObservableObject {
             }
             return
         }
+        let epoch = accountEpoch
         Task {
             isBulkEditing = true
             do {
                 try await api.bulkSetCorrespondent(ids: ids, correspondent: corrId)
+                guard isCurrent(epoch) else { return }
                 mutateLoadedDocuments(ids: docIds) { $0.correspondent = corrId }
-                bulkResultMessage = "\(ids.count) Dokument(e) geändert"
+                reportBulkResult("\(ids.count) Dokument(e) geändert", failed: false)
             } catch {
-                bulkResultMessage = error.localizedDescription
+                reportBulkResult(error.localizedDescription, failed: true)
             }
             isBulkEditing = false
         }
@@ -888,14 +1066,16 @@ class AppStore: ObservableObject {
             }
             return
         }
+        let epoch = accountEpoch
         Task {
             isBulkEditing = true
             do {
                 try await api.bulkSetDocumentType(ids: ids, documentType: typeId)
+                guard isCurrent(epoch) else { return }
                 mutateLoadedDocuments(ids: docIds) { $0.documentType = typeId }
-                bulkResultMessage = "\(ids.count) Dokument(e) geändert"
+                reportBulkResult("\(ids.count) Dokument(e) geändert", failed: false)
             } catch {
-                bulkResultMessage = error.localizedDescription
+                reportBulkResult(error.localizedDescription, failed: true)
             }
             isBulkEditing = false
         }
@@ -922,10 +1102,12 @@ class AppStore: ObservableObject {
     func createCustomField(name: String, type: CustomFieldType,
                            selectOptions: [String] = []) async -> CustomField? {
         guard let api = api, !isDemoMode else { return nil }
+        let epoch = accountEpoch
         do {
             let field = try await api.createCustomField(
                 name: name, dataType: type.rawValue, selectOptions: selectOptions
             )
+            guard isCurrent(epoch) else { return nil }
             allCustomFields.append(field)
             saveToDisk()
             return field
@@ -949,8 +1131,10 @@ class AppStore: ObservableObject {
 
     func deleteCustomField(id: Int) async -> Bool {
         guard let api = api, !isDemoMode else { return false }
+        let epoch = accountEpoch
         do {
             try await api.deleteCustomField(id: id)
+            guard isCurrent(epoch) else { return false }
             allCustomFields.removeAll { $0.id == id }
             saveToDisk()
             return true
@@ -963,7 +1147,8 @@ class AppStore: ObservableObject {
     /// Lädt die Feldliste neu.
     func syncCustomFields() async {
         guard let api = api, !isDemoMode else { return }
-        if let fields = try? await api.fetchCustomFields() {
+        let epoch = accountEpoch
+        if let fields = try? await api.fetchCustomFields(), isCurrent(epoch) {
             allCustomFields = fields
             saveToDisk()
         }
@@ -979,10 +1164,11 @@ class AppStore: ObservableObject {
         guard !isDemoMode else { return "Demo-Modus — kein Server." }
         guard let api = api else { return "Kein Konto oder kein Token." }
         let started = Date()
+        let epoch = accountEpoch
         do {
             let stats = try await api.fetchStatistics()
             let ms = Int(Date().timeIntervalSince(started) * 1000)
-            isOffline = false
+            if isCurrent(epoch) { isOffline = false }
             let total = stats.documentsTotal.map(String.init) ?? "?"
             return "Erreichbar in \(ms) ms — \(total) Dokumente auf dem Server."
         } catch APIError.unauthorized {
@@ -1024,9 +1210,15 @@ class AppStore: ObservableObject {
     /// leer und die Oberfläche bietet die Rechtevergabe gar nicht erst an.
     func syncServerMetadata() async {
         guard let api = api, !isDemoMode else { return }
-        if let paths = try? await api.fetchStoragePaths() { allStoragePaths = paths }
-        if let users = try? await api.fetchUsers() { serverUsers = users }
-        if let groups = try? await api.fetchGroups() { serverGroups = groups }
+        let epoch = accountEpoch
+        async let paths = try? api.fetchStoragePaths()
+        async let users = try? api.fetchUsers()
+        async let groups = try? api.fetchGroups()
+        let (p, u, g) = await (paths, users, groups)
+        guard isCurrent(epoch) else { return }
+        if let p { allStoragePaths = p }
+        if let u { serverUsers = u }
+        if let g { serverGroups = g }
     }
 
     /// Weist einen Speicherpfad zu.
@@ -1035,31 +1227,62 @@ class AppStore: ObservableObject {
         Task {
             isBulkEditing = true
             do {
+                let epoch = accountEpoch
                 try await api.bulkSetStoragePath(ids: Array(docIds), storagePath: pathId)
-                bulkResultMessage = "\(docIds.count) Dokument(e) verschoben"
+                guard isCurrent(epoch) else { return }
+                reportBulkResult("\(docIds.count) Dokument(e) verschoben", failed: false)
                 await reloadVisible()
             } catch {
-                bulkResultMessage = error.localizedDescription
+                reportBulkResult(error.localizedDescription, failed: true)
             }
             isBulkEditing = false
         }
     }
 
+    /// Was mit dem Besitzer geschehen soll.
+    enum OwnerChoice: Hashable {
+        /// Jedes Dokument behält seinen bisherigen Besitzer.
+        case unchanged
+        /// Kein Besitzer — in paperless-ngx sieht ein solches Dokument **jeder** Benutzer.
+        case nobody
+        case user(Int)
+    }
+
     /// Setzt Besitzer und Rechte.
-    func assignPermissions(owner: Int?, viewUsers: [Int], viewGroups: [Int],
+    ///
+    /// `set_permissions` schreibt den Besitzer immer mit: ngx führt `update(owner=owner)` aus.
+    /// Früher ging „unverändert" als `owner: null` hinaus — der Besitzer wurde entfernt, und
+    /// besitzerlose Dokumente sind für alle Benutzer der Instanz sichtbar. Für „unverändert"
+    /// werden die Besitzer deshalb erst gelesen und die Dokumente je Besitzer gesetzt.
+    func assignPermissions(owner: OwnerChoice, viewUsers: [Int], viewGroups: [Int],
                            changeUsers: [Int], changeGroups: [Int], to docIds: Set<Int>) {
         guard let api = api, !docIds.isEmpty, !isDemoMode else { return }
         Task {
             isBulkEditing = true
             do {
-                try await api.bulkSetPermissions(
-                    ids: Array(docIds), owner: owner,
-                    viewUsers: viewUsers, viewGroups: viewGroups,
-                    changeUsers: changeUsers, changeGroups: changeGroups
-                )
-                bulkResultMessage = "Rechte für \(docIds.count) Dokument(e) gesetzt"
+                let byOwner: [Int?: [Int]]
+                switch owner {
+                case .unchanged:
+                    let owners = try await api.fetchOwners(ids: Array(docIds))
+                    // Fehlt auch nur ein Besitzer, lieber nichts tun als raten: Ein geratenes
+                    // `nil` macht das Dokument öffentlich.
+                    guard Set(owners.keys) == docIds else { throw APIError.noData }
+                    byOwner = Dictionary(grouping: Array(docIds)) { owners[$0] ?? nil }
+                case .nobody:
+                    byOwner = [nil: Array(docIds)]
+                case .user(let id):
+                    byOwner = [id: Array(docIds)]
+                }
+                for (ownerId, ids) in byOwner {
+                    try await api.bulkSetPermissions(
+                        ids: ids, owner: ownerId,
+                        viewUsers: viewUsers, viewGroups: viewGroups,
+                        changeUsers: changeUsers, changeGroups: changeGroups
+                    )
+                }
+                reportBulkResult("Rechte für \(docIds.count) Dokument(e) gesetzt", failed: false)
             } catch {
-                bulkResultMessage = error.localizedDescription
+                reportBulkResult(error.localizedDescription, failed: true)
             }
             isBulkEditing = false
         }
@@ -1084,18 +1307,23 @@ class AppStore: ObservableObject {
     /// Arbeitet auf `documents`, also dem, was ohnehin im Speicher liegt — kein Netzverkehr,
     /// keine Wartezeit vor dem Upload. Was der Zwischenspeicher nicht kennt, fängt der Server
     /// beim Verarbeiten ab (siehe `ConsumptionTask.isDuplicate`).
-    func checkForDuplicate(text: String) -> DuplicateWarning? {
+    func checkForDuplicate(text: String) async -> DuplicateWarning? {
         guard isDuplicateCheckEnabled, !text.isEmpty else { return nil }
-        let candidate = DuplicateDetector.fingerprint(of: text)
-        guard !candidate.isEmpty else { return nil }
-
-        let known: [(documentId: Int, fingerprint: DuplicateDetector.Fingerprint)] = documents
-            .compactMap { doc in
-                guard let content = doc.content, !content.isEmpty else { return nil }
-                return (doc.id, DuplicateDetector.fingerprint(of: content))
-            }
-        guard let match = DuplicateDetector.matches(for: candidate, in: known).first,
-              let doc = documents.first(where: { $0.id == match.documentId }) else { return nil }
+        let documents = documents
+        // Fingerabdrücke aller geladenen Dokumente abseits des Main Threads — vorher synchron,
+        // bei jedem Öffnen des Importformulars.
+        let match = await Task.detached(priority: .userInitiated) { () -> (documentId: Int, reason: String, confidence: Double)? in
+            let candidate = DuplicateDetector.fingerprint(of: text)
+            guard !candidate.isEmpty else { return nil }
+            let known: [(documentId: Int, fingerprint: DuplicateDetector.Fingerprint)] = documents
+                .compactMap { doc in
+                    guard let content = doc.content, !content.isEmpty else { return nil }
+                    return (doc.id, DuplicateDetector.fingerprint(of: content))
+                }
+            guard let first = DuplicateDetector.matches(for: candidate, in: known).first else { return nil }
+            return (first.documentId, first.reason, first.confidence)
+        }.value
+        guard let match, let doc = documents.first(where: { $0.id == match.documentId }) else { return nil }
         return DuplicateWarning(document: doc, reason: match.reason, confidence: match.confidence)
     }
 
@@ -1114,7 +1342,14 @@ class AppStore: ObservableObject {
             // Ohne Server aus dem Zwischenspeicher schätzen.
             return (documents.compactMap(\.archiveSerialNumber).max() ?? 0) + 1
         }
-        guard let highest = try? await api.fetchHighestASN() else { return nil }
+        // `try?` machte aus „Server antwortet nicht" und „noch keine ASN vergeben" dasselbe `nil` —
+        // in einem Archiv ohne jede ASN lieferte „Nächste freie" deshalb nichts statt 1.
+        let highest: Int?
+        do {
+            highest = try await api.fetchHighestASN()
+        } catch {
+            return nil
+        }
         return (highest ?? 0) + 1
     }
 
@@ -1126,15 +1361,29 @@ class AppStore: ObservableObject {
     /// Bearbeiten mehrfach hintereinander, ein `didSet` würde bei jedem Tastendruck schreiben.
     @Published var uploadRules: [UploadRule] = []
 
+    /// Je Konto: Regeln verweisen auf Sender, Typen und Tags über deren IDs — und die gelten nur
+    /// auf einem Server. Vorher galten die Regeln für alle Konten; auf dem zweiten Server belegte
+    /// „Kontoauszug" dann einen ganz anderen Sender vor.
+    private func uploadRulesKey(_ account: UUID) -> String { "uploadRules.\(account.uuidString)" }
+
     func loadUploadRules() {
-        guard let data = UserDefaults.standard.data(forKey: "uploadRules"),
-              let rules = try? JSONDecoder().decode([UploadRule].self, from: data) else { return }
-        uploadRules = rules
+        guard let account = activeAccountId else { uploadRules = []; return }
+        let defaults = UserDefaults.standard
+        var data = defaults.data(forKey: uploadRulesKey(account))
+        if data == nil, let legacy = defaults.data(forKey: "uploadRules") {
+            // Umzug: Die bisherigen, kontolosen Regeln gehören zu dem Konto, das sie beim ersten
+            // Start dieser Version öffnet.
+            defaults.set(legacy, forKey: uploadRulesKey(account))
+            defaults.removeObject(forKey: "uploadRules")
+            data = legacy
+        }
+        uploadRules = data.flatMap { try? JSONDecoder().decode([UploadRule].self, from: $0) } ?? []
     }
 
     func saveUploadRules() {
-        guard let data = try? JSONEncoder().encode(uploadRules) else { return }
-        UserDefaults.standard.set(data, forKey: "uploadRules")
+        guard let account = activeAccountId,
+              let data = try? JSONEncoder().encode(uploadRules) else { return }
+        UserDefaults.standard.set(data, forKey: uploadRulesKey(account))
     }
 
     /// Die Regel, die zu diesem Dateinamen passt.
@@ -1165,17 +1414,16 @@ class AppStore: ObservableObject {
         let snapshot = documents
         let account = activeAccountId
         Task.detached(priority: .background) {
-            await ArchiveIndex.shared.use(account: account)
             // Nur weiterarbeiten, wenn der Index überhaupt in Gebrauch ist. Wer „Archiv
             // fragen" nie benutzt, soll dafür auch keine Rechenzeit und keinen Akku zahlen —
             // der erste Aufbau passiert bewusst auf Knopfdruck in den Einstellungen.
-            guard await ArchiveIndex.shared.count > 0 else { return }
+            guard await ArchiveIndex.shared.count(account: account) > 0 else { return }
             let payload = snapshot.compactMap { doc -> (id: Int, text: String)? in
                 guard let content = doc.content, !content.isEmpty else { return nil }
                 return (doc.id, doc.title + " " + content)
             }
             guard !payload.isEmpty else { return }
-            await ArchiveIndex.shared.index(payload)
+            await ArchiveIndex.shared.index(payload, account: account)
         }
     }
 
@@ -1191,23 +1439,24 @@ class AppStore: ObservableObject {
         archiveIndexStatus = "Index wird aufgebaut …"
 
         let account = activeAccountId
-        await ArchiveIndex.shared.use(account: account)
+        let epoch = accountEpoch
 
         var page = 1
         var processed = 0
         var total: Int? = nil
         while true {
-            guard !Task.isCancelled else { break }
+            guard !Task.isCancelled, isCurrent(epoch) else { break }
             guard let result = try? await api.fetchDocuments(
                 page: page, pageSize: 250, ordering: "-added,-id"
-            ) else { break }
+            ), isCurrent(epoch) else { break }
             if total == nil { total = result.totalCount }
 
             let payload = result.documents.compactMap { doc -> (id: Int, text: String)? in
                 guard let content = doc.content, !content.isEmpty else { return nil }
                 return (doc.id, doc.title + " " + content)
             }
-            await ArchiveIndex.shared.index(payload)
+            await ArchiveIndex.shared.index(payload, account: account, persist: false)
+            guard isCurrent(epoch) else { break }
 
             processed += result.documents.count
             if let total, total > 0 {
@@ -1218,7 +1467,11 @@ class AppStore: ObservableObject {
             page += 1
         }
 
-        let indexed = await ArchiveIndex.shared.count
+        // Einmal am Ende schreiben — auch nach einem Abbruch, damit das Erreichte bleibt.
+        await ArchiveIndex.shared.flush(account: account)
+        let indexed = await ArchiveIndex.shared.count(account: account)
+        // Nach einem Kontowechsel hat `beginNewAccountEpoch()` die Anzeige schon zurückgesetzt.
+        guard isCurrent(epoch) else { return }
         archiveIndexStatus = "\(indexed) Dokumente im Index."
         archiveIndexProgress = 1
         isBuildingArchiveIndex = false
@@ -1226,13 +1479,11 @@ class AppStore: ObservableObject {
 
     /// Anzahl der indexierten Dokumente — für die Anzeige in den Einstellungen.
     func archiveIndexCount() async -> Int {
-        await ArchiveIndex.shared.use(account: activeAccountId)
-        return await ArchiveIndex.shared.count
+        await ArchiveIndex.shared.count(account: activeAccountId)
     }
 
     func clearArchiveIndex() async {
-        await ArchiveIndex.shared.use(account: activeAccountId)
-        await ArchiveIndex.shared.clear()
+        await ArchiveIndex.shared.clear(account: activeAccountId)
         archiveIndexStatus = "Index geleert."
     }
 
@@ -1326,18 +1577,21 @@ class AppStore: ObservableObject {
         // bereits in der gewünschten Reihenfolge (`ordering`). Der lokale Sortierlauf wäre
         // reine Arbeit — und er lief bisher bei *jedem* Nachladen erneut über die inzwischen
         // gewachsene Gesamtliste.
-        if !activeQuery.hasFilters && hasLiveServer {
+        // Nur wenn die Liste auch in der *aktuellen* Sortierung geladen wurde — nach einem
+        // Sortierwechsel wird lokal umsortiert, bis die neue erste Seite da ist.
+        if !activeQuery.hasFilters && hasLiveServer && (listSortOrder == nil || listSortOrder == currentSortOrder) {
             filteredDocs = documents
             return
         }
 
         let calendar = Calendar.current
         let now = Date()
+        // Der lokale Filter muss dieselben Mengen auswerten wie `activeQuery`, sonst zeigt
+        // dasselbe Filterset offline etwas anderes als online. Einmal gebaut — vorher entstand
+        // die Anfrage samt Datumsgrenzen für jedes einzelne Dokument neu.
+        let query = activeQuery
 
         let filtered = documents.filter { doc in
-            // Der lokale Filter muss dieselben Mengen auswerten wie `activeQuery`, sonst
-            // zeigt dasselbe Filterset offline etwas anderes als online.
-            let query = activeQuery
             let matchesTag = query.tagIDs.isSubset(of: Set(doc.tags))
             let matchesExcluded = query.excludedTagIDs.isDisjoint(with: Set(doc.tags))
             let matchesCorr = query.correspondentIDs.isEmpty
@@ -1425,14 +1679,22 @@ class AppStore: ObservableObject {
         // `yyyy-MM-dd` in lokaler Zeit statt UTC-Zeitstempel: `ISO8601DateFormatter` schob das
         // Datum östlich von Greenwich um einen Tag zurück (10.08. 00:00 MESZ → 09.08. 22:00 UTC).
         let iso = DateFormatting.apiDate(created)
+        let customFields = normalizedForServer(customFields)
+        var edit = PendingEdit(docId: docId, title: title, created: iso, correspondent: corr, documentType: type, archiveSerialNumber: asn, tags: tags, customFields: customFields)
+        // Ausgangsstand, gegen den verglichen wird: das Dokument, wie die App es gerade zeigt —
+        // inklusive noch nicht übertragener früherer Änderungen.
+        if let original = anyLoadedDocument(docId) {
+            let changed = PendingEdit.changedFields(
+                from: original, title: title, created: iso, correspondent: corr,
+                documentType: type, archiveSerialNumber: asn, tags: tags, customFields: customFields
+            )
+            // Speichern ohne Änderung: nichts zu tun, keine Anfrage.
+            guard !changed.isEmpty else { return }
+            edit.changedFields = changed
+            edit.existingFieldIDs = original.customFields.map(\.field)
+        }
         func apply(to doc: inout Document) {
-            doc.title = title
-            doc.created = iso
-            doc.correspondent = corr
-            doc.documentType = type
-            doc.archiveSerialNumber = asn
-            doc.tags = tags
-            doc.customFields = customFields
+            doc = edit.applied(to: doc)
         }
         if let idx = documents.firstIndex(where: { $0.id == docId }) {
             apply(to: &documents[idx])
@@ -1449,7 +1711,6 @@ class AppStore: ObservableObject {
             apply(to: &doc)
             updateInboxMembership(for: doc)
         }
-        let edit = PendingEdit(docId: docId, title: title, created: iso, correspondent: corr, documentType: type, archiveSerialNumber: asn, tags: tags, customFields: customFields)
         pendingEdits.append(edit)
         saveToDisk()
         updateFilteredDocs()
@@ -1458,46 +1719,147 @@ class AppStore: ObservableObject {
 
     /// Läuft nie zweimal gleichzeitig — siehe `processUploadQueue()`.
     private func processEditQueue() async {
-        guard !isDemoMode, !isProcessingEdits else { return }
-        isProcessingEdits = true
-        defer { isProcessingEdits = false }
+        let epoch = accountEpoch
+        guard !isDemoMode, editQueueEpoch != epoch,
+              let api = api, let accountId = activeAccountId else { return }
+        editQueueEpoch = epoch
+        defer { if editQueueEpoch == epoch { editQueueEpoch = nil } }
 
+        // `api` gehört zum Konto, dessen Warteschlange hier abgearbeitet wird — einmal gebunden.
+        // Vorher entstand es in jeder Runde neu und zeigte nach einem Kontowechsel auf den
+        // Server des neuen Kontos.
         var processed: [UUID] = []
-        for edit in pendingEdits {
-            guard let api = api else { break }
+        var rejected: [UUID: String] = [:]
+        for edit in pendingEdits where edit.failureReason == nil && !queueItemsInFlight.contains(edit.id) {
+            guard isCurrent(epoch) else { break }
+            queueItemsInFlight.insert(edit.id)
+            defer { queueItemsInFlight.remove(edit.id) }
             do {
-                try await api.patchDocument(id: edit.docId, title: edit.title, created: edit.created, correspondent: edit.correspondent, documentType: edit.documentType, archiveSerialNumber: edit.archiveSerialNumber, tags: edit.tags, customFields: edit.customFields)
+                try await api.patchDocument(edit)
                 processed.append(edit.id)
-                showSuccessToast("Änderung gespeichert")
-                registerReviewEvent()
+                guard isCurrent(epoch) else { break }
+            } catch APIError.rejected(let code, let reason) {
+                guard isCurrent(epoch) else { break }
+                // Der Server lehnt genau diese Änderung ab (Dokument gelöscht, ungültiger
+                // Feldwert, keine Rechte). Markieren und mit der nächsten weitermachen — vorher
+                // hielt ein solcher Eintrag die Warteschlange für immer an.
+                rejected[edit.id] = APIError.rejected(code, reason).localizedDescription
             } catch APIError.unauthorized {
-                isOffline = true; break
+                // Kein Netzproblem, sondern eine abgelaufene Anmeldung. Die Nachfrage übernimmt
+                // der nächste Sync (`loadFirstPage`); hier nur anhalten.
+                break
             } catch {
-                isOffline = true; break
+                if isCurrent(epoch) { isOffline = true }
+                break
             }
         }
-        pendingEdits.removeAll { processed.contains($0.id) }
+        guard isCurrent(epoch) else {
+            // Das Konto wurde gewechselt. Was bis dahin übertragen ist, gehört aus der
+            // Warteschlange des alten Kontos — sonst ginge es beim nächsten Mal erneut hinaus.
+            if activeAccountId == accountId {
+                // Hin- und zurückgewechselt: Die Warteschlange ist wieder die im Speicher.
+                pendingEdits.removeAll { processed.contains($0.id) }
+                saveToDisk()
+            } else {
+                PersistenceService.removeQueued(PendingEdit.self, ids: Set(processed),
+                                                filename: "edits.json", accountId: accountId)
+            }
+            return
+        }
+        // Eine abgelehnte Änderung, auf die später eine erfolgreiche am selben Dokument folgt,
+        // ist überholt: Der PATCH trägt den vollständigen Stand. Bliebe sie stehen, würde
+        // „erneut versuchen" den neueren Stand mit dem älteren überschreiben.
+        let succeeded = Set(processed)
+        var lastSuccess: [Int: Int] = [:]
+        for (index, edit) in pendingEdits.enumerated() where succeeded.contains(edit.id) {
+            lastSuccess[edit.docId] = index
+        }
+        let superseded = Set(pendingEdits.enumerated().compactMap { index, edit -> UUID? in
+            guard edit.failureReason != nil || rejected[edit.id] != nil,
+                  let later = lastSuccess[edit.docId], index < later else { return nil }
+            return edit.id
+        })
+        pendingEdits.removeAll { succeeded.contains($0.id) || superseded.contains($0.id) }
+        for (id, reason) in rejected {
+            guard let idx = pendingEdits.firstIndex(where: { $0.id == id }) else { continue }
+            pendingEdits[idx].failureReason = reason
+        }
         saveToDisk()
+        // Eine Rückmeldung für den ganzen Durchlauf. Vorher gab es je Änderung einen eigenen Toast
+        // samt 4-Sekunden-Task und Bewertungs-Ereignis — bei 50 Sammeländerungen ein Dauerfeuer.
+        if !processed.isEmpty {
+            showSuccessToast(processed.count == 1 ? "Änderung gespeichert" : "\(processed.count) Änderungen gespeichert")
+            registerReviewEvent()
+        }
+        let stillRejected = rejected.keys.filter { !superseded.contains($0) }.count
+        if stillRejected > 0 {
+            lastSyncError = stillRejected == 1
+                ? "Eine Änderung wurde vom Server abgelehnt – Details unter Einstellungen › Warteschlange."
+                : "\(stillRejected) Änderungen wurden vom Server abgelehnt – Details unter Einstellungen › Warteschlange."
+        }
         // Der Server kann beim Übernehmen mehr geändert haben als die App lokal eingepflegt
         // hat (Regeln, Workflows). Bei aktivem Filter muss die Trefferliste deshalb neu
-        // gestellt werden — sonst steht dort ein Stand von vor der Änderung.
-        if !processed.isEmpty { invalidateLoadState() }
+        // gestellt werden — sonst steht dort ein Stand von vor der Änderung. Nach einer
+        // Ablehnung zeigt die Liste lokal Werte, die der Server nie übernommen hat.
+        if !processed.isEmpty || !rejected.isEmpty { invalidateLoadState() }
     }
 
     func removePendingEdit(at offsets: IndexSet) { pendingEdits.remove(atOffsets: offsets); saveToDisk() }
 
+    /// Abgelehnte Uploads und Änderungen erneut versuchen (Knopf in `PendingQueueView`).
+    func retryRejectedQueueItems() {
+        for idx in pendingUploads.indices { pendingUploads[idx].failureReason = nil }
+        for idx in pendingEdits.indices { pendingEdits[idx].failureReason = nil }
+        saveToDisk()
+        sync(silent: true)
+    }
+
+    /// Gibt es etwas, das die Warteschlange noch versuchen würde?
+    var hasRetryableQueueItems: Bool {
+        pendingUploads.contains { $0.failureReason == nil }
+            || pendingEdits.contains { $0.failureReason == nil }
+    }
+
+    /// Noch nicht übertragene Änderungen auf die Gesamtliste anwenden. Abgelehnte bleiben
+    /// außen vor — die Liste soll nicht zeigen, was der Server nie übernommen hat.
     func reApplyPendingEdits() {
-        for edit in pendingEdits {
+        for edit in pendingEdits where edit.failureReason == nil {
             if let idx = documents.firstIndex(where: { $0.id == edit.docId }) {
-                documents[idx].title = edit.title
-                documents[idx].created = edit.created
-                documents[idx].correspondent = edit.correspondent
-                documents[idx].documentType = edit.documentType
-                documents[idx].archiveSerialNumber = edit.archiveSerialNumber
-                documents[idx].tags = edit.tags
-                documents[idx].customFields = edit.customFields
+                documents[idx] = edit.applied(to: documents[idx])
             }
         }
+    }
+
+    /// Bringt Feldwerte in die Form, die paperless-ngx annimmt.
+    ///
+    /// Beträge: ngx erwartet `EUR12.50` oder `12.50`. Wer auf einer deutschen Tastatur
+    /// „12,50 €" eintippt, bekam bisher eine Ablehnung (400) — und die blockierte früher die
+    /// ganze Warteschlange.
+    func normalizedForServer(_ fields: [CustomFieldEdit]) -> [CustomFieldEdit] {
+        fields.map { entry in
+            guard customField(id: entry.field)?.type == .monetary,
+                  case .text(let raw) = entry.value else { return entry }
+            return CustomFieldEdit(field: entry.field, value: Self.normalizedMonetary(raw))
+        }
+    }
+
+    nonisolated static func normalizedMonetary(_ raw: String) -> CFValue {
+        var text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return .none }
+        // Führender Währungscode (`EUR12,50`) bleibt erhalten, alles andere außer Ziffern und
+        // Trennzeichen fällt weg (`€`, Leerzeichen).
+        var code = ""
+        if text.count >= 3, text.prefix(3).allSatisfy({ $0.isASCII && $0.isUppercase }) {
+            code = String(text.prefix(3))
+            text = String(text.dropFirst(3))
+        }
+        var number = text.filter { $0.isASCII && ($0.isNumber || $0 == "," || $0 == "." || $0 == "-") }
+        // „1.234,56" → Tausenderpunkt weg, Komma wird Dezimalpunkt.
+        if number.contains(",") {
+            number = number.replacingOccurrences(of: ".", with: "").replacingOccurrences(of: ",", with: ".")
+        }
+        guard let value = Double(number) else { return .text(raw) }
+        return .text(code + String(format: "%.2f", value))
     }
 
     // MARK: - Upload Queue
@@ -1516,26 +1878,40 @@ class AppStore: ObservableObject {
     /// Der erste hält bei `await uploadDocument` an, der zweite sieht dasselbe Element noch in
     /// der Liste — entfernt wird ja erst nach der Schleife — und lädt es ein zweites Mal hoch.
     private func processUploadQueue() async {
-        guard !isDemoMode, !isProcessingUploads else { return }
-        isProcessingUploads = true
-        defer { isProcessingUploads = false }
+        let epoch = accountEpoch
+        guard !isDemoMode, uploadQueueEpoch != epoch,
+              let api = api, let accountId = activeAccountId else { return }
+        uploadQueueEpoch = epoch
+        defer { if uploadQueueEpoch == epoch { uploadQueueEpoch = nil } }
 
         var processed: [UUID] = []
+        var rejected: [(id: UUID, title: String, reason: String)] = []
         var newTasks: [(String, String)] = []
-        for item in pendingUploads {
-            guard let api = api else { break }
+        // Endet der Durchlauf, egal wie, läuft kein Upload mehr. Vorher blieb die Anzeige nach
+        // einem Fehler auf „Lädt hoch" stehen.
+        defer { if isCurrent(epoch) { uploadProgress = nil } }
+        // `api` einmal gebunden — siehe `processEditQueue()`. Vorher gingen die Dateien von
+        // Konto A nach einem Wechsel an den Server von Konto B.
+        for item in pendingUploads where item.failureReason == nil && !queueItemsInFlight.contains(item.id) {
+            guard isCurrent(epoch) else { break }
+            queueItemsInFlight.insert(item.id)
+            defer { queueItemsInFlight.remove(item.id) }
             do {
                 uploadProgress = 0
                 let title = item.title
                 let taskId = try await api.uploadDocument(item) { [weak self] fraction in
                     Task { @MainActor in
                         // Nur den laufenden Upload melden — der nächste beginnt wieder bei 0.
-                        self?.uploadProgress = fraction
-                        self?.uploadProgressTitle = title
+                        // Ein Rückruf, der erst nach dem Ende ankommt, darf die Anzeige nicht
+                        // wieder einschalten.
+                        guard let self, self.isCurrent(epoch), self.uploadProgress != nil else { return }
+                        self.uploadProgress = fraction
+                        self.uploadProgressTitle = title
                     }
                 }
-                uploadProgress = nil
                 processed.append(item.id)
+                guard isCurrent(epoch) else { break }
+                uploadProgress = nil
                 if let taskId {
                     // Der Server hat die Datei angenommen — verarbeitet ist sie damit noch
                     // nicht. Die Rückmeldung kommt aus `/api/tasks/`.
@@ -1547,10 +1923,42 @@ class AppStore: ObservableObject {
                     showSuccessToast("Fertig: \(item.title)")
                 }
                 registerReviewEvent()
-            } catch { isOffline = true; break }
+            } catch APIError.rejected(let code, let reason) {
+                guard isCurrent(epoch) else { break }
+                // Datei zu groß, Typ nicht erlaubt, keine Rechte: Ein neuer Versuch ändert daran
+                // nichts. Markieren und die übrigen weiter hochladen.
+                uploadProgress = nil
+                rejected.append((item.id, item.title, APIError.rejected(code, reason).localizedDescription))
+            } catch APIError.unauthorized {
+                break
+            } catch {
+                if isCurrent(epoch) { isOffline = true }
+                break
+            }
+        }
+        guard isCurrent(epoch) else {
+            if activeAccountId == accountId {
+                pendingUploads.removeAll { processed.contains($0.id) }
+                saveToDisk()
+            } else {
+                PersistenceService.removeQueued(PendingUpload.self, ids: Set(processed),
+                                                filename: "pending.json", accountId: accountId)
+            }
+            return
         }
         pendingUploads.removeAll { processed.contains($0.id) }
+        for entry in rejected {
+            guard let idx = pendingUploads.firstIndex(where: { $0.id == entry.id }) else { continue }
+            pendingUploads[idx].failureReason = entry.reason
+        }
         saveToDisk()
+        if let first = rejected.first {
+            let label = "\u{201E}" + first.title + "\u{201C}"
+            importErrorMessage = rejected.count == 1
+                ? "\(label) wurde nicht hochgeladen. \(first.reason)"
+                : "\(rejected.count) Dateien wurden nicht hochgeladen, darunter \(label). \(first.reason)"
+            haptic(.heavy)
+        }
         if !processed.isEmpty { await reloadVisible() }
         for (taskId, title) in newTasks {
             Task { await followUp(taskId: taskId, title: title) }
@@ -1570,6 +1978,7 @@ class AppStore: ObservableObject {
         let title: String
         var phase: Phase
         var detail: String?
+        var canDismiss = true
 
         var isProblem: Bool { phase == .failed || phase == .duplicate }
     }
@@ -1577,7 +1986,12 @@ class AppStore: ObservableObject {
     /// Was gerade unterwegs ist — in der Reihenfolge, in der es angestoßen wurde.
     var inFlightUploads: [InFlightUpload] {
         let queued = pendingUploads.map {
-            InFlightUpload(id: "queued-\($0.id.uuidString)", title: $0.title, phase: .queued)
+            // Abgelehnte bleiben in der Warteschlange, bis der Nutzer entscheidet — ausblenden
+            // hieße hier löschen, und das gehört nicht hinter ein kleines x.
+            $0.failureReason == nil
+                ? InFlightUpload(id: "queued-\($0.id.uuidString)", title: $0.title, phase: .queued)
+                : InFlightUpload(id: "queued-\($0.id.uuidString)", title: $0.title, phase: .failed,
+                                 detail: $0.failureReason, canDismiss: false)
         }
         let onServer = uploadTaskStatuses.compactMap { status -> InFlightUpload? in
             switch status.state {
@@ -1652,15 +2066,18 @@ class AppStore: ObservableObject {
     /// Verfolgt einen Verarbeitungsauftrag und meldet das Ergebnis.
     func followUp(taskId: String, title: String) async {
         guard let api = api else { return }
+        let epoch = accountEpoch
         for attempt in 1...Self.taskPollAttempts {
             // Erst warten: unmittelbar nach dem Upload steht der Auftrag noch auf PENDING.
             try? await Task.sleep(nanoseconds: Self.taskPollInterval)
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, isCurrent(epoch) else { return }
 
             let task: ConsumptionTask?
             do {
                 task = try await api.fetchTask(taskId: taskId)
+                guard isCurrent(epoch) else { return }
             } catch {
+                guard isCurrent(epoch) else { return }
                 // Endpunkt nicht erreichbar oder nicht erlaubt: Status aufgeben, aber den
                 // Upload nicht als Fehler darstellen — angenommen wurde er ja.
                 updateTask(taskId) { $0.state = .unknown; $0.message = nil }
@@ -1740,6 +2157,7 @@ class AppStore: ObservableObject {
     // MARK: - Delete Document
 
     func deleteDocument(id: Int) {
+        let epoch = accountEpoch
         Task {
             guard let api = api, let accountId = activeAccountId else { return }
             do {
@@ -1748,25 +2166,68 @@ class AppStore: ObservableObject {
                 // Ohne diese Prüfung verschwand das Dokument auch dann aus der Liste, wenn der
                 // Server es gar nicht gelöscht hat (offline, fehlende Rechte) — und tauchte
                 // beim nächsten Sync wieder auf.
-                lastSyncError = error.localizedDescription
+                if isCurrent(epoch) { lastSyncError = error.localizedDescription }
                 return
             }
+            // Datei und Indexeintrag gehören zum Konto der Anfrage, nicht zum aktiven.
+            PersistenceService.deleteDocFile(docId: id, accountId: accountId)
+            Task.detached(priority: .background) {
+                await ArchiveIndex.shared.remove(id, account: accountId)
+            }
+            guard isCurrent(epoch) else { return }
             removeDocumentLocally(id: id)
             saveToDisk()
-            PersistenceService.deleteDocFile(docId: id, accountId: accountId)
         }
     }
 
     /// Nimmt ein Dokument aus beiden Listen. `filteredDocs` muss ausdrücklich mit, weil
     /// `updateFilteredDocs()` bei aktiver Suche nichts neu aufbaut.
     func removeDocumentLocally(id: Int) {
-        documents.removeAll { $0.id == id }
-        filteredDocs.removeAll { $0.id == id }
-        if inboxDocuments.contains(where: { $0.id == id }) {
-            inboxDocuments.removeAll { $0.id == id }
-            if let total = inboxTotal { inboxTotal = max(0, total - 1) }
-        }
+        removeDocumentsLocally(ids: [id])
+    }
+
+    /// Wie `removeDocumentLocally(id:)`, aber für viele in einem Durchgang — ein Filterlauf
+    /// statt einem pro Dokument.
+    func removeDocumentsLocally(ids: Set<Int>) {
+        documents.removeAll { ids.contains($0.id) }
+        filteredDocs.removeAll { ids.contains($0.id) }
+        let before = inboxDocuments.count
+        inboxDocuments.removeAll { ids.contains($0.id) }
+        if let total = inboxTotal { inboxTotal = max(0, total - (before - inboxDocuments.count)) }
         updateFilteredDocs()
+    }
+
+    /// Löscht mehrere Dokumente in einem Serveraufruf (`bulk_edit` mit `delete`).
+    ///
+    /// Vorher startete das Sammellöschen je Dokument einen eigenen DELETE-Task, jeder mit
+    /// eigenem Filterlauf und eigenem Schreibvorgang auf die Platte.
+    func deleteDocuments(ids: Set<Int>) {
+        guard ids.count > 1 else {
+            if let only = ids.first { deleteDocument(id: only) }
+            return
+        }
+        guard let api = api, let accountId = activeAccountId else { return }
+        let epoch = accountEpoch
+        Task {
+            isBulkEditing = true
+            do {
+                try await api.bulkDelete(ids: Array(ids))
+            } catch {
+                guard isCurrent(epoch) else { return }
+                isBulkEditing = false
+                reportBulkResult(error.localizedDescription, failed: true)
+                return
+            }
+            for id in ids { PersistenceService.deleteDocFile(docId: id, accountId: accountId) }
+            Task.detached(priority: .background) {
+                for id in ids { await ArchiveIndex.shared.remove(id, account: accountId) }
+            }
+            guard isCurrent(epoch) else { return }
+            removeDocumentsLocally(ids: ids)
+            saveToDisk()
+            isBulkEditing = false
+            reportBulkResult("\(ids.count) Dokument(e) gelöscht", failed: false)
+        }
     }
 
     // MARK: - Notes
@@ -1812,15 +2273,31 @@ class AppStore: ObservableObject {
     }
 
     func deleteTag(id: Int) {
-        Task { guard let api = api else { return }; try? await api.deleteTag(id: id); await syncMetadata() }
+        deleteMetadata { try await $0.deleteTag(id: id) }
     }
 
     func deleteCorrespondent(id: Int) {
-        Task { guard let api = api else { return }; try? await api.deleteCorrespondent(id: id); await syncMetadata() }
+        deleteMetadata { try await $0.deleteCorrespondent(id: id) }
     }
 
     func deleteDocumentType(id: Int) {
-        Task { guard let api = api else { return }; try? await api.deleteDocumentType(id: id); await syncMetadata() }
+        deleteMetadata { try await $0.deleteDocumentType(id: id) }
+    }
+
+    /// Löscht einen Tag, Sender oder Typ und lädt die Stammdaten neu. Vorher verschluckte `try?`
+    /// jeden Fehler — ohne Rechte oder ohne Netz blieb der Eintrag stehen, ohne dass jemand erfuhr, warum.
+    private func deleteMetadata(_ operation: @escaping (PaperlessAPI) async throws -> Void) {
+        guard let api = api else { return }
+        let epoch = accountEpoch
+        Task {
+            do {
+                try await operation(api)
+            } catch {
+                if isCurrent(epoch) { reportBulkResult(error.localizedDescription, failed: true) }
+                return
+            }
+            await syncMetadata()
+        }
     }
 
     func fetchStatistics() async -> PaperlessStatistics? {
@@ -1844,11 +2321,18 @@ class AppStore: ObservableObject {
     }
 
     func loadPDFData(for docId: Int) async -> Data? {
-        if fileExists(docId: docId) { return try? Data(contentsOf: localFileURL(for: docId)) }
+        // Ablageort vor dem Warten festhalten: Nach einem Kontowechsel zeigte
+        // `localFileURL(for:)` in den Ordner des neuen Kontos, und das PDF von Dokument 42
+        // aus Konto A lag danach als Dokument 42 von Konto B im Cache.
+        let fileURL = localFileURL(for: docId)
+        if fileExists(docId: docId) {
+            return await Task.detached(priority: .userInitiated) { try? Data(contentsOf: fileURL) }.value
+        }
         guard let api = api else { return nil }
+        let epoch = accountEpoch
         if let data = try? await api.downloadDocument(id: docId) {
-            try? PersistenceService.writeFile(data, to: localFileURL(for: docId))
-            return data
+            try? PersistenceService.writeFile(data, to: fileURL)
+            return isCurrent(epoch) ? data : nil
         }
         return nil
     }
@@ -1860,7 +2344,8 @@ class AppStore: ObservableObject {
     }
 
     func startFullDownload() {
-        guard let api = api else { return }
+        guard let api = api, let accountId = activeAccountId else { return }
+        let epoch = accountEpoch
         isDownloadingAll = true
         downloadProgress = 0.0
         downloadStatusText = "Lade Dokumentliste..."
@@ -1869,20 +2354,24 @@ class AppStore: ObservableObject {
             do {
                 allDocs = try await api.fetchAllDocuments()
             } catch {
+                guard isCurrent(epoch) else { return }
                 isDownloadingAll = false
                 downloadStatusText = "Fehler: \(error.localizedDescription)"
                 return
             }
             for (index, doc) in allDocs.enumerated() {
-                guard isDownloadingAll, !Task.isCancelled else { break }
+                guard isCurrent(epoch), isDownloadingAll, !Task.isCancelled else { break }
                 downloadProgress = Double(index) / Double(allDocs.count)
                 downloadStatusText = "Lade \(index + 1) von \(allDocs.count)..."
-                if !fileExists(docId: doc.id) {
+                if !PersistenceService.fileExists(docId: doc.id, accountId: accountId) {
                     if let data = try? await api.downloadDocument(id: doc.id) {
-                        try? PersistenceService.writeFile(data, to: localFileURL(for: doc.id))
+                        try? PersistenceService.writeFile(
+                            data, to: PersistenceService.docFileURL(for: doc.id, accountId: accountId)
+                        )
                     }
                 }
             }
+            guard isCurrent(epoch) else { return }
             isDownloadingAll = false
             downloadStatusText = Task.isCancelled ? "Abgebrochen" : "Fertig"
             calculateStorage()
@@ -1900,6 +2389,7 @@ class AppStore: ObservableObject {
         Task.detached(priority: .background) {
             let result = PersistenceService.calculateStorage(accountId: id)
             await MainActor.run {
+                guard self.activeAccountId == id else { return }
                 self.storageSize = result.sizeString
                 self.cachedCount = result.cachedCount
             }
@@ -1995,7 +2485,41 @@ class AppStore: ObservableObject {
     /// Verhindert, dass der erste Durchlauf mehrfach angestoßen wird.
     private var spotlightFullRunScheduled = false
 
+    /// Schalter „In Spotlight aufnehmen" (Einstellungen → Datenschutz). Ohne Wert: an.
+    nonisolated static func spotlightEnabled(_ defaults: UserDefaults = .standard) -> Bool {
+        defaults.object(forKey: "spotlightEnabled") as? Bool ?? true
+    }
+
+    /// Ob der erkannte Text in die Systemsuche geht. Nie bei aktiver App-Sperre: Der Text
+    /// stünde sonst ohne Face ID für jeden lesbar, der das Gerät entsperrt hat.
+    nonisolated static func spotlightIncludesContent(_ defaults: UserDefaults = .standard) -> Bool {
+        !defaults.bool(forKey: "useFaceID")
+            && (defaults.object(forKey: "spotlightFullText") as? Bool ?? true)
+    }
+
+    /// Nach einer Änderung an Spotlight-Schalter, Volltext oder App-Sperre: Der vorhandene
+    /// Index enthält noch den alten Umfang und wird verworfen bzw. neu aufgebaut.
+    func applySpotlightSettings() {
+        spotlightTask?.cancel()
+        spotlightTask = nil
+        fullSpotlightIndexBuilt = false
+        lastSpotlightRun = nil
+        guard Self.spotlightEnabled() else {
+            clearSpotlightIndex()
+            return
+        }
+        let epoch = accountEpoch
+        spotlightTask = Task {
+            let result = await rebuildSpotlightIndex()
+            guard isCurrent(epoch) else { return }
+            if result.errorMessage != nil {
+                Self.logger.error("Spotlight-Neuaufbau nach Einstellungsänderung unvollständig")
+            }
+        }
+    }
+
     func indexDocumentsForSpotlightIfDue() {
+        guard Self.spotlightEnabled() else { return }
         if !fullSpotlightIndexBuilt {
             // Der erste Lauf blättert durch das ganze Archiv und lädt Vorschaubilder nach.
             // Nicht in dem Moment, in dem der Nutzer auf seine Liste wartet — ein paar
@@ -2003,8 +2527,10 @@ class AppStore: ObservableObject {
             guard !spotlightFullRunScheduled else { return }
             spotlightFullRunScheduled = true
             lastSpotlightRun = Date()
+            let epoch = accountEpoch
             Task {
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
+                guard isCurrent(epoch) else { return }
                 indexDocumentsForSpotlight()
                 spotlightFullRunScheduled = false
             }
@@ -2018,8 +2544,10 @@ class AppStore: ObservableObject {
 
     func indexDocumentsForSpotlight() {
         let full = !fullSpotlightIndexBuilt
-        Task {
+        let epoch = accountEpoch
+        spotlightTask = Task {
             let result = await performSpotlightIndexing(fullArchive: full)
+            guard isCurrent(epoch) else { return }
             if full && result.errorMessage == nil && result.indexed > 0 {
                 fullSpotlightIndexBuilt = true
             }
@@ -2035,22 +2563,25 @@ class AppStore: ObservableObject {
         await withCheckedContinuation { continuation in
             CSSearchableIndex.default().deleteAllSearchableItems { _ in continuation.resume() }
         }
+        let epoch = accountEpoch
         let result = await performSpotlightIndexing(fullArchive: true)
+        guard isCurrent(epoch) else { return SpotlightIndexResult() }
         if result.errorMessage == nil && result.indexed > 0 { fullSpotlightIndexBuilt = true }
         return result
     }
 
     /// Holt für den Index das ganze Archiv vom Server. Ohne Server (Demo-Modus, offline)
     /// bleibt es bei dem, was geladen ist.
-    private func documentsForIndexing(fullArchive: Bool) async -> [Document] {
+    private func documentsForIndexing(fullArchive: Bool, epoch: Int) async -> [Document] {
         let loaded = Array(documents.prefix(Self.spotlightDocumentLimit))
         guard fullArchive, let api = api else { return loaded }
 
         var collected: [Document] = []
         var page = 1
         while collected.count < Self.spotlightDocumentLimit {
-            guard let result = try? await api.fetchDocuments(
-                page: page, pageSize: Self.spotlightFetchPageSize) else { break }
+            guard !Task.isCancelled, isCurrent(epoch),
+                  let result = try? await api.fetchDocuments(
+                    page: page, pageSize: Self.spotlightFetchPageSize) else { break }
             collected.append(contentsOf: result.documents)
             guard result.hasNext else { break }
             page += 1
@@ -2062,12 +2593,18 @@ class AppStore: ObservableObject {
     }
 
     private func performSpotlightIndexing(fullArchive: Bool) async -> SpotlightIndexResult {
-        guard let accountId = activeAccountId else { return SpotlightIndexResult() }
+        guard Self.spotlightEnabled(), let accountId = activeAccountId else { return SpotlightIndexResult() }
+        let epoch = accountEpoch
+        let api = api
         let domain = Self.spotlightDomain(for: accountId)
-        let docs = await documentsForIndexing(fullArchive: fullArchive)
+        let docs = await documentsForIndexing(fullArchive: fullArchive, epoch: epoch)
+        // Nach einem Kontowechsel hat `switchAccount` den Index geleert — nichts vom alten
+        // Konto nachschieben.
+        guard isCurrent(epoch) else { return SpotlightIndexResult() }
         let tags = allTags
         let corrs = allCorrespondents
         let types = allDocTypes
+        let includeContent = Self.spotlightIncludesContent()
 
         // Reste aus der Zeit ohne Kontotrennung räumen.
         CSSearchableIndex.default()
@@ -2082,17 +2619,29 @@ class AppStore: ObservableObject {
         // den Einträgen, und 10.000 davon gleichzeitig im Speicher will niemand.
         var result = SpotlightIndexResult()
         for chunk in docs.chunked(into: 100) {
+            guard !Task.isCancelled, isCurrent(epoch) else { break }
             var thumbnails: [Int: Data] = [:]
             var pending: [Int] = []
+            // Vorschaubilder von der Platte im Hintergrund lesen — vorher synchron auf dem Main Thread,
+            // 100 Dateien je Block.
+            let thumbnailURLs = chunk.map { ($0.id, ImageCache.shared.getFilePath(for: $0.id)) }
+            let onDisk = await Task.detached(priority: .background) { () -> [Int: Data] in
+                var found: [Int: Data] = [:]
+                for (id, url) in thumbnailURLs {
+                    if let data = try? Data(contentsOf: url) { found[id] = data }
+                }
+                return found
+            }.value
+            guard isCurrent(epoch) else { break }
             for doc in chunk {
-                if let data = ImageCache.shared.thumbnailData(for: doc.id) {
+                if let data = onDisk[doc.id] {
                     thumbnails[doc.id] = data
                 } else {
                     pending.append(doc.id)
                 }
             }
 
-            if downloadBudget > 0, let api = api, !pending.isEmpty {
+            if downloadBudget > 0, let api, !pending.isEmpty {
                 let batch = Array(pending.prefix(downloadBudget))
                 downloadBudget -= batch.count
                 missingThumbnails += pending.count - batch.count
@@ -2114,6 +2663,9 @@ class AppStore: ObservableObject {
                     }
                     return loaded
                 }
+                // Der Bildcache folgt dem aktiven Konto: nach einem Wechsel landeten die
+                // Vorschauen sonst unter derselben ID im Cache des neuen.
+                guard isCurrent(epoch) else { break }
 
                 for (id, data) in fetched {
                     // Gleich in den Cache legen: die Liste zeigt sie ohnehin als Nächstes.
@@ -2130,7 +2682,8 @@ class AppStore: ObservableObject {
                     let attrs = CSSearchableItemAttributeSet(contentType: .pdf)
                     attrs.title = doc.title
                     attrs.contentDescription = "Erstellt: \(doc.created)"
-                    if let content = doc.content { attrs.textContent = String(content.prefix(15000)) }
+                    // Ohne Volltext (Schalter aus oder App-Sperre aktiv) nur Titel und Stichwörter.
+                    if includeContent, let content = doc.content { attrs.textContent = String(content.prefix(15000)) }
 
                     var keywords: [String] = [doc.title]
                     if let cid = doc.correspondent, let corr = corrs.first(where: { $0.id == cid }) {
@@ -2153,6 +2706,7 @@ class AppStore: ObservableObject {
                     return item
                 }
             }.value
+            guard isCurrent(epoch) else { break }
 
             // Blockweise indizieren: `indexSearchableItems` ist pro Aufruf alles-oder-nichts.
             // Ein einziges Dokument, das dem Index nicht schmeckt, riss bisher den kompletten
@@ -2205,15 +2759,15 @@ class AppStore: ObservableObject {
     }
 
     private func saveQueues() {
-        guard let id = activeAccountId else { return }
-        PersistenceService.save(pendingUploads, toURL: PersistenceService.accountDataURL(for: id, filename: "pending.json"))
+        guard let id = activeAccountId, diskStateAccountId == id else { return }
+        PersistenceService.saveUploads(pendingUploads, accountId: id)
         PersistenceService.save(pendingEdits,   toURL: PersistenceService.accountDataURL(for: id, filename: "edits.json"))
         PersistenceService.save(savedFilters,   toURL: PersistenceService.accountDataURL(for: id, filename: "savedfilters.json"))
     }
 
     /// Schreibt Dokumente und Stammdaten, wenn sich etwas geändert hat.
     func saveArchive(force: Bool = false) {
-        guard let id = activeAccountId else { return }
+        guard let id = activeAccountId, diskStateAccountId == id else { return }
         let signature = archiveSignature()
         guard force || signature != lastSavedArchiveSignature else { return }
         lastSavedArchiveSignature = signature
@@ -2249,10 +2803,12 @@ class AppStore: ObservableObject {
             hasher.combine(doc.archiveSerialNumber)
             hasher.combine(doc.customFields)
         }
-        hasher.combine(allTags.count)
-        hasher.combine(allCorrespondents.count)
-        hasher.combine(allDocTypes.count)
-        hasher.combine(allCustomFields.count)
+        // Stammdaten mit Inhalt, nicht nur ihre Anzahl: Ein umbenannter Tag oder eine neue Farbe
+        // wurde sonst nie auf die Platte geschrieben und fehlte offline.
+        hasher.combine(allTags)
+        hasher.combine(allCorrespondents)
+        hasher.combine(allDocTypes)
+        hasher.combine(allCustomFields)
         return hasher.finalize()
     }
 
@@ -2272,15 +2828,29 @@ class AppStore: ObservableObject {
     }
 
     private func apply(_ snapshot: AccountDiskSnapshot) {
-        documents         = snapshot.documents
-        allTags           = snapshot.tags
-        allCorrespondents = snapshot.correspondents
-        allDocTypes       = snapshot.docTypes
-        allCustomFields   = snapshot.customFields
-        pendingUploads    = snapshot.pendingUploads
-        pendingEdits      = snapshot.pendingEdits
-        savedFilters      = snapshot.savedFilters
+        // Was schon vor dem Laden im Speicher lag, stammt aus dieser Sitzung — ein Import aus
+        // der Share-Extension, eine Änderung, eine frische Serverantwort. Es ist neuer als der
+        // Plattenstand und darf von ihm nicht überschrieben werden.
+        let knownUploads = Set(snapshot.pendingUploads.map(\.id))
+        let knownEdits = Set(snapshot.pendingEdits.map(\.id))
+        let knownFilters = Set(snapshot.savedFilters.map(\.id))
+        let newUploads = pendingUploads.filter { !knownUploads.contains($0.id) }
+        let newEdits = pendingEdits.filter { !knownEdits.contains($0.id) }
+        let newFilters = savedFilters.filter { !knownFilters.contains($0.id) }
+
+        pendingUploads = snapshot.pendingUploads + newUploads
+        pendingEdits   = snapshot.pendingEdits + newEdits
+        savedFilters   = snapshot.savedFilters + newFilters
+        if documents.isEmpty         { documents         = snapshot.documents }
+        if allTags.isEmpty           { allTags           = snapshot.tags }
+        if allCorrespondents.isEmpty { allCorrespondents = snapshot.correspondents }
+        if allDocTypes.isEmpty       { allDocTypes       = snapshot.docTypes }
+        if allCustomFields.isEmpty   { allCustomFields   = snapshot.customFields }
+        diskStateAccountId = snapshot.accountId
+
+        reApplyPendingEdits()
         updateFilteredDocs()
+        if !newUploads.isEmpty || !newEdits.isEmpty || !newFilters.isEmpty { saveQueues() }
     }
 
     func saveCurrentFilter(name: String, tag: Int?, correspondent: Int?, type: Int?, dateFilter: DateFilter) {
@@ -2324,11 +2894,23 @@ class AppStore: ObservableObject {
         allTags.filter { $0.parent == parentId }.sorted { $0.safeName.localizedCompare($1.safeName) == .orderedAscending }
     }
 
+    /// Alle Tags nach Eltern gruppiert und sortiert — einmal statt einmal je Knoten.
+    private func tagChildrenIndex() -> [Int?: [Tag]] {
+        Dictionary(grouping: allTags, by: \.parent)
+            .mapValues { $0.sorted { $0.safeName.localizedCompare($1.safeName) == .orderedAscending } }
+    }
+
     /// Flache Liste mit Tiefenangabe für eingerückte Darstellung.
     func hierarchicalTags() -> [(tag: Tag, depth: Int)] {
         var result: [(Tag, Int)] = []
+        // Vorher lief für jeden Knoten ein Filter- und Sortierlauf über alle Tags (O(T²)), bei
+        // jeder Body-Auswertung der Tag-Liste.
+        let children = tagChildrenIndex()
+        var visited = Set<Int>()
         func walk(parent: Int?, depth: Int) {
-            for tag in childTags(of: parent) {
+            for tag in children[parent] ?? [] {
+                // Schutz gegen zyklische Eltern-Verweise vom Server.
+                guard visited.insert(tag.id).inserted else { continue }
                 result.append((tag, depth))
                 walk(parent: tag.id, depth: depth + 1)
             }
@@ -2346,13 +2928,22 @@ class AppStore: ObservableObject {
 
     func loadTrash() async {
         guard let api = api else { return }
-        if let items = try? await api.fetchTrash() { trashedDocs = items }
+        let epoch = accountEpoch
+        if let items = try? await api.fetchTrash(), isCurrent(epoch) { trashedDocs = items }
     }
 
     func restoreFromTrash(ids: [Int]) {
+        let epoch = accountEpoch
         Task {
             guard let api = api else { return }
-            try? await api.restoreFromTrash(ids: ids)
+            do {
+                try await api.restoreFromTrash(ids: ids)
+            } catch {
+                // Vorher `try?`: Die App meldete „Wiederhergestellt", auch wenn nichts passiert war.
+                if isCurrent(epoch) { reportBulkResult(error.localizedDescription, failed: true) }
+                return
+            }
+            guard isCurrent(epoch) else { return }
             await loadTrash()
             await reloadVisible()
             showSuccessToast("Wiederhergestellt")
@@ -2361,9 +2952,16 @@ class AppStore: ObservableObject {
     }
 
     func emptyTrash(ids: [Int]) {
+        let epoch = accountEpoch
         Task {
             guard let api = api else { return }
-            try? await api.emptyTrash(ids: ids)
+            do {
+                try await api.emptyTrash(ids: ids)
+            } catch {
+                if isCurrent(epoch) { reportBulkResult(error.localizedDescription, failed: true) }
+                return
+            }
+            guard isCurrent(epoch) else { return }
             await loadTrash()
             showSuccessToast("Endgültig gelöscht")
         }
@@ -2383,7 +2981,8 @@ class AppStore: ObservableObject {
 
     func loadSavedViews() async {
         guard let api = api else { return }
-        if let v = try? await api.fetchSavedViews() {
+        let epoch = accountEpoch
+        if let v = try? await api.fetchSavedViews(), isCurrent(epoch) {
             serverViews = v
             migrateLocalFiltersToServer()
         }
@@ -2392,7 +2991,6 @@ class AppStore: ObservableObject {
     /// Übersetzt eine Server-View in unseren lokalen Filterzustand.
     func parse(_ view: SavedView) -> ParsedView {
         var p = ParsedView()
-        let df = DateFormatter(); df.dateFormat = "yyyy-MM-dd"
         for rule in view.filterRules {
             guard let raw = rule.value else { continue }
             switch rule.ruleType {
@@ -2400,9 +2998,9 @@ class AppStore: ObservableObject {
             case FilterRuleType.documentType:  p.type = Int(raw)
             case FilterRuleType.hasTagAll:     p.tag = Int(raw)
             case FilterRuleType.createdAfter:
-                if let d = df.date(from: String(raw.prefix(10))) { p.dateFilter = .custom; p.customStart = d }
+                if let d = DateFormatting.parseAPIDate(String(raw.prefix(10))) { p.dateFilter = .custom; p.customStart = d }
             case FilterRuleType.createdBefore:
-                if let d = df.date(from: String(raw.prefix(10))) { p.dateFilter = .custom; p.customEnd = d }
+                if let d = DateFormatting.parseAPIDate(String(raw.prefix(10))) { p.dateFilter = .custom; p.customEnd = d }
             default: break
             }
         }
@@ -2421,21 +3019,22 @@ class AppStore: ObservableObject {
         if let corr { rules.append(["rule_type": FilterRuleType.correspondent, "value": "\(corr)"]) }
         if let type { rules.append(["rule_type": FilterRuleType.documentType, "value": "\(type)"]) }
 
-        let df = DateFormatter(); df.dateFormat = "yyyy-MM-dd"
+        // `DateFormatting.apiDate` statt eines eigenen `DateFormatter` ohne feste Locale und
+        // Kalender (falsches Jahr bei buddhistischem oder japanischem Kalender).
         let cal = Calendar.current
         switch dateFilter {
         case .all: break
         case .lastMonth:
             if let d = cal.date(byAdding: .month, value: -1, to: Date()) {
-                rules.append(["rule_type": FilterRuleType.createdAfter, "value": df.string(from: d)])
+                rules.append(["rule_type": FilterRuleType.createdAfter, "value": DateFormatting.apiDate(d)])
             }
         case .thisYear:
             if let d = cal.date(from: cal.dateComponents([.year], from: Date())) {
-                rules.append(["rule_type": FilterRuleType.createdAfter, "value": df.string(from: d)])
+                rules.append(["rule_type": FilterRuleType.createdAfter, "value": DateFormatting.apiDate(d)])
             }
         case .custom:
-            rules.append(["rule_type": FilterRuleType.createdAfter, "value": df.string(from: start)])
-            rules.append(["rule_type": FilterRuleType.createdBefore, "value": df.string(from: end)])
+            rules.append(["rule_type": FilterRuleType.createdAfter, "value": DateFormatting.apiDate(start)])
+            rules.append(["rule_type": FilterRuleType.createdBefore, "value": DateFormatting.apiDate(end)])
         }
         return rules
     }
@@ -2455,8 +3054,10 @@ class AppStore: ObservableObject {
         guard !isDemoMode, let api = api else { return }
         let rules = buildRules(tag: tag, corr: corr, type: type, dateFilter: dateFilter, start: start, end: end)
         let s = sortField(for: sort)
+        let epoch = accountEpoch
         Task {
-            if let view = try? await api.createSavedView(name: name, sortField: s.field, sortReverse: s.reverse, rules: rules) {
+            if let view = try? await api.createSavedView(name: name, sortField: s.field, sortReverse: s.reverse, rules: rules),
+               isCurrent(epoch) {
                 serverViews.append(view)
                 showSuccessToast("Ansicht gespeichert")
                 registerReviewEvent()
@@ -2465,26 +3066,49 @@ class AppStore: ObservableObject {
     }
 
     func deleteServerView(id: Int) {
+        let epoch = accountEpoch
         Task {
             guard let api = api else { return }
-            try? await api.deleteSavedView(id: id)
+            do {
+                try await api.deleteSavedView(id: id)
+            } catch {
+                // Vorher verschwand die Ansicht auch dann aus der Leiste, wenn der Server sie behielt.
+                if isCurrent(epoch) { reportBulkResult(error.localizedDescription, failed: true) }
+                return
+            }
+            guard isCurrent(epoch) else { return }
             serverViews.removeAll { $0.id == id }
         }
     }
 
-    /// Hebt bestehende lokale Filter einmalig auf den Server und leert danach die lokale Liste.
+    /// Läuft die Übernahme gerade? `syncMetadata` und `loadSavedViews` stoßen sie beide an.
+    private var isMigratingFilters = false
+
+    /// Hebt bestehende lokale Filter einmalig auf den Server und nimmt sie danach aus der
+    /// lokalen Liste — nur die, die der Server tatsächlich angenommen hat.
     private func migrateLocalFiltersToServer() {
-        guard !savedFilters.isEmpty, !isDemoMode, let api = api else { return }
+        guard !savedFilters.isEmpty, !isDemoMode, !isMigratingFilters,
+              let api = api, let accountId = activeAccountId else { return }
+        isMigratingFilters = true
         let toMigrate = savedFilters
+        let epoch = accountEpoch
         Task {
+            defer { isMigratingFilters = false }
+            var migrated: Set<UUID> = []
             for f in toMigrate {
                 let rules = buildRules(tag: f.tag, corr: f.correspondent, type: f.type,
                                        dateFilter: f.dateFilter, start: Date(), end: Date())
                 if let view = try? await api.createSavedView(name: f.name, sortField: "created", sortReverse: true, rules: rules) {
-                    serverViews.append(view)
+                    migrated.insert(f.id)
+                    if isCurrent(epoch) { serverViews.append(view) }
                 }
             }
-            savedFilters.removeAll()
+            guard isCurrent(epoch) else {
+                PersistenceService.removeQueued(SavedFilter.self, ids: migrated,
+                                                filename: "savedfilters.json", accountId: accountId)
+                return
+            }
+            savedFilters.removeAll { migrated.contains($0.id) }
             saveToDisk()
         }
     }
@@ -2503,9 +3127,22 @@ class AppStore: ObservableObject {
         return link
     }
 
-    func deleteShareLink(id: Int) async {
-        guard let api = api else { return }
-        try? await api.deleteShareLink(id: id)
+    /// Widerruft einen Freigabe-Link. Liefert `nil` bei Erfolg, sonst den Grund.
+    ///
+    /// Vorher verschluckte `try?` jeden Fehler, und die Ansicht nahm den Link trotzdem aus der
+    /// Liste. Offline oder ohne Berechtigung blieb der öffentliche Link damit gültig, während
+    /// der Nutzer ihn für widerrufen hielt.
+    func deleteShareLink(id: Int) async -> String? {
+        guard let api = api, !isDemoMode else { return "Kein Server verbunden." }
+        do {
+            try await api.deleteShareLink(id: id)
+            return nil
+        } catch APIError.serverError(404) {
+            // Schon weg — genau das, was der Nutzer wollte.
+            return nil
+        } catch {
+            return error.localizedDescription
+        }
     }
 
     func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
@@ -2523,7 +3160,7 @@ class AppStore: ObservableObject {
                 // Im Hintergrund nichts anstoßen: iOS friert die Anfragen ohnehin ein, und
                 // die Warteschlange wird beim nächsten Vordergrund-Sync abgearbeitet.
                 guard UIApplication.shared.applicationState == .active else { continue }
-                if !pendingUploads.isEmpty || !pendingEdits.isEmpty { sync(silent: true) }
+                if hasRetryableQueueItems { sync(silent: true) }
             }
         }
     }
@@ -2532,11 +3169,19 @@ class AppStore: ObservableObject {
 
     func clearLocalData() {
         for account in accounts {
+            UserDefaults.standard.removeObject(forKey: uploadRulesKey(account.id))
             KeychainService.deleteToken(for: account.serverUrl, username: account.username)
+            // Proxy-Geheimnisse und privater Schlüssel des Client-Zertifikats gehören beim
+            // Abmelden genauso vom Gerät wie der Token.
+            ServerCredentials.removeAll(for: PaperlessAPI.normalizedBase(account.serverUrl))
         }
         invalidateTokenCache()
+        beginNewAccountEpoch()
+        uploadRules = []
         accounts = []
         activeAccountId = nil
+        diskStateAccountId = nil
+        diskLoadTask = nil
         ImageCache.shared.setAccount(nil)
         AccountService.save([])
         AccountService.setActiveId(nil)
@@ -2545,11 +3190,24 @@ class AppStore: ObservableObject {
         pendingUploads = []; pendingEdits = []; cachedCount = 0; storageSize = "0 MB"; lastSyncError = nil
         PersistenceService.clearAll()
         ImageCache.shared.clearAll()
+        // Auch HTTP-Antworten, die `URLSession` zwischengespeichert hat (Vorschaubilder, Listen).
+        URLCache.shared.removeAllCachedResponses()
         clearSpotlightIndex()
+        WidgetDataService.clearContent()
+        WidgetCenter.shared.reloadAllTimelines()
         autoSyncTask?.cancel()
     }
 
     // MARK: - Import
+
+    /// Übergibt die nächste Datei aus Share-Extension oder Kurzbefehl an das Importformular.
+    ///
+    /// Immer nur eine: Das Formular zeigt genau eine Datei. Ist gerade eine offen, wartet der
+    /// Rest in der App Group und kommt nach dem Schließen dran.
+    func importNextSharedFile() {
+        guard incomingUploadContainer == nil, let next = SharedImports.takeNext() else { return }
+        handleImportData(data: next.data, filename: next.filename)
+    }
 
     func handleImportData(data: Data, filename: String) {
         importStatus = "Verarbeite..."
@@ -2576,8 +3234,12 @@ class AppStore: ObservableObject {
     func setupDemoData() {
         isDemoMode = true
         let demoAccount = Account(id: UUID(), serverUrl: "demo.local", username: "demo")
+        beginNewAccountEpoch()
         accounts = [demoAccount]
         activeAccountId = demoAccount.id
+        // Frisches Konto ohne Plattenstand — es gibt nichts zu laden, was überschrieben würde.
+        diskLoadTask = nil
+        diskStateAccountId = demoAccount.id
         AccountService.save(accounts)
         AccountService.setActiveId(demoAccount.id)
         invalidateTokenCache()
@@ -2611,7 +3273,7 @@ class AppStore: ObservableObject {
     // MARK: - Widget
 
     func updateWidget(stats: PaperlessStatistics? = nil) {
-        let enabled = UserDefaults(suiteName: "group.com.Thomas.paperless")?.bool(forKey: "widget_enabled") ?? true
+        let enabled = UserDefaults(suiteName: "group.com.Thomas.paperless")?.object(forKey: "widget_enabled") as? Bool ?? true
         guard enabled else { return }
 
         let widgetDocs = documents.prefix(5).map { doc in
@@ -2683,17 +3345,6 @@ class AppStore: ObservableObject {
         }
     }
 
-    // MARK: - Hintergrund-Benachrichtigung
-
-    /// Lädt die Inbox-Zahl und liefert sie zurück, wenn sie seit dem letzten Check gestiegen ist.
-    /// Wird vom BGAppRefreshTask genutzt. Gibt die neue Zahl zurück, sonst nil.
-    func checkInboxForNotification() async -> Int? {
-        guard let api = api, let stats = try? await api.fetchStatistics() else { return nil }
-        let current = stats.documentsInbox ?? 0
-        let last = UserDefaults.standard.integer(forKey: "lastNotifiedInbox")
-        UserDefaults.standard.set(current, forKey: "lastNotifiedInbox")
-        return current > last ? current : nil
-    }
 
     // MARK: - Toast
 

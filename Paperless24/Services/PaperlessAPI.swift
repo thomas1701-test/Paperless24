@@ -5,6 +5,9 @@ enum APIError: Error, LocalizedError {
     case unauthorized
     case otpRequired
     case serverError(Int)
+    /// Der Server hat genau diese Anfrage abgelehnt (4xx außer 401, 408, 429). Ein neuer
+    /// Versuch ändert daran nichts — anders als bei einem Netz- oder Serverfehler.
+    case rejected(Int, String?)
     case noData
     case decodingError(Error)
 
@@ -14,6 +17,8 @@ enum APIError: Error, LocalizedError {
         case .unauthorized:         return "Nicht autorisiert (401)"
         case .otpRequired:          return "2FA-Code erforderlich"
         case .serverError(let c):   return "Server Fehler: \(c)"
+        case .rejected(let c, let reason):
+            return reason.map { "Vom Server abgelehnt (\(c)): \($0)" } ?? "Vom Server abgelehnt (\(c))"
         case .noData:               return "Keine Daten erhalten"
         case .decodingError(let e): return "Datenfehler: \(e.localizedDescription)"
         }
@@ -292,17 +297,27 @@ struct PaperlessAPI {
         return try Self.decodePage(data)
     }
 
-    private static func decodePage(_ data: Data) throws -> DocumentPage {
-        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+    /// Eine Seite von `/api/documents/`. Ein Dokument, das sich nicht lesen lässt, fällt heraus,
+    /// ohne die Seite mitzureißen.
+    private struct PageResponse: Decodable {
+        struct Lossy: Decodable {
+            let document: Document?
+            init(from decoder: Decoder) throws { document = try? Document(from: decoder) }
+        }
+        let count: Int?
+        let next: String?
+        let results: [Lossy]?
+    }
+
+    /// In einem Durchgang dekodiert. Vorher: erst `JSONSerialization` über die ganze Antwort,
+    /// dann jedes Dokument zurück in JSON verwandelt und erneut dekodiert — dreifache Arbeit bei
+    /// 250er-Seiten mit dem kompletten OCR-Text.
+    static func decodePage(_ data: Data) throws -> DocumentPage {
+        guard let page = try? JSONDecoder().decode(PageResponse.self, from: data) else {
             throw APIError.noData
         }
-        let decoder = JSONDecoder()
-        let results = (json["results"] as? [[String: Any]] ?? []).compactMap { dict -> Document? in
-            guard let docData = try? JSONSerialization.data(withJSONObject: dict) else { return nil }
-            return try? decoder.decode(Document.self, from: docData)
-        }
-        let hasNext = json["next"] != nil && !(json["next"] is NSNull)
-        return DocumentPage(documents: results, hasNext: hasNext, totalCount: json["count"] as? Int)
+        return DocumentPage(documents: page.results?.compactMap(\.document) ?? [],
+                            hasNext: page.next != nil, totalCount: page.count)
     }
 
     /// `-id` als Zweitkriterium hält die Seitenfolge eindeutig — siehe `orderingParam()`.
@@ -310,7 +325,9 @@ struct PaperlessAPI {
         var all: [Document] = []
         var page = 1
         while true {
-            let result = try await fetchDocuments(page: page, ordering: ordering)
+            // 250 statt der Listen-Seitengröße (Standard 25): „Alle herunterladen" blätterte sonst
+            // in zehnmal so vielen Anfragen durch das Archiv.
+            let result = try await fetchDocuments(page: page, pageSize: 250, ordering: ordering)
             let before = all.count
             all.appendUniqueByID(result.documents)
             // `next` allein reicht als Abbruchkriterium nicht: liefert ein Server bei
@@ -367,7 +384,7 @@ struct PaperlessAPI {
         func addField(_ name: String, _ value: String) {
             body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"\(name)\"\r\n\r\n\(value)\r\n".data(using: .utf8)!)
         }
-        body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"document\"; filename=\"\(item.filename)\"\r\n\r\n".data(using: .utf8)!)
+        body.append("--\(boundary)\r\nContent-Disposition: form-data; name=\"document\"; filename=\"\(Self.multipartFilename(item.filename))\"\r\n\r\n".data(using: .utf8)!)
         body.append(item.data)
         body.append("\r\n".data(using: .utf8)!)
         addField("title", item.title)
@@ -384,13 +401,27 @@ struct PaperlessAPI {
         let progressDelegate = onProgress.map { UploadProgressDelegate(onProgress: $0) }
         let (data, response) = try await session.upload(for: req, from: body,
                                                         delegate: progressDelegate)
-        try validateResponse(response)
+        try validateWrite(response, data: data)
 
         // Die Antwort ist ein JSON-String: "8f3c…". Alles andere (etwa "OK") ist keine
         // Auftrags-ID und wird verworfen.
         guard let raw = try? JSONSerialization.jsonObject(with: data) as? String else { return nil }
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.count >= 8 && trimmed.uppercased() != "OK" ? trimmed : nil
+    }
+
+    /// Dateiname für den Multipart-Kopf. Ein `"` oder ein Zeilenumbruch im Namen (aus der
+    /// Share-Extension kommt, was die andere App liefert) zerlegte vorher den Kopf — der Server
+    /// lehnte ab.
+    static func multipartFilename(_ raw: String) -> String {
+        let cleaned = raw.unicodeScalars.map { scalar -> String in
+            switch scalar {
+            case "\"", "\\": return "_"
+            case "\r", "\n": return " "
+            default: return String(scalar)
+            }
+        }.joined().trimmingCharacters(in: .whitespaces)
+        return cleaned.isEmpty ? "Import.pdf" : cleaned
     }
 
     // MARK: - Verarbeitungsstatus
@@ -413,23 +444,45 @@ struct PaperlessAPI {
         return wrapper.results.first { $0.taskId == taskId } ?? wrapper.results.first
     }
 
-    func patchDocument(id: Int, title: String, created: String, correspondent: Int?, documentType: Int?, archiveSerialNumber: Int?, tags: [Int], customFields: [CustomFieldEdit] = []) async throws {
-        let url = try url("documents/\(id)/")
+    /// Schreibt eine Änderung aus der Warteschlange.
+    func patchDocument(_ edit: PendingEdit) async throws {
+        let body = Self.patchBody(for: edit)
+        // Nichts geändert — keine Anfrage.
+        guard !body.isEmpty else { return }
+        let url = try url("documents/\(edit.docId)/")
         var req = makeRequest(url)
         req.httpMethod = "PATCH"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        var body: [String: Any] = [
-            "title": title, "created": created, "tags": tags,
-            "correspondent": correspondent ?? NSNull(),
-            "document_type": documentType ?? NSNull(),
-            "archive_serial_number": archiveSerialNumber ?? NSNull()
-        ]
-        // Nur gesetzte Felder senden — leere Werte würden sonst leere Einträge anlegen.
-        let nonEmpty = customFields.filter { !$0.value.isEmpty }
-        body["custom_fields"] = nonEmpty.map { ["field": $0.field, "value": $0.value.jsonValue] }
         req.httpBody = try JSONSerialization.data(withJSONObject: body)
-        let (_, response) = try await send(req)
-        try validateResponse(response)
+        let (data, response) = try await send(req)
+        try validateWrite(response, data: data)
+    }
+
+    /// Der Körper eines PATCH — nur die Felder, die die Änderung betrifft.
+    ///
+    /// Eigene Felder: paperless-ngx (`NestedUpdateMixin`) löscht jede Feldinstanz, die in
+    /// `custom_fields` fehlt. Vorher gingen nur Felder mit Wert hinaus — jede Bearbeitung in
+    /// der App entfernte damit leere, etwa per Workflow zugewiesene Felder vom Dokument. Jetzt
+    /// bleiben Felder, die das Dokument schon trug, mit `null` stehen; neue leere Felder werden
+    /// nicht angelegt.
+    static func patchBody(for edit: PendingEdit) -> [String: Any] {
+        let fields = Set(edit.changedFields ?? PendingEdit.Field.all)
+        var body: [String: Any] = [:]
+        if fields.contains(PendingEdit.Field.title) { body["title"] = edit.title }
+        if fields.contains(PendingEdit.Field.created) { body["created"] = edit.created }
+        if fields.contains(PendingEdit.Field.correspondent) { body["correspondent"] = edit.correspondent ?? NSNull() }
+        if fields.contains(PendingEdit.Field.documentType) { body["document_type"] = edit.documentType ?? NSNull() }
+        if fields.contains(PendingEdit.Field.archiveSerialNumber) {
+            body["archive_serial_number"] = edit.archiveSerialNumber ?? NSNull()
+        }
+        if fields.contains(PendingEdit.Field.tags) { body["tags"] = edit.tags }
+        if fields.contains(PendingEdit.Field.customFields) {
+            let keep = Set(edit.existingFieldIDs ?? [])
+            body["custom_fields"] = edit.customFields
+                .filter { !$0.value.isEmpty || keep.contains($0.field) }
+                .map { ["field": $0.field, "value": $0.value.isEmpty ? NSNull() : $0.value.jsonValue] }
+        }
+        return body
     }
 
     // MARK: - Metadata
@@ -523,6 +576,29 @@ struct PaperlessAPI {
             ],
             "merge": merge
         ])
+    }
+
+    /// Die aktuellen Besitzer der Dokumente (`nil` = ohne Besitzer).
+    ///
+    /// `set_permissions` setzt den Besitzer immer mit — wer ihn „unverändert" lassen will,
+    /// muss ihn kennen. In Blöcken, damit die URL mit `id__in` nicht zu lang wird.
+    func fetchOwners(ids: [Int]) async throws -> [Int: Int?] {
+        struct Row: Decodable { let id: Int; let owner: Int? }
+        struct Response: Decodable { let results: [Row] }
+        var owners: [Int: Int?] = [:]
+        for chunk in ids.chunked(into: 100) {
+            let url = try url("documents/", query: [
+                URLQueryItem(name: "id__in", value: chunk.map(String.init).joined(separator: ",")),
+                URLQueryItem(name: "fields", value: "id,owner"),
+                URLQueryItem(name: "page_size", value: "\(chunk.count)")
+            ])
+            let (data, response) = try await send(makeRequest(url))
+            try validateResponse(response)
+            for row in try JSONDecoder().decode(Response.self, from: data).results {
+                owners[row.id] = row.owner
+            }
+        }
+        return owners
     }
 
     // MARK: - Sammelbearbeitung
@@ -848,6 +924,37 @@ struct PaperlessAPI {
         guard let http = response as? HTTPURLResponse else { return }
         if http.statusCode == 401 { throw APIError.unauthorized }
         if !(200...299).contains(http.statusCode) { throw APIError.serverError(http.statusCode) }
+    }
+
+    /// Für Schreibzugriffe aus den Warteschlangen: unterscheidet eine endgültige Ablehnung
+    /// von einem Fehler, bei dem sich ein neuer Versuch lohnt.
+    ///
+    /// Vorher war beides `serverError`, und die Warteschlange behandelte jede Ablehnung wie
+    /// fehlendes Netz — ein einziger abgelehnter Eintrag hielt sie für immer an.
+    private func validateWrite(_ response: URLResponse, data: Data) throws {
+        guard let http = response as? HTTPURLResponse else { return }
+        try Self.classifyWrite(status: http.statusCode, body: data)
+    }
+
+    /// Nicht `private`, damit die Tests die Einordnung direkt prüfen können.
+    static func classifyWrite(status: Int, body: Data) throws {
+        switch status {
+        case 200...299: return
+        case 401: throw APIError.unauthorized
+        // Zeitüberschreitung und Drosselung gehen vorbei.
+        case 408, 429: throw APIError.serverError(status)
+        case 400...499: throw APIError.rejected(status, rejectionReason(from: body))
+        default: throw APIError.serverError(status)
+        }
+    }
+
+    /// Die Begründung des Servers, soweit sie sich lesen lässt. ngx antwortet mit JSON wie
+    /// `{"custom_fields":[…]}`; die HTML-Fehlerseite eines Proxys ist als Begründung nutzlos.
+    static func rejectionReason(from body: Data) -> String? {
+        guard let text = String(data: body, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              !text.isEmpty, !text.hasPrefix("<") else { return nil }
+        return String(text.prefix(300))
     }
 }
 

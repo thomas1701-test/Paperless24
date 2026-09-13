@@ -14,7 +14,11 @@ struct LoginView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
 
+    /// Eingabe ohne Schema — das Schema ergibt sich aus `allowHTTP`.
     @State private var serverUrl: String
+    /// Standard ist `https`. `http` nur, wenn dieser Schalter ausdrücklich an ist.
+    @State private var allowHTTP: Bool
+    @State private var pastedHTTP = false
     @State private var username: String
     @State private var password = ""
     @State private var isChecking = false
@@ -22,6 +26,7 @@ struct LoginView: View {
     @State private var otpRequired = false
     @State private var otpCode = ""
     @State private var showDemoConfirm = false
+    @State private var showServerAccess = false
 
     init(
         useFaceID: Binding<Bool>,
@@ -33,18 +38,59 @@ struct LoginView: View {
         self._useFaceID = useFaceID
         self.mode = mode
         self.onConnect = onConnect
-        self._serverUrl = State(initialValue: prefillServerUrl)
+        self._serverUrl = State(initialValue: ServerAddress.split(prefillServerUrl).rest)
+        self._allowHTTP = State(initialValue: ServerAddress.initialScheme(for: prefillServerUrl) == .http)
         self._username = State(initialValue: prefillUsername)
     }
 
     var body: some View {
         VStack(spacing: 20) {
             Text("Login").font(.largeTitle).bold()
-            TextField("Server", text: $serverUrl)
-                .textFieldStyle(.roundedBorder)
-                .autocapitalization(.none)
-                .disableAutocorrection(true)
-                .onChange(of: serverUrl) { _, _ in resetOtp() }
+            VStack(alignment: .leading, spacing: 8) {
+                TextField("Server", text: $serverUrl)
+                    .textFieldStyle(.roundedBorder)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+                    .keyboardType(.URL)
+                    .onChange(of: serverUrl) { _, new in
+                        // Eingefügte Adresse mit Schema: Schema abtrennen. `https://` darf den
+                        // Schalter zurücksetzen, `http://` schaltet ihn nicht ein — unverschlüsselt
+                        // wird nur, wer es ausdrücklich wählt.
+                        let parts = ServerAddress.split(new)
+                        if let pasted = parts.scheme {
+                            if pasted == .https { allowHTTP = false }
+                            pastedHTTP = pasted == .http && !allowHTTP
+                            serverUrl = parts.rest
+                        }
+                        resetOtp()
+                    }
+                Toggle("Unverschlüsselt verbinden (http)", isOn: $allowHTTP)
+                    .font(.subheadline)
+                    .onChange(of: allowHTTP) { _, on in
+                        if on { pastedHTTP = false }
+                        resetOtp()
+                    }
+                if allowHTTP {
+                    Label("Passwort und Dokumente sind im Netzwerk mitlesbar. Nur im eigenen Netz verwenden.",
+                          systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                } else if pastedHTTP {
+                    Label("Die Adresse begann mit http://. Verbunden wird trotzdem verschlüsselt — für einen Server ohne HTTPS den Schalter einschalten.",
+                          systemImage: "info.circle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            // Vor dem Login erreichbar: Wer hinter Cloudflare Access, Authelia oder einem
+            // mTLS-Proxy steht, kommt ohne Kopfzeilen bzw. Zertifikat gar nicht bis zum Token.
+            Button {
+                showServerAccess = true
+            } label: {
+                Label("Serverzugang (Proxy, Zertifikat)", systemImage: "lock.shield")
+                    .font(.caption)
+            }
+            .disabled(fullServerUrl.isEmpty)
             TextField("Benutzer", text: $username)
                 .textFieldStyle(.roundedBorder)
                 .autocapitalization(.none)
@@ -89,6 +135,26 @@ struct LoginView: View {
         }
         .padding()
         .frame(maxWidth: 400)
+        .sheet(isPresented: $showServerAccess) {
+            NavigationStack {
+                ServerAccessView(server: PaperlessAPI.normalizedBase(fullServerUrl), dismissAfterSave: true)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Abbrechen") { showServerAccess = false }
+                        }
+                    }
+            }
+            .environmentObject(store)
+        }
+    }
+
+    /// Adresse mit Schema. Gibt es das Konto schon, dessen gespeicherte Schreibweise.
+    private var fullServerUrl: String {
+        let composed = ServerAddress.compose(scheme: allowHTTP ? .http : .https, input: serverUrl)
+        return ServerAddress.storedSpelling(
+            of: composed, username: username,
+            accounts: store.accounts.map { ($0.serverUrl, $0.username) }
+        ) ?? composed
     }
 
     private func resetOtp() {
@@ -99,6 +165,7 @@ struct LoginView: View {
     private func login() {
         isChecking = true
         errorMessage = ""
+        let serverUrl = fullServerUrl
         Task { @MainActor in
             do {
                 let token = try await PaperlessAPI.fetchToken(

@@ -31,10 +31,11 @@ final class AppearanceUITests: XCTestCase {
     @MainActor
     private func openAppearance(_ app: XCUIApplication) {
         app.buttons["Einstellungen"].firstMatch.tap()
-        let entry = app.buttons["Farbthema & Darstellung"]
+        // Kategorie „Darstellung"; die Zeile trägt Titel und Unterzeile als eine Beschriftung.
+        let entry = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Darstellung")).firstMatch
         // Der Eintrag liegt unterhalb des Dashboards und ist beim Öffnen nicht sichtbar.
         for _ in 0..<4 where !entry.exists { app.swipeUp() }
-        XCTAssertTrue(entry.waitForExistence(timeout: 10), "Eintrag „Farbthema & Darstellung“ fehlt")
+        XCTAssertTrue(entry.waitForExistence(timeout: 10), "Kategorie „Darstellung“ fehlt")
         entry.tap()
         XCTAssertTrue(app.staticTexts["Farbthema"].waitForExistence(timeout: 5),
                       "Darstellungs-Ansicht öffnete nicht")

@@ -122,7 +122,7 @@ Verständliche Fehlermeldungen, wenn das Modell fehlt, der Text zu lang ist, der
 - Eigene Felder: alle Typen anzeigen und bearbeiten (Text, Zahl, Datum, Auswahl, Ja/Nein, Dokumentverknüpfung, Währung u. a.), Filter danach
 - Statistik-Kacheln: Posteingang, Dokumente gesamt, Zeichenzahl, höchste ASN
 - Spotlight-Index neu aufbauen
-- Changelog, Unterstützungsseite (PayPal-Trinkgeld), App-Bewertung mit Gating-Logik (`ReviewRequestService`)
+- Changelog, Unterstützungsseite (bewerten, weiterempfehlen), App-Bewertung mit Gating-Logik (`ReviewRequestService`)
 
 ## 9. Server-Kompatibilität
 

@@ -61,9 +61,18 @@ extension AppStore {
     ///
     /// Läuft über `content`, also den Text, den der Server ohnehin schon geliefert hat — kein
     /// zusätzlicher Netzverkehr, keine Texterkennung auf dem Gerät.
-    func deadlineSuggestions(limit: Int = 50) -> [Deadline] {
+    func deadlineSuggestions(limit: Int = 50) async -> [Deadline] {
         guard isDeadlineRadarEnabled else { return [] }
         let fieldId = deadlineField?.id
+        let documents = documents
+        // Regex-Suche über den Text aller geladenen Dokumente — abseits des Main Threads.
+        return await Task.detached(priority: .userInitiated) {
+            Self.deadlineSuggestions(in: documents, fieldId: fieldId, limit: limit)
+        }.value
+    }
+
+    nonisolated static func deadlineSuggestions(in documents: [Document], fieldId: Int?,
+                                                limit: Int) -> [Deadline] {
         var found: [Deadline] = []
         for doc in documents {
             guard let text = doc.content, !text.isEmpty else { continue }
@@ -87,7 +96,11 @@ extension AppStore {
                 ?? filteredDocs.first(where: { $0.id == deadline.documentId })
                 ?? inboxDocuments.first(where: { $0.id == deadline.documentId })
         else { return false }
+        let account = activeAccountId
         guard let field = await ensureDeadlineField() else { return false }
+        // Während das Feld angelegt wurde, kann das Konto gewechselt haben — dann ginge die
+        // Änderung an ein fremdes Dokument mit derselben ID.
+        guard activeAccountId == account else { return false }
 
         var fields = doc.customFields.filter { $0.field != field.id }
         fields.append(CustomFieldEdit(field: field.id,
@@ -124,9 +137,12 @@ extension AppStore {
         if hasLiveServer {
             var query = DocumentQuery()
             query.customFieldID = field.id
-            if let page = try? await fetchPage(query: query, page: 1, pageSize: 250,
-                                               ordering: "-created,-id") {
-                candidates = page.documents
+            // Mehrere Seiten: Vorher nur die erste (250) — weitere Fristen fehlten still.
+            for pageNumber in 1...8 {
+                guard let page = try? await fetchPage(query: query, page: pageNumber, pageSize: 250,
+                                                      ordering: "-created,-id") else { break }
+                candidates.append(contentsOf: page.documents)
+                guard page.hasNext else { break }
             }
         }
         if candidates.isEmpty {
@@ -136,8 +152,14 @@ extension AppStore {
             }
         }
 
-        return candidates.compactMap { doc -> DeadlineEntry? in
-            guard let entry = doc.customFields.first(where: { $0.field == field.id }),
+        return Self.deadlineEntries(from: candidates, fieldId: field.id)
+    }
+
+    /// Die Fristen aus dem eigenen Feld, nach Datum sortiert. Ohne Store-Zugriff — auch für den
+    /// Hintergrundlauf (`NotificationService`).
+    nonisolated static func deadlineEntries(from documents: [Document], fieldId: Int) -> [DeadlineEntry] {
+        documents.compactMap { doc -> DeadlineEntry? in
+            guard let entry = doc.customFields.first(where: { $0.field == fieldId }),
                   case .text(let raw) = entry.value,
                   let date = DateFormatting.parseAPIDate(raw) else { return nil }
             return DeadlineEntry(document: doc, date: date)

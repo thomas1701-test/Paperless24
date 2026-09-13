@@ -121,7 +121,7 @@ struct UploadDocumentView: View {
         guard store.isDuplicateCheckEnabled else { return }
         isCheckingDuplicate = true
         let text = await OCRService.recognizeFirstPage(ofPDF: payload ?? container.data)
-        duplicate = store.checkForDuplicate(text: text)
+        duplicate = await store.checkForDuplicate(text: text)
         isCheckingDuplicate = false
     }
 

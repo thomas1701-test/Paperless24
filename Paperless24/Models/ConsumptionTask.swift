@@ -34,7 +34,7 @@ struct ConsumptionTask: Decodable {
         if let intValue = try? c.decodeIfPresent(Int.self, forKey: .relatedDocument) {
             relatedDocument = intValue
         } else if let stringValue = try? c.decodeIfPresent(String.self, forKey: .relatedDocument) {
-            relatedDocument = Int(stringValue ?? "")
+            relatedDocument = Int(stringValue)
         } else {
             relatedDocument = nil
         }

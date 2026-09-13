@@ -172,8 +172,13 @@ struct DocumentDetailView: View {
     }
 
     private func loadContent() {
+        // Vor dem Download festhalten — siehe `AppStore.loadPDFData(for:)`.
+        let fileURL = store.localFileURL(for: doc.id)
         if store.fileExists(docId: doc.id) {
-            pdfData = try? Data(contentsOf: store.localFileURL(for: doc.id))
+            // Abseits des Main Threads: Ein großer Scan hielt beim Öffnen sonst die Oberfläche an.
+            Task {
+                pdfData = await Task.detached(priority: .userInitiated) { try? Data(contentsOf: fileURL) }.value
+            }
             return
         }
         Task {
@@ -184,7 +189,7 @@ struct DocumentDetailView: View {
             do {
                 let data = try await api.downloadDocument(id: doc.id)
                 pdfData = data
-                try? PersistenceService.writeFile(data, to: store.localFileURL(for: doc.id))
+                try? PersistenceService.writeFile(data, to: fileURL)
             } catch {
                 loadError = error.localizedDescription
             }

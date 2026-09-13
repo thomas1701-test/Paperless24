@@ -16,9 +16,11 @@ struct DocumentPagerView: View {
     var searchQuery: String = ""
 
     /// Seiten je Richtung, die vorgehalten werden.
-    private static let windowRadius = 40
+    ///
+    /// 10 statt 40: Jede angelegte Detailansicht lädt beim Erscheinen ihr PDF und die Details.
+    private static let windowRadius = 10
     /// Abstand zum Rand, ab dem nachgeladen wird.
-    private static let growThreshold = 5
+    private static let growThreshold = 3
 
     @State private var selection: Int = 0
     @State private var lowerBound = 0

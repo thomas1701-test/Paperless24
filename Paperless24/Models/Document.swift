@@ -67,7 +67,7 @@ struct SearchHit: Codable, Hashable {
         if let d = try? c.decodeIfPresent(Double.self, forKey: .score) {
             score = d
         } else if let s = try? c.decodeIfPresent(String.self, forKey: .score) {
-            score = Double(s ?? "")
+            score = Double(s)
         }
         highlights = try? c.decodeIfPresent(String.self, forKey: .highlights)
         noteHighlights = try? c.decodeIfPresent(String.self, forKey: .noteHighlights)

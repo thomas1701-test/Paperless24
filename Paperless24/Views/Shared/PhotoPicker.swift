@@ -26,8 +26,7 @@ struct PhotoPicker: UIViewControllerRepresentable {
             guard let provider = results.first?.itemProvider, provider.canLoadObject(ofClass: UIImage.self) else { return }
             provider.loadObject(ofClass: UIImage.self) { image, _ in
                 guard let uiImage = image as? UIImage else { return }
-                let renderer = UIGraphicsPDFRenderer(bounds: CGRect(x: 0, y: 0, width: uiImage.size.width, height: uiImage.size.height))
-                let data = renderer.pdfData { ctx in ctx.beginPage(); uiImage.draw(at: .zero) }
+                let data = ScanPDF.make(from: [uiImage])
                 DispatchQueue.main.async { self.parent.onScan(data) }
             }
         }

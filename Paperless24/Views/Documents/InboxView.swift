@@ -13,6 +13,7 @@ struct InboxView: View {
     @State private var isSelectionMode = false
     @State private var selectedIDs = Set<Int>()
     @State private var showTriage = false
+    @State private var showBulkDeleteConfirm = false
 
     private var layoutStyle: LayoutStyle { LayoutStyle(rawValue: layoutStyleRaw) ?? .grid }
 
@@ -60,6 +61,18 @@ struct InboxView: View {
             }
             .fullScreenCover(isPresented: $showTriage) {
                 TriageView()
+            }
+            .confirmationDialog(
+                "\(selectedIDs.count) Dokument(e) löschen?",
+                isPresented: $showBulkDeleteConfirm, titleVisibility: .visible
+            ) {
+                Button("Löschen", role: .destructive) {
+                    store.deleteDocuments(ids: selectedIDs)
+                    isSelectionMode = false; selectedIDs.removeAll()
+                }
+                Button("Abbrechen", role: .cancel) {}
+            } message: {
+                Text("Auf Servern mit Papierkorb (paperless-ngx ab 2.0) lassen sie sich dort wiederherstellen.")
             }
         }
     }
@@ -194,8 +207,7 @@ struct InboxView: View {
                             } label: { Label("Als erledigt markieren", systemImage: "tray.and.arrow.down") }
                         }
                         Button(role: .destructive) {
-                            for id in selectedIDs { store.deleteDocument(id: id) }
-                            isSelectionMode = false; selectedIDs.removeAll()
+                            showBulkDeleteConfirm = true
                         } label: { Label("Löschen", systemImage: "trash") }
                     }
                 } label: { Image(systemName: "ellipsis.circle") }

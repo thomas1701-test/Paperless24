@@ -12,21 +12,19 @@ enum AppConstants {
     static let urlScheme = "paperless24"
     static let appStoreId = "6770317210"
 
-    /// Schemata, die als Rückruf-Ziel der Dokumentauswahl (`paperless24://pick?callback=`)
-    /// nicht in Frage kommen.
+    /// Schemata, an die die Dokumentauswahl (`paperless24://pick?callback=`) zurückgeben darf.
     ///
-    /// Den Rückruf darf jede App auf dem Gerät setzen. Ohne Prüfung ließe sich dort eine
-    /// Web-Adresse hinterlegen — die App würde nach der Auswahl den Browser öffnen und
-    /// Dokument-ID und Titel als Parameter an eine fremde Seite übergeben. Der Rückruf geht
-    /// an eine App auf demselben Gerät, ein Web- oder Datei-Schema ergibt hier also nie Sinn.
-    private static let blockedCallbackSchemes: Set<String> = [
-        "http", "https", "file", "data", "javascript", "mailto", "tel", "sms", "ftp", "about"
-    ]
+    /// Den Rückruf darf jede App und jede Webseite auf dem Gerät setzen. Nach der Auswahl
+    /// gehen Dokument-ID und Titel an dieses Ziel. Bis 2.2.0 gab es nur eine Sperrliste
+    /// (`http`, `https`, …) — `x-safari-https://`, `googlechromes://` oder
+    /// `firefox://open-url?url=` öffneten trotzdem eine fremde Webseite. Deshalb jetzt eine
+    /// Freigabeliste: Die Auswahl existiert ausschließlich für Vermietoo.
+    private static let allowedCallbackSchemes: Set<String> = ["vermietoo"]
 
     /// Prüft das Rückruf-Ziel der Dokumentauswahl.
     static func isAllowedPickerCallback(_ raw: String) -> Bool {
         guard let scheme = URL(string: raw)?.scheme?.lowercased(), !scheme.isEmpty else { return false }
-        return !blockedCallbackSchemes.contains(scheme)
+        return allowedCallbackSchemes.contains(scheme)
     }
 
     static let appChangelog: [ChangelogEntry] = [

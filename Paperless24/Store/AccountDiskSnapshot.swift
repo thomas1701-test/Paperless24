@@ -10,6 +10,7 @@ import Foundation
 /// Modelle sind (noch) nicht als `Sendable` deklariert, das nachzuziehen wäre eine eigene
 /// Änderungsrunde durch alle Modelldateien.
 struct AccountDiskSnapshot: @unchecked Sendable {
+    let accountId: UUID
     let documents: [Document]
     let tags: [Tag]
     let correspondents: [Correspondent]
@@ -23,6 +24,14 @@ struct AccountDiskSnapshot: @unchecked Sendable {
         func url(_ name: String) -> URL {
             PersistenceService.accountDataURL(for: id, filename: name)
         }
+        accountId = id
+        PersistenceService.waitForPendingWrites()
+        // Die Warteschlangen zuerst: Sie sind klein und ihr Verlust wäre am schmerzhaftesten.
+        // Standen sie hinter dem großen `documents.json`, lagen zwischen Start und Lesen
+        // leicht einige hundert Millisekunden.
+        pendingUploads = PersistenceService.loadUploads(accountId: id)
+        pendingEdits   = PersistenceService.load([PendingEdit].self,    fromURL: url("edits.json"))         ?? []
+        savedFilters   = PersistenceService.load([SavedFilter].self,    fromURL: url("savedfilters.json"))  ?? []
         // `uniquedByID()` bereinigt auch Caches, die noch mit Dubletten aus einer früheren
         // App-Version geschrieben wurden — sonst überlebt der Fehler den Fix.
         documents      = (PersistenceService.load([Document].self,      fromURL: url("documents.json")) ?? []).uniquedByID()
@@ -30,8 +39,5 @@ struct AccountDiskSnapshot: @unchecked Sendable {
         correspondents = PersistenceService.load([Correspondent].self,  fromURL: url("corrs.json"))         ?? []
         docTypes       = PersistenceService.load([DocumentType].self,   fromURL: url("types.json"))         ?? []
         customFields   = PersistenceService.load([CustomField].self,    fromURL: url("customfields.json"))  ?? []
-        pendingUploads = PersistenceService.load([PendingUpload].self,  fromURL: url("pending.json"))       ?? []
-        pendingEdits   = PersistenceService.load([PendingEdit].self,    fromURL: url("edits.json"))         ?? []
-        savedFilters   = PersistenceService.load([SavedFilter].self,    fromURL: url("savedfilters.json"))  ?? []
     }
 }

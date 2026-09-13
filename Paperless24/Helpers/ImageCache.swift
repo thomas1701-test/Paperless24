@@ -31,6 +31,9 @@ class ImageCache {
         }
     }
 
+    /// Das Konto, dem neu abgelegte Vorschauen zugeordnet werden.
+    var currentAccountId: UUID? { accountId }
+
     private var currentDirectory: URL? {
         guard let accountId else { return nil }
         return rootDirectory.appendingPathComponent(accountId.uuidString)
@@ -38,6 +41,23 @@ class ImageCache {
 
     private func key(_ id: Int) -> NSString {
         NSString(string: "\(accountId?.uuidString ?? "none")-\(id)")
+    }
+
+    /// Wie `getImage(for:)`, aber Lesen und Dekodieren abseits des Main Threads.
+    func loadImage(for id: Int) async -> UIImage? {
+        if let cached = cache.object(forKey: key(id)) { return cached }
+        guard let dir = currentDirectory else { return nil }
+        let account = accountId
+        let cacheKey = key(id)
+        let fileURL = dir.appendingPathComponent("\(id).jpg")
+        let image = await Task.detached(priority: .userInitiated) { () -> UIImage? in
+            guard let data = try? Data(contentsOf: fileURL), let image = UIImage(data: data) else { return nil }
+            // Gleich dekodieren — sonst holt das der erste Zeichenvorgang auf dem Main Thread nach.
+            return image.preparingForDisplay() ?? image
+        }.value
+        guard let image, account == accountId else { return nil }
+        cache.setObject(image, forKey: cacheKey)
+        return image
     }
 
     func getImage(for id: Int) -> UIImage? {
@@ -62,6 +82,12 @@ class ImageCache {
     func thumbnailData(for id: Int) -> Data? {
         guard let dir = currentDirectory else { return nil }
         return try? Data(contentsOf: dir.appendingPathComponent("\(id).jpg"))
+    }
+
+    /// Legt nur ab, wenn noch dasselbe Konto aktiv ist wie beim Start des Downloads.
+    func saveImage(_ image: UIImage, for id: Int, ifAccount account: UUID?) {
+        guard account == accountId else { return }
+        saveImage(image, for: id)
     }
 
     func saveImage(_ image: UIImage, for id: Int) {

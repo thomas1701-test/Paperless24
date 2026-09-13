@@ -5,13 +5,26 @@ import SwiftUI
 struct LinkifiedText: View {
     let text: String
 
+    /// Einmal im Hintergrund berechnet. Vorher lief die Erkennung — samt der langsamen
+    /// Adresserkennung — über den ganzen OCR-Text bei *jeder* Body-Auswertung auf dem Main
+    /// Thread; die Detailansicht hängt am Store und wird bei jeder seiner Änderungen neu gezeichnet.
+    @State private var linked: AttributedString? = nil
+
     var body: some View {
-        Text(attributed)
+        Text(linked ?? AttributedString(text))
             .textSelection(.enabled)
             .tint(.blue)
+            .task(id: text) {
+                let source = text
+                let result = await Task.detached(priority: .userInitiated) {
+                    Self.linkify(source)
+                }.value
+                guard !Task.isCancelled else { return }
+                linked = result
+            }
     }
 
-    private var attributed: AttributedString {
+    nonisolated static func linkify(_ text: String) -> AttributedString {
         var attr = AttributedString(text)
         let types: NSTextCheckingResult.CheckingType = [.link, .phoneNumber, .address]
         guard let detector = try? NSDataDetector(types: types.rawValue) else { return attr }

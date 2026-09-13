@@ -12,7 +12,7 @@ struct PermissionsSheet: View {
 
     let documentIds: Set<Int>
 
-    @State private var owner: Int? = nil
+    @State private var owner: AppStore.OwnerChoice = .unchanged
     @State private var viewUsers = Set<Int>()
     @State private var changeUsers = Set<Int>()
     @State private var viewGroups = Set<Int>()
@@ -66,13 +66,20 @@ struct PermissionsSheet: View {
         Form {
             Section {
                 Picker("Besitzer", selection: $owner) {
-                    Text("Unverändert lassen").tag(Int?.none)
+                    Text("Unverändert lassen").tag(AppStore.OwnerChoice.unchanged)
                     ForEach(store.serverUsers) { user in
-                        Text(user.displayName).tag(Int?.some(user.id))
+                        Text(user.displayName).tag(AppStore.OwnerChoice.user(user.id))
                     }
+                    Text("Kein Besitzer").tag(AppStore.OwnerChoice.nobody)
                 }
             } footer: {
-                Text("Gilt für \(documentIds.count) Dokument(e).")
+                if owner == .nobody {
+                    Label("Dokumente ohne Besitzer sieht jeder Benutzer dieser Instanz — unabhängig von der Auswahl unten.",
+                          systemImage: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                } else {
+                    Text("Gilt für \(documentIds.count) Dokument(e).")
+                }
             }
 
             Section("Ansehen dürfen") {
@@ -86,8 +93,7 @@ struct PermissionsSheet: View {
             } header: {
                 Text("Bearbeiten dürfen")
             } footer: {
-                Text("Der Server ersetzt die bestehenden Rechte durch diese Auswahl — es ist "
-                     + "keine Ergänzung. Wer niemanden auswählt, macht die Dokumente privat.")
+                Text("Der Server ersetzt die bestehenden Rechte durch diese Auswahl — es ist keine Ergänzung. Wer niemanden auswählt, lässt nur den Besitzer (und Administratoren) an die Dokumente.")
             }
         }
     }

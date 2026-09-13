@@ -20,15 +20,8 @@ struct ScannerView: UIViewControllerRepresentable {
         init(parent: ScannerView) { self.parent = parent }
 
         func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan) {
-            let renderer = UIGraphicsPDFRenderer()
-            let data = renderer.pdfData { ctx in
-                for i in 0..<scan.pageCount {
-                    let img = scan.imageOfPage(at: i)
-                    let rect = CGRect(x: 0, y: 0, width: img.size.width, height: img.size.height)
-                    ctx.beginPage(withBounds: rect, pageInfo: [:])
-                    img.draw(in: rect)
-                }
-            }
+            // Verkleinert und als JPEG — siehe `ScanPDF`.
+            let data = ScanPDF.make(pageCount: scan.pageCount) { scan.imageOfPage(at: $0) }
             parent.onScan(data)
             parent.isPresented = false
         }

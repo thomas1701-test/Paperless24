@@ -4,9 +4,18 @@ struct OfflineDocsView: View {
     @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
     @State private var selectedDoc: Document? = nil
+    /// Einmal ermittelt. Vorher prüfte jede Body-Auswertung für jedes geladene Dokument die Platte
+    /// (samt `createDirectory`) — dreimal, weil die Liste an drei Stellen gelesen wurde.
+    @State private var offlineDocs: [Document] = []
 
-    var offlineDocs: [Document] {
-        store.documents.filter { store.fileExists(docId: $0.id) }
+    private func refresh() {
+        guard let accountId = store.activeAccountId else { offlineDocs = []; return }
+        let docs = store.documents
+        Task {
+            offlineDocs = await Task.detached(priority: .userInitiated) {
+                docs.filter { PersistenceService.fileExists(docId: $0.id, accountId: accountId) }
+            }.value
+        }
     }
 
     var body: some View {
@@ -30,9 +39,12 @@ struct OfflineDocsView: View {
         }
         .themedSurface(palette)
         .navigationTitle("Offline Dateien")
+        .onAppear(perform: refresh)
     }
 
     private func deleteLocal(at offsets: IndexSet) {
-        for index in offsets { store.deleteLocalFile(docId: offlineDocs[index].id) }
+        let ids = offsets.map { offlineDocs[$0].id }
+        for id in ids { store.deleteLocalFile(docId: id) }
+        offlineDocs.removeAll { ids.contains($0.id) }
     }
 }

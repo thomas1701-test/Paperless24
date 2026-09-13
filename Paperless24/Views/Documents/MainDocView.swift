@@ -41,6 +41,7 @@ struct MainDocView: View {
     @State private var isSelectionMode = false
     @State private var selectedDocIDs = Set<Int>()
     @State private var isBulkSharing = false
+    @State private var showBulkDeleteConfirm = false
     @State private var bulkShareURLs: [URL] = []
     @State private var showBulkShare = false
     @State private var documentToEdit: Document? = nil
@@ -322,12 +323,14 @@ struct MainDocView: View {
                                     Task { await bulkShare() }
                                 } label: { Image(systemName: "square.and.arrow.up").frame(maxWidth: .infinity) }
                             }
-                            Button(role: .destructive) { bulkDelete() } label: {
+                            Button(role: .destructive) { showBulkDeleteConfirm = true } label: {
                                 Image(systemName: "trash").frame(maxWidth: .infinity)
                             }
                             if store.pickerCallbackURL != nil {
                                 Button {
-                                    let docs = store.documents.filter { selectedDocIDs.contains($0.id) }
+                                    // Aus der sichtbaren Liste: Bei Suche oder Server-Filter stehen die
+                                    // Treffer nicht zwingend in `documents` und fielen sonst still weg.
+                                    let docs = store.filteredDocs.filter { selectedDocIDs.contains($0.id) }
                                     store.selectDocumentsForPicker(docs: docs)
                                     isSelectionMode = false; selectedDocIDs.removeAll()
                                 } label: {
@@ -348,7 +351,10 @@ struct MainDocView: View {
                          ? Text(busyVisible ? busyLabel : "\(store.listCount) \(String(localized: "Dokumente", locale: locale))")
                          : Text(""))
         .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $searchText)
+        // Fest eingeblendet: Mit der automatischen Platzierung klappte iOS das Suchfeld nach
+        // einem Tabwechsel mit offener Detailansicht oder nach dem Scan-Tab ein und gab es nie
+        // wieder frei — nur ein Neustart half (`SearchFieldUITests`).
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
         .searchSuggestions {
             if searchText.isEmpty {
                 ForEach(store.recentSearches, id: \.self) { recent in
@@ -356,7 +362,7 @@ struct MainDocView: View {
                 }
             }
         }
-        .onChange(of: searchText) { store.runSearch(query: $0) }
+        .onChange(of: searchText) { _, query in store.runSearch(query: query) }
         .toolbar { toolbarContent }
         .sheet(item: $uploadQueueItem) { container in
             UploadDocumentView(container: container, onUpload: { d, f, t, date, co, ty, ta, comp in
@@ -364,6 +370,16 @@ struct MainDocView: View {
                 comp()
                 store.sync()
             }, onCancel: { uploadQueueItem = nil })
+        }
+        // Mehrere Dateien auf einmal geteilt: die nächste erst, wenn das Formular zu ist.
+        .onChange(of: uploadQueueItem == nil) { _, closed in
+            guard closed else { return }
+            if let waiting = store.incomingUploadContainer {
+                uploadQueueItem = waiting
+                store.incomingUploadContainer = nil
+            } else {
+                store.importNextSharedFile()
+            }
         }
         .sheet(item: $documentToEdit) { doc in
             EditDocumentView(document: doc, onSave: updateDocument, onDelete: { store.deleteDocument(id: $0) })
@@ -387,6 +403,15 @@ struct MainDocView: View {
             Button("Abbrechen", role: .cancel) { saveFilterName = "" }
         } message: {
             Text("Name für diese Ansicht (wird auf dem Server gespeichert):")
+        }
+        .confirmationDialog(
+            "\(selectedDocIDs.count) Dokument(e) löschen?",
+            isPresented: $showBulkDeleteConfirm, titleVisibility: .visible
+        ) {
+            Button("Löschen", role: .destructive) { bulkDelete() }
+            Button("Abbrechen", role: .cancel) {}
+        } message: {
+            Text("Auf Servern mit Papierkorb (paperless-ngx ab 2.0) lassen sie sich dort wiederherstellen.")
         }
         .sheet(isPresented: $showPermissions) {
             PermissionsSheet(documentIds: selectedDocIDs)
@@ -469,7 +494,8 @@ struct MainDocView: View {
             if let url = try? result.get().first { store.handleIncomingFile(url: url) }
         }
         .onReceive(store.$incomingUploadContainer) { container in
-            if let c = container { uploadQueueItem = c; store.incomingUploadContainer = nil }
+            // Ist schon ein Formular offen, wartet die Datei, statt es zu ersetzen.
+            if let c = container, uploadQueueItem == nil { uploadQueueItem = c; store.incomingUploadContainer = nil }
         }
         .alert("Fehler", isPresented: Binding<Bool>(
             get: { store.importErrorMessage != nil },
@@ -491,13 +517,13 @@ struct MainDocView: View {
             guard !Task.isCancelled else { return }
             busyVisible = false
         }
-        .onChange(of: store.pendingSearch) { q in
+        .onChange(of: store.pendingSearch) { _, q in
             guard let q else { return }
             store.pendingSearch = nil
             searchText = q
             store.runSearch(query: q)
         }
-        .onChange(of: store.widgetOpenDocId) { id in
+        .onChange(of: store.widgetOpenDocId) { _, id in
             guard let id else { return }
             store.widgetOpenDocId = nil
             if let existing = store.documents.first(where: { $0.id == id }) {
@@ -1205,7 +1231,7 @@ struct MainDocView: View {
     }
 
     private func bulkDelete() {
-        for id in selectedDocIDs { store.deleteDocument(id: id) }
+        store.deleteDocuments(ids: selectedDocIDs)
         isSelectionMode = false
         selectedDocIDs.removeAll()
     }
@@ -1217,7 +1243,7 @@ struct MainDocView: View {
         var urls: [URL] = []
         for id in selectedDocIDs {
             guard let data = await store.loadPDFData(for: id) else { continue }
-            let title = store.documents.first { $0.id == id }?.title ?? "\(id)"
+            let title = (store.filteredDocs.first { $0.id == id } ?? store.documents.first { $0.id == id })?.title ?? "\(id)"
             if let url = ShareStaging.stage(data, filename: "\(title).pdf") { urls.append(url) }
         }
         bulkShareURLs = urls

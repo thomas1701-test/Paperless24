@@ -120,11 +120,12 @@ struct CustomFieldsSection: View {
         )
     }
 
+    /// Über `DateFormatting` statt eines eigenen `DateFormatter`: Der ließ Kalender und Locale
+    /// offen — mit buddhistischem oder japanischem Kalender entstand ein falsches Jahr.
     private func dateBinding(_ field: CustomField) -> Binding<Date> {
-        let fmt = DateFormatter(); fmt.dateFormat = "yyyy-MM-dd"
-        return Binding(
-            get: { if case .text(let s) = value(field), let d = fmt.date(from: String(s.prefix(10))) { return d }; return Date() },
-            set: { setValue(field, .text(fmt.string(from: $0))) }
+        Binding(
+            get: { if case .text(let s) = value(field), let d = DateFormatting.parseAPIDate(s) { return d }; return Date() },
+            set: { setValue(field, .text(DateFormatting.apiDate($0))) }
         )
     }
 

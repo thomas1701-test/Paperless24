@@ -29,6 +29,15 @@ enum WidgetDataService {
         d.set(try? JSONEncoder().encode(docs), forKey: "widget_documents")
     }
 
+    /// Entfernt Dokumenttitel und Zahlen aus der App Group — beim Abmelden und beim Kontowechsel.
+    /// Vorher zeigten Widget und Kurzbefehle danach weiter Titel und Sender des alten Kontos.
+    static func clearContent() {
+        guard let d = defaults else { return }
+        for key in ["widget_documents", "widget_inbox_count", "widget_total_count", "widget_last_sync"] {
+            d.removeObject(forKey: key)
+        }
+    }
+
     /// Schreibt die fertigen Akzentfarben für das Widget.
     ///
     /// Das Widget läuft in einem eigenen Prozess ohne Zugriff auf `UserDefaults.standard`
@@ -56,7 +65,7 @@ enum WidgetDataService {
     }
 
     static func isEnabled() -> Bool {
-        defaults?.bool(forKey: "widget_enabled") ?? true
+        defaults?.object(forKey: "widget_enabled") as? Bool ?? true
     }
 
     static func readMode() -> String {

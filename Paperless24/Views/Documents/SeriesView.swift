@@ -5,14 +5,18 @@ struct SeriesView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.palette) private var palette
 
-    private var series: [SeriesDetector.Series] {
-        SeriesDetector.detect(
-            in: store.documents,
-            names: Dictionary(store.allCorrespondents.map { ($0.id, $0.safeName) },
-                              uniquingKeysWith: { a, _ in a }),
-            typeNames: Dictionary(store.allDocTypes.map { ($0.id, $0.safeName) },
-                                  uniquingKeysWith: { a, _ in a })
-        )
+    /// Einmal berechnet, wenn sich der Bestand ändert. Vorher war das eine berechnete
+    /// Eigenschaft: Die Erkennung lief über alle Dokumente — zweimal pro Body-Auswertung und
+    /// bei jeder Änderung am Store erneut.
+    @State private var series: [SeriesDetector.Series] = []
+
+    private var inputKey: Int {
+        var hasher = Hasher()
+        hasher.combine(store.documents.count)
+        hasher.combine(store.documents.first?.id)
+        hasher.combine(store.allCorrespondents.count)
+        hasher.combine(store.allDocTypes.count)
+        return hasher.finalize()
     }
 
     var body: some View {
@@ -48,6 +52,18 @@ struct SeriesView: View {
         }
         .themedSurface(palette)
         .navigationTitle("Regelmäßiges")
+        .task(id: inputKey) {
+            let docs = store.documents
+            let names = Dictionary(store.allCorrespondents.map { ($0.id, $0.safeName) },
+                                   uniquingKeysWith: { a, _ in a })
+            let typeNames = Dictionary(store.allDocTypes.map { ($0.id, $0.safeName) },
+                                       uniquingKeysWith: { a, _ in a })
+            let result = await Task.detached(priority: .userInitiated) {
+                SeriesDetector.detect(in: docs, names: names, typeNames: typeNames)
+            }.value
+            guard !Task.isCancelled else { return }
+            series = result
+        }
     }
 
     private func row(_ item: SeriesDetector.Series) -> some View {

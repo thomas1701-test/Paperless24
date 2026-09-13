@@ -46,6 +46,87 @@ enum PersistenceService {
         }
     }
 
+    /// Wartet, bis alle angestoßenen Schreibvorgänge auf der Platte sind.
+    ///
+    /// Vor dem Lesen eines Kontostands aufzurufen (nicht vom Main Thread): Sonst liest der
+    /// Snapshot eine Datei, deren neuere Fassung noch in der Queue steckt.
+    static func waitForPendingWrites() {
+        ioQueue.sync {}
+    }
+
+    /// Nimmt Einträge aus der Warteschlangen-Datei eines Kontos, das gerade nicht aktiv ist.
+    ///
+    /// Für Uploads und Änderungen, die noch übertragen wurden, während das Konto gewechselt
+    /// wurde. Lesen und Schreiben laufen gemeinsam in der seriellen Queue, damit kein anderer
+    /// Schreibvorgang dazwischenkommt. Ein inzwischen gelöschtes Konto wird nicht neu angelegt.
+    static func removeQueued<T: Codable & Identifiable>(
+        _ type: T.Type, ids: Set<UUID>, filename: String, accountId: UUID
+    ) where T.ID == UUID {
+        guard !ids.isEmpty else { return }
+        let dir = url("accounts/\(accountId.uuidString)")
+        let fileURL = dir.appendingPathComponent(filename)
+        ioQueue.async {
+            guard let data = try? Data(contentsOf: fileURL),
+                  var items = try? JSONDecoder().decode([T].self, from: data) else { return }
+            items.removeAll { ids.contains($0.id) }
+            guard let encoded = try? JSONEncoder().encode(items) else { return }
+            try? encoded.write(to: fileURL, options: writeOptions)
+        }
+    }
+
+    // MARK: - Wartende Uploads
+
+    private static func uploadsDirectory(for accountId: UUID) -> URL {
+        let dir = url("accounts/\(accountId.uuidString)/uploads")
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }
+
+    /// Speichert die Upload-Warteschlange: jede Datei einmal als eigene Datei, `pending.json`
+    /// nur mit den Angaben dazu.
+    ///
+    /// Alles in der seriellen Queue und in dieser Reihenfolge: erst neue Dateien, dann das JSON,
+    /// dann das Aufräumen. So verweist `pending.json` nie auf eine Datei, die noch nicht liegt.
+    static func saveUploads(_ uploads: [PendingUpload], accountId: UUID) {
+        let dir = uploadsDirectory(for: accountId)
+        let jsonURL = accountDataURL(for: accountId, filename: "pending.json")
+        guard let json = try? JSONEncoder().encode(uploads) else { return }
+        // `Data` ist copy-on-write — hier wird nichts kopiert.
+        let files = uploads.map { (name: $0.id.uuidString, data: $0.data) }
+        let keep = Set(files.map(\.name))
+        ioQueue.async {
+            let fm = FileManager.default
+            for file in files {
+                let fileURL = dir.appendingPathComponent(file.name)
+                if !fm.fileExists(atPath: fileURL.path) {
+                    try? file.data.write(to: fileURL, options: writeOptions)
+                }
+            }
+            try? json.write(to: jsonURL, options: writeOptions)
+            for name in (try? fm.contentsOfDirectory(atPath: dir.path)) ?? [] where !keep.contains(name) {
+                try? fm.removeItem(at: dir.appendingPathComponent(name))
+            }
+        }
+    }
+
+    /// Liest die Upload-Warteschlange samt Dateien. Einträge älterer Versionen tragen die Datei
+    /// noch im JSON; fehlt eine Datei, bleibt der Eintrag sichtbar, wird aber nicht hochgeladen.
+    static func loadUploads(accountId: UUID) -> [PendingUpload] {
+        guard var uploads = load([PendingUpload].self,
+                                 fromURL: accountDataURL(for: accountId, filename: "pending.json"))
+        else { return [] }
+        let dir = uploadsDirectory(for: accountId)
+        for index in uploads.indices where uploads[index].data.isEmpty {
+            let fileURL = dir.appendingPathComponent(uploads[index].id.uuidString)
+            if let data = try? Data(contentsOf: fileURL) {
+                uploads[index].data = data
+            } else if uploads[index].failureReason == nil {
+                uploads[index].failureReason = "Die Datei zu diesem Upload fehlt auf dem Gerät."
+            }
+        }
+        return uploads
+    }
+
     /// Schreibt eine bereits fertige Datei (PDF, Bild) mit denselben Garantien.
     static func writeFile(_ data: Data, to fileURL: URL) throws {
         try data.write(to: fileURL, options: writeOptions)

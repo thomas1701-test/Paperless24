@@ -15,6 +15,15 @@ struct PickerCallbackTests {
         #expect(AppConstants.isAllowedPickerCallback("vermietoo://import?session=42"))
     }
 
+    /// Browser-Schemata, die eine Webseite öffnen — an einer Sperrliste vorbei.
+    @Test("Browser-Umwege sind ausgeschlossen")
+    func rejectsBrowserSchemes() {
+        #expect(!AppConstants.isAllowedPickerCallback("x-safari-https://fremde-domain.example/sammel"))
+        #expect(!AppConstants.isAllowedPickerCallback("googlechromes://fremde-domain.example"))
+        #expect(!AppConstants.isAllowedPickerCallback("firefox://open-url?url=https://fremde-domain.example"))
+        #expect(!AppConstants.isAllowedPickerCallback("shortcuts://run-shortcut?name=x"))
+    }
+
     @Test("Web-Adressen sind ausgeschlossen")
     func rejectsWebSchemes() {
         #expect(!AppConstants.isAllowedPickerCallback("https://fremde-domain.example/sammel"))

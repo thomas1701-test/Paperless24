@@ -13,6 +13,7 @@ struct ShareLinkSheet: View {
     @State private var expiration = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
     @State private var fileVersion = "archive"
     @State private var copiedSlug: String? = nil
+    @State private var errorMessage: String? = nil
 
     var body: some View {
         NavigationStack {
@@ -55,6 +56,13 @@ struct ShareLinkSheet: View {
                 ToolbarItem(placement: .confirmationAction) { Button("Fertig") { dismiss() } }
             }
             .onAppear { Task { await reload() } }
+            .alert("Freigabe-Links", isPresented: Binding(
+                get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } }
+            )) {
+                Button("OK") { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
+            }
         }
     }
 
@@ -106,12 +114,19 @@ struct ShareLinkSheet: View {
                                                  expiration: useExpiration ? expiration : nil,
                                                  fileVersion: fileVersion) {
             links.insert(new, at: 0)
+        } else {
+            errorMessage = String(localized: "Der Link konnte nicht erstellt werden.")
         }
         isCreating = false
     }
 
     private func revoke(_ link: DocShareLink) async {
-        await store.deleteShareLink(id: link.id)
+        if let failure = await store.deleteShareLink(id: link.id) {
+            // Der Link bleibt stehen: Er ist weiterhin öffentlich erreichbar.
+            errorMessage = String(localized: "Der Link wurde nicht widerrufen und ist weiterhin gültig.")
+                + "\n\n" + failure
+            return
+        }
         links.removeAll { $0.id == link.id }
     }
 }

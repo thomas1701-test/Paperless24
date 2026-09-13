@@ -30,7 +30,7 @@ enum WidgetDataService {
     }
 
     static func isEnabled() -> Bool {
-        defaults?.bool(forKey: "widget_enabled") ?? true
+        defaults?.object(forKey: "widget_enabled") as? Bool ?? true
     }
 
     static func readMode() -> String {

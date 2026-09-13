@@ -5,6 +5,19 @@ import UniformTypeIdentifiers
 struct ServerAccessView: View {
     @EnvironmentObject var store: AppStore
     @Environment(\.palette) private var palette
+    @Environment(\.dismiss) private var dismiss
+
+    /// Normalisierte Serveradresse (`PaperlessAPI.normalizedBase`), unter der Kopfzeilen und
+    /// Zertifikat abgelegt werden.
+    ///
+    /// Von außen übergeben statt aus dem aktiven Konto gelesen: Vorher war das
+    /// `store.makeServerBase()`, und das ist ohne gültigen Token leer. Genau wer hinter
+    /// Cloudflare Access oder einem mTLS-Proxy steht, hat aber noch keinen Token — die
+    /// Einstellung war erst nach dem Login erreichbar, und der Login ohne sie unmöglich.
+    let server: String
+    /// Aus dem Anmeldebildschirm: Nach dem Speichern zurück, statt die Verbindung eines
+    /// (noch gar nicht vorhandenen) Kontos zu prüfen.
+    var dismissAfterSave = false
 
     @State private var headers: [HeaderRow] = []
     @State private var showCertPicker = false
@@ -13,8 +26,6 @@ struct ServerAccessView: View {
     @State private var pendingCertData: Data? = nil
     @State private var hasCert = false
     @State private var message: String? = nil
-
-    private var server: String { store.makeServerBase() }
 
     struct HeaderRow: Identifiable, Equatable {
         let id = UUID()
@@ -138,8 +149,17 @@ struct ServerAccessView: View {
                 .map { ($0.name, $0.value) },
             uniquingKeysWith: { _, last in last }
         )
-        ServerCredentials.setHeaders(map, for: server)
+        guard ServerCredentials.setHeaders(map, for: server) else {
+            message = String(localized: "Die Kopfzeilen konnten nicht im Schlüsselbund gespeichert werden.")
+            return
+        }
         ClientCertSessionProvider.shared.invalidate(server: server)
-        Task { message = await store.probeConnection() }
+        if dismissAfterSave {
+            dismiss()
+        } else if store.hasValidToken(), PaperlessAPI.normalizedBase(store.serverUrl) == server {
+            Task { message = await store.probeConnection() }
+        } else {
+            message = String(localized: "Gespeichert.")
+        }
     }
 }

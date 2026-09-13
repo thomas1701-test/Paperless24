@@ -90,18 +90,10 @@ final class AirScanService: NSObject, ObservableObject {
         await setStatus("", scanning: false)
         // PDF direkt zurück, JPEG/PNG in PDF wandeln.
         if data.starts(with: [0x25, 0x50, 0x44, 0x46]) { return data } // %PDF
-        if let image = UIImage(data: data) { return Self.pdf(from: image) }
+        if let image = UIImage(data: data) { return ScanPDF.make(from: [image]) }
         return data
     }
 
-    private static func pdf(from image: UIImage) -> Data {
-        let bounds = CGRect(origin: .zero, size: image.size)
-        let renderer = UIGraphicsPDFRenderer(bounds: bounds)
-        return renderer.pdfData { ctx in
-            ctx.beginPage()
-            image.draw(in: bounds)
-        }
-    }
 
     @MainActor
     private func setStatus(_ text: String, scanning: Bool) {

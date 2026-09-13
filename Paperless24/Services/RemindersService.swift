@@ -8,6 +8,20 @@ import EventKit
 /// wandert nicht aus dem Blick, wenn der Tag vorbei ist. Die Berechtigung dafür ist in der
 /// Info.plist schon beschrieben (`NSRemindersFullAccessUsageDescription`).
 enum RemindersService {
+
+    /// Wann die Erinnerung weckt: `leadDays` vor der Frist um 9 Uhr — aber nie in der Vergangenheit.
+    ///
+    /// Vorher wurde erst auf „frühestens in 5 Minuten" angehoben und *danach* auf 9 Uhr gesetzt.
+    /// Nachmittags angelegt, landete der Alarm damit wieder auf 9 Uhr am selben Morgen — in der
+    /// Vergangenheit, und er feuerte sofort oder gar nicht.
+    static func alarmDate(dueDate: Date, leadDays: Int, now: Date = Date(),
+                          calendar: Calendar = .current) -> Date {
+        let lead = calendar.date(byAdding: .day, value: -leadDays, to: dueDate) ?? dueDate
+        let atNine = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: lead) ?? lead
+        let earliest = calendar.date(byAdding: .minute, value: 5, to: now) ?? now
+        return max(atNine, earliest)
+    }
+
     private static let store = EKEventStore()
 
     enum Failure: LocalizedError {
@@ -49,12 +63,7 @@ enum RemindersService {
 
         // Die Erinnerung meldet sich mit Vorlauf: Eine Kündigungsfrist, von der man am
         // Stichtag erfährt, ist verstrichen.
-        let alarmDate = calendar.date(byAdding: .day, value: -leadDays, to: dueDate) ?? dueDate
-        // Nicht in der Vergangenheit wecken — sonst feuert der Alarm sofort oder gar nicht.
-        let fireDate = max(alarmDate, calendar.date(byAdding: .minute, value: 5, to: Date()) ?? Date())
-        reminder.addAlarm(EKAlarm(absoluteDate: calendar.date(
-            bySettingHour: 9, minute: 0, second: 0, of: fireDate
-        ) ?? fireDate))
+        reminder.addAlarm(EKAlarm(absoluteDate: alarmDate(dueDate: dueDate, leadDays: leadDays)))
 
         do {
             try store.save(reminder, commit: true)

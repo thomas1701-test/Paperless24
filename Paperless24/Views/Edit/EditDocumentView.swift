@@ -95,7 +95,10 @@ struct EditDocumentView: View {
         if let d = document.dateObject { date = d }
 
         if store.fileExists(docId: document.id) {
-            pdfData = try? Data(contentsOf: store.localFileURL(for: document.id))
+            let fileURL = store.localFileURL(for: document.id)
+            Task {
+                pdfData = await Task.detached(priority: .userInitiated) { try? Data(contentsOf: fileURL) }.value
+            }
         }
     }
 }

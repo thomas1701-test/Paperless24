@@ -45,6 +45,10 @@ struct Paperless24App: App {
                                 store.handleImportData(data: data, filename: filename)
                                 UIPasteboard.general.items = []
                             }
+                        } else if url.host == "inbox" {
+                            // Aus dem Sperrbildschirm-Widget. Vorher kannte die App diese Adresse
+                            // nicht — der Tipp öffnete sie, landete aber nicht im Posteingang.
+                            store.requestInbox = true
                         } else if url.host == "pick" {
                             let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
                             if let callback = components?.queryItems?.first(where: { $0.name == "callback" })?.value,
@@ -59,10 +63,11 @@ struct Paperless24App: App {
                 // Auffangnetz: Öffnet die Erweiterung die App nicht (aus einem Share-Sheet
                 // darf sie das nicht immer), liegt die Datei trotzdem in der App Group.
                 // Beim nächsten Start bzw. Wechsel in den Vordergrund holen wir sie ab.
-                .onChange(of: scenePhase) { phase in
+                .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
                         checkForSharedFile()
                         handleControlRequests()
+                        NotificationService.clearBadge()
                     }
                 }
                 // Beim Kaltstart steht die Szene je nach System schon auf `active`, dann
@@ -89,21 +94,9 @@ struct Paperless24App: App {
         }
     }
 
+    /// Holt die nächste geteilte Datei ab. Weitere folgen, sobald das Importformular schließt
+    /// (`MainDocView`).
     private func checkForSharedFile() {
-        guard let defaults = UserDefaults(suiteName: AppConstants.appGroupId),
-              let filename = defaults.string(forKey: "shared_filename"),
-              let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: AppConstants.appGroupId) else { return }
-
-        let fileURL = sharedURL.appendingPathComponent("shared_import.data")
-        do {
-            let data = try Data(contentsOf: fileURL)
-            store.handleImportData(data: data, filename: filename)
-            defaults.removeObject(forKey: "shared_filename")
-            try? FileManager.default.removeItem(at: fileURL)
-        } catch {
-            // `Logger` statt `print`: landet nicht im Release-Build auf der Konsole und
-            // schreibt den Fehler nicht in ein für andere lesbares Protokoll.
-            Self.logger.debug("Laden aus der App Group fehlgeschlagen: \(error.localizedDescription, privacy: .public)")
-        }
+        store.importNextSharedFile()
     }
 }

@@ -15,6 +15,9 @@ struct MetadataFormSection: View {
     @State private var isAnalyzing = false
     @State private var analysisResult = ""
     @State private var activeSheet: ActiveSheet?
+    /// Von der KI genannte Einträge, die es noch nicht gibt — warten auf Bestätigung.
+    @State private var proposals: [MetadataProposal] = []
+    @State private var selectedProposals: Set<String> = []
 
     var pdfData: Data?
 
@@ -25,12 +28,14 @@ struct MetadataFormSection: View {
     private enum ActiveSheet: Identifiable {
         case sender, docType, tags
         case newEntry(MetadataType)
+        case proposals
         var id: String {
             switch self {
             case .sender: return "sender"
             case .docType: return "docType"
             case .tags: return "tags"
             case .newEntry(let t): return "new-\(t)"
+            case .proposals: return "proposals"
             }
         }
     }
@@ -153,7 +158,94 @@ struct MetadataFormSection: View {
                     },
                     onCancel: { activeSheet = nil }
                 )
+            case .proposals:
+                proposalSheet
+                    .presentationDetents([.medium, .large])
             }
+        }
+    }
+
+    /// Rückfrage, bevor KI-Vorschläge neue Stammdaten auf dem Server anlegen. Vorher legte
+    /// jeder Tipp auf den Zauberstab ungefragt Tags, Sender und Typen an — auch Tippfehler
+    /// und Fantasienamen des Modells.
+    private var proposalSheet: some View {
+        NavigationStack {
+            List {
+                Section {
+                    ForEach(proposals) { proposal in
+                        Toggle(isOn: Binding(
+                            get: { selectedProposals.contains(proposal.id) },
+                            set: { on in
+                                if on { selectedProposals.insert(proposal.id) } else { selectedProposals.remove(proposal.id) }
+                            }
+                        )) {
+                            Label {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(verbatim: proposal.name)
+                                    Text(kindLabel(proposal.kind)).font(.caption).foregroundStyle(.secondary)
+                                }
+                            } icon: {
+                                Image(systemName: kindIcon(proposal.kind))
+                            }
+                        }
+                    }
+                } footer: {
+                    Text("Die KI schlägt Einträge vor, die es auf dem Server noch nicht gibt. Nur die ausgewählten werden angelegt und dem Dokument zugeordnet.")
+                }
+            }
+            .navigationTitle("Neu anlegen?")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Nicht anlegen") {
+                        proposals = []
+                        activeSheet = nil
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Anlegen") {
+                        let chosen = proposals.filter { selectedProposals.contains($0.id) }
+                        proposals = []
+                        activeSheet = nil
+                        Task { await create(chosen) }
+                    }
+                    .disabled(selectedProposals.isEmpty)
+                }
+            }
+        }
+    }
+
+    private func kindLabel(_ kind: MetadataType) -> LocalizedStringKey {
+        switch kind {
+        case .tag: return "Tag"
+        case .correspondent: return "Sender"
+        case .docType: return "Typ"
+        }
+    }
+
+    private func kindIcon(_ kind: MetadataType) -> String {
+        switch kind {
+        case .tag: return "tag"
+        case .correspondent: return "person"
+        case .docType: return "doc"
+        }
+    }
+
+    private func create(_ chosen: [MetadataProposal]) async {
+        var failed: [String] = []
+        for proposal in chosen {
+            switch proposal.kind {
+            case .correspondent:
+                if let id = await store.createCorrespondent(name: proposal.name) { correspondent = id } else { failed.append(proposal.name) }
+            case .docType:
+                if let id = await store.createDocumentType(name: proposal.name) { documentType = id } else { failed.append(proposal.name) }
+            case .tag:
+                if let id = await store.createTag(name: proposal.name) { tags.insert(id) } else { failed.append(proposal.name) }
+            }
+        }
+        if !failed.isEmpty {
+            analysisResult = String(format: String(localized: "Nicht angelegt: %@", locale: locale),
+                                    failed.joined(separator: ", "))
         }
     }
 
@@ -176,7 +268,7 @@ struct MetadataFormSection: View {
                 correspondents: store.allCorrespondents.map { $0.safeName },
                 types: store.allDocTypes.map { $0.safeName }
             ) {
-                await applySuggestion(suggestion)
+                applySuggestion(suggestion)
                 analysisResult = "KI-Vorschläge übernommen"
                 isAnalyzing = false
                 return
@@ -201,29 +293,24 @@ struct MetadataFormSection: View {
         isAnalyzing = false
     }
 
-    /// Wendet KI-Vorschläge an; legt fehlende Tags/Sender/Typen bei Bedarf an.
-    private func applySuggestion(_ s: AISuggestion) async {
-        if let name = s.correspondent {
-            if let existing = store.allCorrespondents.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) {
-                correspondent = existing.id
-            } else if let id = await store.createCorrespondent(name: name) {
-                correspondent = id
-            }
-        }
-        if let name = s.type {
-            if let existing = store.allDocTypes.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) {
-                documentType = existing.id
-            } else if let id = await store.createDocumentType(name: name) {
-                documentType = id
-            }
-        }
-        for name in s.tags {
-            if let existing = store.allTags.first(where: { $0.safeName.localizedCaseInsensitiveCompare(name) == .orderedSame }) {
-                tags.insert(existing.id)
-            } else if let id = await store.createTag(name: name) {
-                tags.insert(id)
-            }
-        }
+    /// Übernimmt KI-Vorschläge, soweit es die Einträge schon gibt. Fehlende werden erst nach
+    /// Rückfrage angelegt (`proposalSheet`).
+    private func applySuggestion(_ s: AISuggestion) {
+        let resolved = SuggestionResolver.resolve(
+            correspondent: s.correspondent, type: s.type, tags: s.tags,
+            correspondents: store.allCorrespondents.map { ($0.id, $0.safeName) },
+            types: store.allDocTypes.map { ($0.id, $0.safeName) },
+            allTags: store.allTags.map { ($0.id, $0.safeName) }
+        )
+        if let id = resolved.correspondent { correspondent = id }
+        if let id = resolved.documentType { documentType = id }
+        tags.formUnion(resolved.tags)
         if let d = s.date { date = d }
+
+        // Im Demo-Modus gibt es keinen Server, auf dem etwas angelegt werden könnte.
+        guard !resolved.missing.isEmpty, !store.isDemoMode else { return }
+        proposals = resolved.missing
+        selectedProposals = Set(resolved.missing.map(\.id))
+        activeSheet = .proposals
     }
 }

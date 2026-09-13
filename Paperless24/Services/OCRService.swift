@@ -46,13 +46,6 @@ enum OCRService {
 
     /// PDF aus einem oder mehreren Bildern erzeugen.
     static func pdf(from images: [UIImage]) -> Data {
-        let renderer = UIGraphicsPDFRenderer()
-        return renderer.pdfData { ctx in
-            for img in images {
-                let rect = CGRect(origin: .zero, size: img.size)
-                ctx.beginPage(withBounds: rect, pageInfo: [:])
-                img.draw(in: rect)
-            }
-        }
+        ScanPDF.make(from: images)
     }
 }

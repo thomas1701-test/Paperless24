@@ -51,6 +51,8 @@ struct ContentView: View {
                 }
             }
             .preferredColorScheme(appearanceMode == 1 ? .light : (appearanceMode == 2 ? .dark : nil))
+            // Die Sperrfläche verdeckt den Inhalt nur optisch — VoiceOver las ihn darunter weiter vor.
+            .accessibilityHidden(isBlurry)
 
             if isBlurry {
                 Rectangle().fill(Material.ultraThin).ignoresSafeArea()
@@ -76,10 +78,10 @@ struct ContentView: View {
                 checkLogin()
             }
         }
-        .onChange(of: store.needsReLogin) { needs in
+        .onChange(of: store.needsReLogin) { _, needs in
             if needs { store.needsReLogin = false; appState = .login }
         }
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             switch newPhase {
             case .active:
                 if appState == .main && useFaceID {
@@ -91,6 +93,11 @@ struct ContentView: View {
                     } else {
                         withAnimation { isBlurry = false }
                     }
+                } else if authFailed {
+                    // Abbruch schon beim Kaltstart: `appState` steht noch auf `.loading`. Die
+                    // Sperrfläche mit „Entsperren" muss stehen bleiben — vorher verschwand sie
+                    // hier, und übrig blieb ein Ladekreis ohne Bedienmöglichkeit.
+                    withAnimation { isBlurry = true }
                 } else {
                     withAnimation { isBlurry = false }
                 }
@@ -141,6 +148,7 @@ struct ContentView: View {
                     // Abgebrochen oder fehlgeschlagen: gesperrt bleiben, aber einen Weg zurück
                     // anbieten. Vorher blieb der Blur ohne jede Bedienmöglichkeit stehen.
                     self.authFailed = true
+                    withAnimation { self.isBlurry = true }
                 }
             }
         }

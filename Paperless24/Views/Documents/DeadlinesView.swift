@@ -164,7 +164,7 @@ struct DeadlinesView: View {
     private func reload() async {
         isLoading = true
         entries = await store.loadDeadlines()
-        suggestions = store.deadlineSuggestions()
+        suggestions = await store.deadlineSuggestions()
         isLoading = false
     }
 

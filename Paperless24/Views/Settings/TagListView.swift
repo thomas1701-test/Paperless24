@@ -1,8 +1,38 @@
 import SwiftUI
 
+/// Kandidat für eine Löschrückfrage.
+///
+/// Tags, Sender und Typen zu löschen wirkt serverweit auf alle Dokumente und lässt sich nicht
+/// rückgängig machen — paperless-ngx hat dafür keinen Papierkorb. Bis 2.2.0 genügte eine
+/// Wischgeste.
+struct DeletionCandidate: Identifiable, Equatable {
+    let id: Int
+    let name: String
+}
+
+extension View {
+    /// Rückfrage vor dem Löschen eines Tags, Senders oder Typs.
+    func confirmMetadataDeletion(_ candidate: Binding<DeletionCandidate?>,
+                                 onConfirm: @escaping (Int) -> Void) -> some View {
+        confirmationDialog(
+            "Löschen?",
+            isPresented: Binding(get: { candidate.wrappedValue != nil },
+                                 set: { if !$0 { candidate.wrappedValue = nil } }),
+            titleVisibility: .visible,
+            presenting: candidate.wrappedValue
+        ) { item in
+            Button("Löschen", role: .destructive) { onConfirm(item.id) }
+            Button("Abbrechen", role: .cancel) {}
+        } message: { item in
+            Text("\u{201E}\(item.name)\u{201C} wird auf dem Server gelöscht und von allen Dokumenten entfernt. Das lässt sich nicht rückgängig machen.")
+        }
+    }
+}
+
 struct TagListView: View {
     @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
+    @State private var pendingDeletion: DeletionCandidate? = nil
     @State private var showSheet = false
     @State private var newName = ""
     @State private var searchText = ""
@@ -29,11 +59,12 @@ struct TagListView: View {
                 }
                 .swipeActions {
                     Button(role: .destructive) {
-                        store.deleteTag(id: entry.tag.id)
+                        pendingDeletion = DeletionCandidate(id: entry.tag.id, name: entry.tag.safeName)
                     } label: { Label("Löschen", systemImage: "trash") }
                 }
             }
         }
+        .confirmMetadataDeletion($pendingDeletion) { store.deleteTag(id: $0) }
         .searchable(text: $searchText, prompt: "Tag suchen")
         .themedSurface(palette)
         .navigationTitle("Tags")
@@ -52,6 +83,7 @@ struct TagListView: View {
 struct CorrespondentListView: View {
     @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
+    @State private var pendingDeletion: DeletionCandidate? = nil
     @State private var showSheet = false
     @State private var newName = ""
     @State private var searchText = ""
@@ -67,11 +99,12 @@ struct CorrespondentListView: View {
                 Text(c.safeName)
                     .swipeActions {
                         Button(role: .destructive) {
-                            store.deleteCorrespondent(id: c.id)
+                            pendingDeletion = DeletionCandidate(id: c.id, name: c.safeName)
                         } label: { Label("Löschen", systemImage: "trash") }
                     }
             }
         }
+        .confirmMetadataDeletion($pendingDeletion) { store.deleteCorrespondent(id: $0) }
         .searchable(text: $searchText, prompt: "Sender suchen")
         .themedSurface(palette)
         .navigationTitle("Sender")
@@ -90,6 +123,7 @@ struct CorrespondentListView: View {
 struct DocTypeListView: View {
     @Environment(\.palette) private var palette
     @EnvironmentObject var store: AppStore
+    @State private var pendingDeletion: DeletionCandidate? = nil
     @State private var showSheet = false
     @State private var newName = ""
     @State private var searchText = ""
@@ -105,11 +139,12 @@ struct DocTypeListView: View {
                 Text(t.safeName)
                     .swipeActions {
                         Button(role: .destructive) {
-                            store.deleteDocumentType(id: t.id)
+                            pendingDeletion = DeletionCandidate(id: t.id, name: t.safeName)
                         } label: { Label("Löschen", systemImage: "trash") }
                     }
             }
         }
+        .confirmMetadataDeletion($pendingDeletion) { store.deleteDocumentType(id: $0) }
         .searchable(text: $searchText, prompt: "Typ suchen")
         .themedSurface(palette)
         .navigationTitle("Typen")

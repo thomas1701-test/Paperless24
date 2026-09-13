@@ -2,7 +2,8 @@ import SwiftUI
 import WidgetKit
 
 /// Alle Darstellungs-Einstellungen an einem Ort: Farbthema, Hell/Dunkel, OLED-Schwarz,
-/// Kachelgröße und die Lese-Einstellungen für PDF und OCR-Text.
+/// Kachelgröße, die Lese-Einstellungen für PDF und OCR-Text, die Angaben in der Liste und
+/// die Sprache.
 struct AppearanceView: View {
     @Environment(\.colorScheme) private var systemScheme
 
@@ -14,6 +15,12 @@ struct AppearanceView: View {
     @AppStorage("pdfDarkMode") private var pdfDarkMode = false
     @AppStorage("readingMode") private var readingMode = false
     @AppStorage("readingFontSize") private var readingFontSize: Double = 17
+    @AppStorage("rowShowCorrespondent") private var rowShowCorrespondent = true
+    @AppStorage("rowShowDate") private var rowShowDate = true
+    @AppStorage("rowShowType") private var rowShowType = false
+    @AppStorage("rowShowASN") private var rowShowASN = false
+    @AppStorage("rowShowAdded") private var rowShowAdded = false
+    @AppStorage("appLanguage") private var appLanguage = ""
 
     @State private var selectedIcon: AppIconOption = AppIconService.current
 
@@ -123,6 +130,29 @@ struct AppearanceView: View {
                 Text("Lesen")
             } footer: {
                 Text("Der Lesemodus zeigt den erkannten Text auf warmem Papierton mit größerer Schrift.")
+            }
+
+            Section {
+                Toggle("Sender", isOn: $rowShowCorrespondent)
+                Toggle("Typ", isOn: $rowShowType)
+                Toggle("Belegdatum", isOn: $rowShowDate)
+                Toggle("Hinzugefügt am", isOn: $rowShowAdded)
+                Toggle("ASN", isOn: $rowShowASN)
+            } header: {
+                Text("Angaben in der Liste")
+            } footer: {
+                Text("Gilt für die Listenansicht. Bei einer Suche steht an dieser Stelle der Textausschnitt mit dem Suchbegriff.")
+            }
+
+            Section("Sprache") {
+                Picker("Sprache", selection: $appLanguage) {
+                    Text("🌐 Systemsprache").tag("")
+                    Text("🇩🇪 Deutsch").tag("de")
+                    Text("🇬🇧 English").tag("en")
+                    Text("🇫🇷 Français").tag("fr")
+                    Text("🇪🇸 Español").tag("es")
+                    Text("🇮🇹 Italiano").tag("it")
+                }
             }
         }
         .navigationTitle("Darstellung")

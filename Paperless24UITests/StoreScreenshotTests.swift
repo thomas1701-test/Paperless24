@@ -202,9 +202,14 @@ final class StoreScreenshotTests: XCTestCase {
 
         XCTAssertTrue(selectTab(app, "Einstellungen", "Settings"), "Einstellungen-Tab fehlt")
 
+        // Tags liegen in der Kategorie „Archiv verwalten".
+        let library = app.buttons
+            .matching(NSPredicate(format: "label BEGINSWITH[c] %@", label("Archiv", "Manage"))).firstMatch
+        for _ in 0..<4 where !library.exists { app.swipeUp() }
+        if library.waitForExistence(timeout: 8) { library.tap() }
+
         let tagsEntry = app.buttons
             .matching(NSPredicate(format: "label CONTAINS[c] %@", "Tags")).firstMatch
-        for _ in 0..<4 where !tagsEntry.exists { app.swipeUp() }
         if tagsEntry.waitForExistence(timeout: 8) {
             tagsEntry.tap()
             capture(app, "11-tags")

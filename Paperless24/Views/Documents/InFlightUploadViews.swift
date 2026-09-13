@@ -37,7 +37,7 @@ struct InFlightUploadRow: View {
 
             Spacer()
 
-            if item.isProblem {
+            if item.isProblem && item.canDismiss {
                 Button(action: onDismiss) {
                     Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
                 }
@@ -85,7 +85,7 @@ struct InFlightUploadCard: View {
                 .font(.caption2)
                 .foregroundColor(item.isProblem ? .orange : .secondary)
                 .lineLimit(2)
-            if item.isProblem {
+            if item.isProblem && item.canDismiss {
                 Button("Ausblenden", action: onDismiss)
                     .font(.caption2)
                     .buttonStyle(.plain)

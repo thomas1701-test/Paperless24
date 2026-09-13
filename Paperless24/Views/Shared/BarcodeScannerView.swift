@@ -128,13 +128,21 @@ struct ASNScannerSheet: View {
         }
     }
 
-    /// Sucht das Dokument zur Nummer im Barcode.
+    /// Die ASN in einem Barcode.
     ///
-    /// Aus dem Code wird die erste Zahlenfolge genommen: Viele Etiketten drucken ein Präfix
-    /// („ASN00042"), manche eine URL mit der Nummer am Ende.
+    /// Die **letzte** Ziffernfolge: Viele Etiketten drucken ein Präfix („ASN00042"), manche eine
+    /// URL mit der Nummer am Ende. Vorher wurden alle Ziffern aneinandergehängt — aus
+    /// `https://host:8000/asn/42` wurde ASN 800042, und womöglich öffnete sich ein fremdes
+    /// Dokument. Nur ASCII-Ziffern: `isNumber` trifft auch „²" oder „½".
+    static func asn(from payload: String) -> Int? {
+        let runs = payload.split { !("0"..."9").contains($0) }
+        guard let last = runs.last, last.count <= 9, let value = Int(last), value > 0 else { return nil }
+        return value
+    }
+
+    /// Sucht das Dokument zur Nummer im Barcode.
     private func lookUp(_ payload: String) async {
-        let digits = payload.filter(\.isNumber)
-        guard let asn = Int(digits), asn > 0 else {
+        guard let asn = Self.asn(from: payload) else {
             status = "Im Code steckt keine Nummer: \(payload)"
             isScanning = true
             return

@@ -33,28 +33,28 @@ struct RootTabView: View {
                 .tabItem { Label("Einstellungen", systemImage: "gear") }
                 .tag(3)
         }
-        .onChange(of: selectedTab) { tab in
+        .onChange(of: selectedTab) { _, tab in
             if tab == 2 { showScanner = true; selectedTab = 0 }
         }
-        .onChange(of: store.widgetOpenDocId) { id in
+        .onChange(of: store.widgetOpenDocId) { _, id in
             if id != nil { selectedTab = 0 }
         }
-        .onChange(of: store.pickerCallbackURL) { url in
+        .onChange(of: store.pickerCallbackURL) { _, url in
             if url != nil { selectedTab = 0 }
         }
-        .onChange(of: store.requestScan) { req in
+        .onChange(of: store.requestScan) { _, req in
             if req { store.requestScan = false; showScanner = true }
         }
-        .onChange(of: store.requestInbox) { req in
+        .onChange(of: store.requestInbox) { _, req in
             if req { store.requestInbox = false; selectedTab = 1 }
         }
-        .onChange(of: store.pendingSearch) { q in
+        .onChange(of: store.pendingSearch) { _, q in
             if q != nil { selectedTab = 0 }   // MainDocView übernimmt die eigentliche Suche
         }
-        .onChange(of: store.requestAskArchive) { req in
+        .onChange(of: store.requestAskArchive) { _, req in
             if req { store.requestAskArchive = false; showAskArchive = true }
         }
-        .onChange(of: store.shouldRequestReview) { req in
+        .onChange(of: store.shouldRequestReview) { _, req in
             if req {
                 store.shouldRequestReview = false
                 guard !reviewPending else { return }
