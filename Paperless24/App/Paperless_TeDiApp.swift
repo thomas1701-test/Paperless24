@@ -68,6 +68,9 @@ struct Paperless24App: App {
                         checkForSharedFile()
                         handleControlRequests()
                         NotificationService.clearBadge()
+                        store.appDidBecomeActive()
+                    } else if phase == .background {
+                        store.appDidEnterBackground()
                     }
                 }
                 // Beim Kaltstart steht die Szene je nach System schon auf `active`, dann

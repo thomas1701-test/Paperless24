@@ -521,6 +521,28 @@ class AppStore: ObservableObject {
     /// auf die Platte — bei jedem Zurück-Tippen.
     private static let autoSyncMinInterval: TimeInterval = 20
 
+    /// Wie oft die App in den Hintergrund ging. iOS friert laufende Anfragen dort ein; kommt
+    /// die App zurück, meldet `URLSession` für sie eine Zeitüberschreitung. Die sagt nichts
+    /// über das Netz — vorher schaltete genau das die App auf „Offline", zum Beispiel nach
+    /// einem kurzen Wechsel in Mail.
+    private(set) var backgroundTransitions = 0
+
+    func appDidEnterBackground() {
+        backgroundTransitions += 1
+    }
+
+    /// Zurück im Vordergrund. Vorher lud die App dabei nichts nach: War sie einmal auf
+    /// „Offline" gefallen, blieben Fehler- und Offline-Banner stehen, bis man zum
+    /// Aktualisieren zog — auch wenn das Netz längst wieder da war.
+    func appDidBecomeActive() {
+        guard !isDemoMode, !serverUrl.isEmpty, activeAccount != nil else { return }
+        if isOffline {
+            sync(silent: true)
+        } else {
+            syncIfStale()
+        }
+    }
+
     /// Epoche des laufenden Syncs. Verhindert, dass sich zwei Läufe desselben Kontos
     /// überlagern — ein abgebrochener Lauf des vorherigen Kontos blockiert den neuen nicht.
     private var runningSyncEpoch: Int? = nil
@@ -633,7 +655,9 @@ class AppStore: ObservableObject {
         // wirkte — sie erschien und verschwand bei jedem Wechsel.
         if !silent { isSyncing = true }
         let order = currentSortOrder
-        for attempt in 1...2 {
+        var attempt = 1
+        while attempt <= 2 {
+            let transitions = backgroundTransitions
             do {
                 let page = try await api.fetchDocuments(page: 1, ordering: orderingParam(order))
                 guard isCurrent(epoch) else { return }
@@ -685,12 +709,28 @@ class AppStore: ObservableObject {
                     isSyncing = false
                     return
                 }
+                // Die App war zwischendurch im Hintergrund: Die Anfrage wurde eingefroren, das
+                // Netz ist nicht das Problem. Im Vordergrund gleich neu versuchen (zählt nicht
+                // als Fehlversuch), sonst übernimmt `appDidBecomeActive()`.
+                if backgroundTransitions != transitions {
+                    guard UIApplication.shared.applicationState == .active else {
+                        isSyncing = false
+                        return
+                    }
+                    continue
+                }
                 if attempt < 2 {
                     try? await Task.sleep(nanoseconds: 2_000_000_000)
-                } else {
+                } else if error is URLError {
+                    // Server nicht erreichbar: Das sagt das Offline-Banner. Ein zweites, rotes
+                    // Banner mit „Zeitüberschreitung" wiederholte dasselbe.
                     isOffline = true
+                } else {
+                    // Server erreichbar, Antwort aber unbrauchbar (500, unlesbar) — das ist kein
+                    // Offline, sondern ein Fehler, den man sehen soll.
                     lastSyncError = error.localizedDescription
                 }
+                attempt += 1
             }
         }
         isSyncing = false
@@ -3160,7 +3200,8 @@ class AppStore: ObservableObject {
                 // Im Hintergrund nichts anstoßen: iOS friert die Anfragen ohnehin ein, und
                 // die Warteschlange wird beim nächsten Vordergrund-Sync abgearbeitet.
                 guard UIApplication.shared.applicationState == .active else { continue }
-                if hasRetryableQueueItems { sync(silent: true) }
+                // Offline: regelmäßig neu versuchen, damit die App von selbst wieder online geht.
+                if hasRetryableQueueItems || isOffline { sync(silent: true) }
             }
         }
     }

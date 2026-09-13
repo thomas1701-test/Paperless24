@@ -153,7 +153,9 @@ struct MainDocView: View {
                         }
                     }
                     .padding(.horizontal).padding(.vertical, 8)
-                    .background(Color.red)
+                    // Ohne `ignoresSafeAreaEdges: []` reicht die Farbe bis unter Kopfzeile und
+                    // Statusleiste — die ganze obere Hälfte wurde rot.
+                    .background(Color.red, ignoresSafeAreaEdges: [])
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 if store.isOffline {
@@ -161,8 +163,16 @@ struct MainDocView: View {
                         Image(systemName: "wifi.slash")
                         Text("Offline – letzte Daten werden angezeigt")
                             .font(.caption)
+                        Spacer()
+                        Button { store.sync() } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                        .accessibilityLabel("Erneut verbinden")
                     }
-                    .frame(maxWidth: .infinity).padding(6).background(Color.orange).foregroundColor(.white)
+                    .padding(.horizontal).padding(.vertical, 6)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.orange, ignoresSafeAreaEdges: [])
+                    .foregroundColor(.white)
                     .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 if store.pickerCallbackURL != nil {
@@ -183,7 +193,7 @@ struct MainDocView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(Color.purple)
+                    .background(Color.purple, ignoresSafeAreaEdges: [])
                 }
 
                 // Die Filterleiste steht immer, auch während des ersten Ladens. Erschien sie
