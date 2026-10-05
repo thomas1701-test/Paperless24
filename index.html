@@ -77,10 +77,14 @@
     <div class="changelog">
       <h2>Was ist neu</h2>
       <div class="release">
-        <div class="ver"><strong>Version 2.3.2</strong><span>05.10.2026</span></div>
+        <div class="ver"><strong>Version 2.3.3</strong><span>05.10.2026</span></div>
         <ul>
           <li>Neu: PDFs mit Passwort importieren. Die App fragt nach dem Passwort und lädt eine Kopie ohne Schutz hoch – so kann paperless-ngx den Text lesen und durchsuchbar machen, und Dublettenprüfung und Seiteneditor funktionieren. Beim Sofort-Upload öffnet sich für solche Dateien das Formular.</li>
           <li>Neu: Schon importierte Dokumente mit Passwort lassen sich in der App entsperren und ansehen. Mit „Schutz entfernen“ legt paperless-ngx ab Version 3.0 eine Fassung ohne Passwort an und liest den Text ein – Titel, Tags und alle anderen Angaben bleiben. Bei älteren Servern lädt die App auf Wunsch eine Kopie ohne Passwort hoch.</li>
+          <li>Neu: Doppelte Uploads erkennen. Vor dem Hochladen fragt die App den Server, ob genau diese Datei schon im Archiv liegt. Dann wird sie zurückgehalten, und du entscheidest: Vorhandenes öffnen, trotzdem hochladen oder verwerfen. Das gilt auch beim Sofort-Upload und beim Teilen aus anderen Apps.</li>
+          <li>Neu: paperless-ngx 3 legt doppelte Dateien standardmäßig ein zweites Mal an, statt sie abzulehnen. Die App merkt das jetzt und bietet an, das neue Dokument in den Papierkorb zu legen. Im Info-Reiter steht, welche Dokumente dieselbe Datei enthalten.</li>
+          <li>Verbessert: Was aus einem Upload geworden ist, geht nicht mehr verloren. Die App fragt nach, bis der Server fertig ist – auch nach einem App-Wechsel oder Neustart. Probleme stehen in der Übersicht unter „Uploads prüfen“, mit eingeschalteten Benachrichtigungen auch als Benachrichtigung.</li>
+          <li>Behoben: Die Rückmeldung, was der Server aus einem Upload gemacht hat, kam nie in der App an. Abgelehnte Dateien blieben dadurch unbemerkt.</li>
         </ul>
       </div>
       <div class="release">
